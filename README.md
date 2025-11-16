@@ -947,7 +947,7 @@ dingo/
 
 **Core Error Handling:**
 - 🔜 Result Type (`Result<T, E>`)
-- 🔜 Error Propagation (`?` operator)
+- ✅ Error Propagation (`?` operator) - **Now available!** [See docs](docs/features/error-propagation.md)
 - 🔜 Option Type (`Option<T>`)
 
 **Type System:**

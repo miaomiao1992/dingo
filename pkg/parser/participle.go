@@ -9,8 +9,11 @@ import (
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	dingoast "github.com/yourusername/dingo/pkg/ast"
+	dingoast "github.com/MadAppGang/dingo/pkg/ast"
 )
+
+// currentFile holds the file being converted (for tracking Dingo nodes)
+var currentFile *dingoast.File
 
 // ============================================================================
 // Participle Grammar Definitions (Simplified for Phase 1)
@@ -108,8 +111,8 @@ type MultiplyExpression struct {
 
 // UnaryExpression handles !, -, etc.
 type UnaryExpression struct {
-	Op      string             `parser:"( @( '!' | '-' )"`
-	Primary *PrimaryExpression `parser:"  @@ ) | @@"`
+	Op      string              `parser:"( @( '!' | '-' )"`
+	Postfix *PostfixExpression  `parser:"  @@ ) | @@"`
 }
 
 // PrimaryExpression is the base expression
@@ -120,6 +123,12 @@ type PrimaryExpression struct {
 	Bool    *bool              `parser:"| ( @'true' | 'false' )"`
 	Subexpr *Expression        `parser:"| '(' @@ ')'"`
 	Ident   *string            `parser:"| @Ident"`     // Ident last (most general)
+}
+
+// PostfixExpression handles postfix operators like ? and !
+type PostfixExpression struct {
+	Primary        *PrimaryExpression `parser:"@@"`
+	ErrorPropagate *bool              `parser:"@'?'?"`  // Optional ? operator
 }
 
 // CallExpression represents a function call
@@ -216,6 +225,9 @@ func (p *participleParser) convertToGoAST(dingoFile *DingoFile, file *token.File
 
 	// Create Dingo file wrapper
 	result := dingoast.NewFile(goFile)
+
+	// Set global context for tracking Dingo nodes during conversion
+	currentFile = result
 
 	// Convert imports
 	for _, imp := range dingoFile.Imports {
@@ -383,13 +395,40 @@ func (p *participleParser) convertMultiply(mul *MultiplyExpression, file *token.
 }
 
 func (p *participleParser) convertUnary(unary *UnaryExpression, file *token.File) ast.Expr {
-	primary := p.convertPrimary(unary.Primary, file)
+	postfix := p.convertPostfix(unary.Postfix, file)
 
 	if unary.Op != "" {
 		return &ast.UnaryExpr{
 			Op: stringToToken(unary.Op),
-			X:  primary,
+			X:  postfix,
 		}
+	}
+
+	return postfix
+}
+
+func (p *participleParser) convertPostfix(postfix *PostfixExpression, file *token.File) ast.Expr {
+	primary := p.convertPrimary(postfix.Primary, file)
+
+	// Check for error propagation operator
+	if postfix.ErrorPropagate != nil && *postfix.ErrorPropagate {
+		// Create ErrorPropagationExpr node
+		errExpr := &dingoast.ErrorPropagationExpr{
+			X:      primary,
+			OpPos:  primary.End(), // Position after expression
+			Syntax: dingoast.SyntaxQuestion,
+		}
+
+		// Track this Dingo node in the current file
+		// We use the primary expression as the key (placeholder in the AST)
+		// and map it to the ErrorPropagationExpr Dingo node
+		if currentFile != nil {
+			currentFile.AddDingoNode(primary, errExpr)
+		}
+
+		// Return the primary expression as a placeholder
+		// The transformer will look up the Dingo node using this expression
+		return primary
 	}
 
 	return primary

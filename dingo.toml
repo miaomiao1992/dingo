@@ -1,0 +1,17 @@
+# Dingo Project Configuration
+
+[features]
+# Error propagation syntax: "question" | "bang" | "try"
+# Default: "question" (expr?)
+error_propagation_syntax = "question"
+
+[sourcemaps]
+# Enable source map generation
+enabled = true
+
+# Source map format: "inline" | "separate" | "both" | "none"
+# - inline: Embedded as base64 comment in .go files (good for development)
+# - separate: Written to .go.map files (good for production)
+# - both: Both inline and separate files
+# - none: Disabled
+format = "inline"

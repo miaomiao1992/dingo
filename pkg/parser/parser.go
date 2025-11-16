@@ -3,7 +3,7 @@ package parser
 
 import (
 	"go/token"
-	dingoast "github.com/yourusername/dingo/pkg/ast"
+	dingoast "github.com/MadAppGang/dingo/pkg/ast"
 )
 
 // Parser is the interface that all Dingo parsers must implement

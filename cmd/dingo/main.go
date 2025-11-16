@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/yourusername/dingo/pkg/generator"
-	"github.com/yourusername/dingo/pkg/parser"
-	"github.com/yourusername/dingo/pkg/ui"
+	"github.com/MadAppGang/dingo/pkg/generator"
+	"github.com/MadAppGang/dingo/pkg/parser"
+	"github.com/MadAppGang/dingo/pkg/ui"
 )
 
 var (

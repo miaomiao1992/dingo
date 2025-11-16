@@ -8,8 +8,8 @@ import (
 	"go/printer"
 	"go/token"
 
-	dingoast "github.com/yourusername/dingo/pkg/ast"
-	"github.com/yourusername/dingo/pkg/plugin"
+	dingoast "github.com/MadAppGang/dingo/pkg/ast"
+	"github.com/MadAppGang/dingo/pkg/plugin"
 )
 
 // Generator generates Go source code from a Dingo AST

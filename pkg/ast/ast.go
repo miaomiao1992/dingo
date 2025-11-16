@@ -20,17 +20,42 @@ import (
 // ============================================================================
 // These extend go/ast with new expression types for Dingo features
 
-// ErrorPropagationExpr represents the `?` operator (expr?)
+// SyntaxStyle represents the error propagation syntax used
+type SyntaxStyle string
+
+const (
+	SyntaxQuestion SyntaxStyle = "question" // expr?
+	SyntaxBang     SyntaxStyle = "bang"     // expr!
+	SyntaxTry      SyntaxStyle = "try"      // try expr
+)
+
+// ErrorPropagationExpr represents error propagation with configurable syntax
+// Supports three syntaxes: expr?, expr!, try expr
 // Example: let user = fetchUser(id)?
 //
 // Implements ast.Expr interface so it can be used anywhere a Go expression can
 type ErrorPropagationExpr struct {
-	X    ast.Expr  // The expression being propagated (e.g., fetchUser(id))
-	QPos token.Pos // Position of the '?' token
+	X      ast.Expr    // The expression being propagated (e.g., fetchUser(id))
+	OpPos  token.Pos   // Position of the operator ('?', '!', or 'try' keyword)
+	Syntax SyntaxStyle // Which syntax was used
 }
 
-func (e *ErrorPropagationExpr) Pos() token.Pos { return e.X.Pos() }
-func (e *ErrorPropagationExpr) End() token.Pos { return e.QPos + 1 }
+func (e *ErrorPropagationExpr) Pos() token.Pos {
+	if e.Syntax == SyntaxTry {
+		return e.OpPos // For 'try expr', start at 'try'
+	}
+	return e.X.Pos() // For postfix operators, start at expression
+}
+
+func (e *ErrorPropagationExpr) End() token.Pos {
+	if e.Syntax == SyntaxTry {
+		return e.X.End() // For 'try expr', end at expression
+	}
+	return e.OpPos + 1 // For postfix operators, end after operator
+}
+
+// exprNode ensures ErrorPropagationExpr implements ast.Expr
+func (*ErrorPropagationExpr) exprNode() {}
 
 // NullCoalescingExpr represents the `??` operator (a ?? b)
 // Example: let name = user.name ?? "Unknown"
