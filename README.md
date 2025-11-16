@@ -30,6 +30,8 @@ Dingo is a language that compiles to clean, idiomatic Go code. Not some franken-
 
 Zero runtime overhead. Zero new dependencies. Zero "what's this weird thing in my transpiled code?"
 
+**Is this proven to work?** Yes. [Borgo](https://github.com/borgo-lang/borgo) (4.5k stars) already proved you can transpile to Go successfully. Dingo builds on that foundation with better IDE integration, source maps, and a pure Go implementation.
+
 ## Why should you care?
 
 Here's what the Go community has been begging for since 2009:
@@ -728,13 +730,58 @@ Best of both worlds.
 
 ### How is this different from Borgo?
 
-Borgo is awesome. They proved you can transpile Rust-like syntax to Go.
+**First: Borgo deserves massive respect.**
 
-The difference:
-- **Borgo** = Rust syntax → Go (for Rust developers who need Go's runtime)
-- **Dingo** = Go syntax + modern features (for Go developers who want better ergonomics)
+Borgo ([github.com/borgo-lang/borgo](https://github.com/borgo-lang/borgo)) proved this entire concept works. 4.5k stars. Real production users. They showed the world that transpiling to Go is viable.
 
-If you love Rust, use Borgo. If you love Go but wish it had sum types, use Dingo.
+**What Borgo proved:**
+- ✅ Transpiling modern syntax to Go actually works
+- ✅ Result/Option/pattern matching can run on Go's runtime
+- ✅ There's massive demand for Go with better ergonomics
+- ✅ Zero runtime overhead is achievable
+- ✅ You can have sum types without changing Go itself
+
+Borgo taught us WHAT to build. Now Dingo is building it BETTER.
+
+**Why Dingo is taking a different path:**
+
+| Aspect | Borgo | Dingo | Why It Matters |
+|--------|-------|-------|----------------|
+| **Syntax** | Rust-like | Go-like + enhancements | Go developers don't need to learn Rust |
+| **Implementation** | Written in Rust | Pure Go | No Rust toolchain required |
+| **Architecture** | Monolithic transpiler | Plugin-based system | Extensible, community can add features |
+| **IDE Support** | Basic/none | Full gopls proxy via LSP | Autocomplete, refactoring, diagnostics |
+| **Source Maps** | No | Yes | Error messages point to .dingo files, not generated Go |
+| **Target Audience** | Rust devs wanting Go runtime | Go devs wanting modern features | Different user base |
+| **Maintenance** | Last commit: 2023 | Active development | Community support and updates |
+| **Lambda Syntax** | Rust closures only | 4 styles (Rust/TS/Kotlin/Swift) | Pick what feels natural |
+| **Error Messages** | Point to generated Go | Point to original Dingo | Debugging actually works |
+
+**The honest truth:**
+
+Borgo is for Rust developers who need Go's deployment/runtime but don't want to give up Rust's syntax.
+
+Dingo is for Go developers who love Go but are tired of typing `if err != nil` 47 times per file.
+
+Different problems. Different solutions. Both valid.
+
+**What we're learning from Borgo:**
+- Their transpilation patterns for sum types (brilliant)
+- How they handle pattern matching (rock solid)
+- Their approach to zero-cost abstractions (perfect)
+
+**What we're doing differently:**
+- Building in Go so Go developers can contribute
+- Adding gopls integration so your IDE actually works
+- Supporting multiple lambda styles (not everyone loves Rust syntax)
+- Active maintenance and community building
+- Plugin architecture for extensibility
+
+**Use Borgo if:** You're a Rust developer stuck using Go for deployment/company reasons.
+
+**Use Dingo if:** You're a Go developer who wants Result types without learning Rust.
+
+Both projects make Go better. That's a win for everyone.
 
 ---
 
@@ -799,21 +846,47 @@ If you love Rust, use Borgo. If you love Go but wish it had sum types, use Dingo
 
 ---
 
-## The inspiration wall
+## Standing on the shoulders of giants
 
-Dingo exists because these languages proved it's possible:
+Dingo exists because these languages and projects proved it's possible:
 
-**TypeScript** — You can add type safety to an existing language without breaking the world.
+**TypeScript** — The blueprint for meta-languages.
 
-**Rust** — Result, Option, pattern matching, and `?` are *chef's kiss* perfect. We're copying all of it shamelessly.
+You can add type safety to an existing language without breaking the world. TypeScript didn't replace JavaScript, it enhanced it. Millions of developers use it daily. The entire pattern of "compile to a simpler language" comes from TypeScript's success.
 
-**Swift** — Optional types and safe navigation make nil pointer bugs basically extinct.
+**Rust** — The gold standard for type safety.
 
-**Kotlin** — Pragmatic language design. Features that actually help, not just features for features' sake.
+Result, Option, pattern matching, and the `?` operator are genuinely brilliant. We're not reinventing this wheel—we're copying Rust's homework because they got an A+. Every language that adds these features becomes better.
 
-**Borgo** — You can transpile modern syntax to Go and have it work. They proved it.
+**Swift** — Proof that nil safety works.
 
-**templ** — The gopls proxy pattern works. We're using their playbook.
+Optional types and safe navigation (`?.`) made nil pointer bugs almost extinct in Swift codebases. Apple bet their entire platform on this approach. It works. We're bringing it to Go.
+
+**Kotlin** — Pragmatism over purity.
+
+Kotlin showed you can add modern features to a language ecosystem (JVM) without destroying compatibility. Null safety, sealed classes, smart casts—all transpile to regular Java bytecode. Same playbook, different target.
+
+**Borgo** — The trailblazer that proved Go transpilation works.
+
+[Borgo](https://github.com/borgo-lang/borgo) (4.5k stars) was the first to prove you can transpile Rust-like syntax to Go successfully. They showed:
+- ✅ Result/Option types work on Go's runtime
+- ✅ Pattern matching transpiles cleanly
+- ✅ Zero runtime overhead is achievable
+- ✅ Real production users want this
+
+Borgo validated the entire concept. Without Borgo, Dingo wouldn't exist. We're building on their shoulders, improving the architecture (gopls integration, source maps, pure Go implementation), but the core idea? That's Borgo's genius.
+
+**templ** — The LSP proxy pattern.
+
+[templ](https://github.com/a-h/templ) showed how to wrap gopls as a language server proxy. They figured out the hard parts: bidirectional position mapping, protocol translation, maintaining gopls compatibility. We're using their playbook for Dingo's LSP.
+
+---
+
+**The common thread:**
+
+Every one of these projects proved that enhancing a language WITHOUT forking it is not only possible—it's the right approach. TypeScript didn't fork JavaScript. Kotlin didn't fork Java. Borgo didn't fork Go.
+
+Dingo won't either. We're making Go better by building on top of it.
 
 ---
 
