@@ -315,6 +315,16 @@ func (p *participleParser) convertToGoAST(dingoFile *DingoFile, file *token.File
 			goFile.Decls = append(goFile.Decls, p.convertFunction(decl.Func, file))
 		} else if decl.Var != nil {
 			goFile.Decls = append(goFile.Decls, p.convertVariable(decl.Var, file))
+		} else if decl.Enum != nil {
+			// Enum declarations are Dingo-specific - store as placeholder
+			enumDecl := p.convertEnum(decl.Enum, file)
+			// Create a dummy GenDecl as placeholder
+			placeholder := &ast.GenDecl{
+				Tok: token.TYPE,
+			}
+			goFile.Decls = append(goFile.Decls, placeholder)
+			// Register the enum as a Dingo node
+			result.AddDingoNode(placeholder, enumDecl)
 		}
 	}
 
@@ -555,6 +565,20 @@ func (p *participleParser) convertPrimary(primary *PrimaryExpression, file *toke
 		}
 	}
 
+	if primary.Match != nil {
+		// Match expressions are Dingo-specific
+		matchExpr := p.convertMatch(primary.Match, file)
+		// Create a placeholder call expression
+		placeholder := &ast.CallExpr{
+			Fun: &ast.Ident{Name: "__match"},
+		}
+		// Register as Dingo node
+		if p.currentFile != nil {
+			p.currentFile.AddDingoNode(placeholder, matchExpr)
+		}
+		return placeholder
+	}
+
 	// Fallback
 	return &ast.Ident{Name: "nil"}
 }
@@ -586,4 +610,152 @@ func stringToToken(s string) token.Token {
 	default:
 		return token.ILLEGAL
 	}
+}
+
+// ============================================================================
+// Sum Types Conversion Functions
+// ============================================================================
+
+func (p *participleParser) convertEnum(enum *Enum, file *token.File) *dingoast.EnumDecl {
+	enumDecl := &dingoast.EnumDecl{
+		Enum:     file.Pos(0), // Placeholder position
+		Name:     &ast.Ident{Name: enum.Name},
+		Variants: make([]*dingoast.VariantDecl, 0, len(enum.Variants)),
+	}
+
+	// Convert type parameters if present
+	if len(enum.TypeParams) > 0 {
+		enumDecl.TypeParams = &ast.FieldList{
+			List: make([]*ast.Field, 0, len(enum.TypeParams)),
+		}
+		for _, tp := range enum.TypeParams {
+			enumDecl.TypeParams.List = append(enumDecl.TypeParams.List, &ast.Field{
+				Names: []*ast.Ident{{Name: tp.Name}},
+			})
+		}
+	}
+
+	// Convert variants
+	for _, v := range enum.Variants {
+		variant := p.convertVariant(v, file)
+		enumDecl.Variants = append(enumDecl.Variants, variant)
+	}
+
+	return enumDecl
+}
+
+func (p *participleParser) convertVariant(variant *Variant, file *token.File) *dingoast.VariantDecl {
+	v := &dingoast.VariantDecl{
+		Name: &ast.Ident{Name: variant.Name},
+	}
+
+	// Determine variant kind and convert fields
+	if len(variant.TupleFields) > 0 {
+		// Tuple variant
+		v.Kind = dingoast.VariantTuple
+		v.Fields = &ast.FieldList{
+			List: make([]*ast.Field, 0, len(variant.TupleFields)),
+		}
+		for i, f := range variant.TupleFields {
+			field := &ast.Field{
+				Type: p.convertType(f.Type, file),
+			}
+			// If field has a name, use it; otherwise generate positional name
+			if f.Name != "" {
+				field.Names = []*ast.Ident{{Name: f.Name}}
+			} else {
+				field.Names = []*ast.Ident{{Name: fmt.Sprintf("_%d", i)}}
+			}
+			v.Fields.List = append(v.Fields.List, field)
+		}
+	} else if len(variant.StructFields) > 0 {
+		// Struct variant
+		v.Kind = dingoast.VariantStruct
+		v.Fields = &ast.FieldList{
+			List: make([]*ast.Field, 0, len(variant.StructFields)),
+		}
+		for _, f := range variant.StructFields {
+			v.Fields.List = append(v.Fields.List, &ast.Field{
+				Names: []*ast.Ident{{Name: f.Name}},
+				Type:  p.convertType(f.Type, file),
+			})
+		}
+	} else {
+		// Unit variant
+		v.Kind = dingoast.VariantUnit
+	}
+
+	return v
+}
+
+func (p *participleParser) convertMatch(match *Match, file *token.File) *dingoast.MatchExpr {
+	matchExpr := &dingoast.MatchExpr{
+		Match: file.Pos(0), // Placeholder position
+		Expr:  p.convertExpression(match.Expr, file),
+		Arms:  make([]*dingoast.MatchArm, 0, len(match.Arms)),
+	}
+
+	for _, arm := range match.Arms {
+		matchExpr.Arms = append(matchExpr.Arms, p.convertMatchArm(arm, file))
+	}
+
+	return matchExpr
+}
+
+func (p *participleParser) convertMatchArm(arm *MatchArm, file *token.File) *dingoast.MatchArm {
+	ma := &dingoast.MatchArm{
+		Pattern: p.convertPattern(arm.Pattern, file),
+		Arrow:   file.Pos(0), // Placeholder position
+		Body:    p.convertExpression(arm.Body, file),
+	}
+
+	if arm.Guard != nil {
+		ma.Guard = p.convertExpression(arm.Guard, file)
+	}
+
+	return ma
+}
+
+func (p *participleParser) convertPattern(pattern *MatchPattern, file *token.File) *dingoast.Pattern {
+	pat := &dingoast.Pattern{
+		PatternPos: file.Pos(0), // Placeholder position
+	}
+
+	if pattern.Wildcard {
+		// Wildcard pattern
+		pat.Wildcard = true
+		pat.Kind = dingoast.PatternWildcard
+	} else if len(pattern.TupleFields) > 0 {
+		// Tuple pattern
+		pat.Kind = dingoast.PatternTuple
+		pat.Variant = &ast.Ident{Name: pattern.VariantName}
+		pat.Fields = make([]*dingoast.FieldPattern, 0, len(pattern.TupleFields))
+		for _, b := range pattern.TupleFields {
+			pat.Fields = append(pat.Fields, &dingoast.FieldPattern{
+				Binding: &ast.Ident{Name: b.Name},
+			})
+		}
+	} else if len(pattern.StructFields) > 0 {
+		// Struct pattern
+		pat.Kind = dingoast.PatternStruct
+		pat.Variant = &ast.Ident{Name: pattern.VariantName}
+		pat.Fields = make([]*dingoast.FieldPattern, 0, len(pattern.StructFields))
+		for _, b := range pattern.StructFields {
+			binding := b.Binding
+			if binding == "" {
+				// If no explicit binding, use field name
+				binding = b.FieldName
+			}
+			pat.Fields = append(pat.Fields, &dingoast.FieldPattern{
+				FieldName: &ast.Ident{Name: b.FieldName},
+				Binding:   &ast.Ident{Name: binding},
+			})
+		}
+	} else {
+		// Unit pattern
+		pat.Kind = dingoast.PatternUnit
+		pat.Variant = &ast.Ident{Name: pattern.VariantName}
+	}
+
+	return pat
 }

@@ -4,7 +4,6 @@
   "description": "Syntax highlighting and language support for Dingo - a modern meta-language for Go",
   "version": "0.2.0",
   "publisher": "dingo",
-  "icon": "icons/dingo-icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/yourusername/dingo"
@@ -44,11 +43,7 @@
         "extensions": [
           ".dingo"
         ],
-        "configuration": "./language-configuration.json",
-        "icon": {
-          "light": "./icons/dingo-light.png",
-          "dark": "./icons/dingo-dark.png"
-        }
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
