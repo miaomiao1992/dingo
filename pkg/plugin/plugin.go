@@ -117,26 +117,39 @@ func (r *Registry) Enabled() []Plugin {
 // SortByDependencies sorts plugins based on their dependencies
 // Uses topological sort to ensure dependencies are executed before dependents
 func (r *Registry) SortByDependencies() error {
-	// Build dependency graph
-	graph := make(map[string][]string)
+	// Build dependency graph (reverse edges)
+	// If B depends on A, create edge A -> B
+	dependents := make(map[string][]string) // A -> [B, C] means B and C depend on A
 	inDegree := make(map[string]int)
 
-	for name, plugin := range r.plugins {
-		graph[name] = plugin.Dependencies()
+	// Initialize all plugins
+	for name := range r.plugins {
 		if _, exists := inDegree[name]; !exists {
 			inDegree[name] = 0
 		}
-		for _, dep := range plugin.Dependencies() {
-			inDegree[dep]++
+		if _, exists := dependents[name]; !exists {
+			dependents[name] = []string{}
+		}
+	}
+
+	// Build graph
+	for name, plugin := range r.plugins {
+		deps := plugin.Dependencies()
+		inDegree[name] = len(deps)
+
+		for _, dep := range deps {
+			// dep is a dependency of name
+			// So create edge dep -> name
+			dependents[dep] = append(dependents[dep], name)
 		}
 	}
 
 	// Topological sort using Kahn's algorithm
 	queue := make([]string, 0)
 
-	// Find all nodes with no incoming edges
-	for name := range r.plugins {
-		if inDegree[name] == 0 {
+	// Find all nodes with no incoming edges (no dependencies)
+	for name, degree := range inDegree {
+		if degree == 0 {
 			queue = append(queue, name)
 		}
 	}
@@ -152,14 +165,12 @@ func (r *Registry) SortByDependencies() error {
 		queue = queue[1:]
 		result = append(result, node)
 
-		// Remove edges
-		if deps, ok := graph[node]; ok {
-			for _, dep := range deps {
-				inDegree[dep]--
-				if inDegree[dep] == 0 {
-					queue = append(queue, dep)
-					sort.Strings(queue) // Keep deterministic
-				}
+		// For each dependent of this node
+		for _, dependent := range dependents[node] {
+			inDegree[dependent]--
+			if inDegree[dependent] == 0 {
+				queue = append(queue, dependent)
+				sort.Strings(queue) // Keep deterministic
 			}
 		}
 	}
