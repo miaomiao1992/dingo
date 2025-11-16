@@ -2,13 +2,17 @@ package main
 
 func loadData(path string) (map[string]interface{}, error) {
 	data, __err0 := ReadFile(path)
+	// DINGO:GENERATED:START error_propagation
 	if __err0 != nil {
 		return nil, __err0
 	}
+	// DINGO:GENERATED:END
 	var result map[string]interface{}
 	err, __err1 := Unmarshal(data, &result)
+	// DINGO:GENERATED:START error_propagation
 	if __err1 != nil {
 		return nil, __err1
 	}
+	// DINGO:GENERATED:END
 	return result, nil
 }

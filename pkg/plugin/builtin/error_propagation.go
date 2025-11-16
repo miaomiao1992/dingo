@@ -34,6 +34,7 @@ type ErrorPropagationPlugin struct {
 	// State for current transformation
 	currentFile     *dingoast.File
 	currentFunction *ast.FuncDecl
+	currentContext  *plugin.Context
 	needsFmtImport  bool
 
 	// Counters for unique variable names
@@ -64,6 +65,42 @@ func NewErrorPropagationPlugin() *ErrorPropagationPlugin {
 	}
 }
 
+// markerCommentStmt is a custom statement type that represents a marker comment
+// It will be handled specially during AST printing
+type markerCommentStmt struct {
+	Text string
+}
+
+func (m *markerCommentStmt) Pos() token.Pos { return token.NoPos }
+func (m *markerCommentStmt) End() token.Pos { return token.NoPos }
+
+// We need to implement the ast.Stmt interface marker method
+func (*markerCommentStmt) stmtNode() {}
+
+// wrapWithMarkers wraps statements with DINGO:GENERATED marker comments
+// Returns wrapped statements if markers are enabled, otherwise returns original statements
+func (p *ErrorPropagationPlugin) wrapWithMarkers(statements []ast.Stmt, markerType string) []ast.Stmt {
+	if len(statements) == 0 {
+		return statements
+	}
+
+	// Check if markers are enabled in config
+	if p.currentContext != nil && p.currentContext.Config != nil && !p.currentContext.Config.EmitGeneratedMarkers {
+		return statements
+	}
+
+	// For now, we'll use a pragmatic approach: insert empty statements with special comments
+	// These will need post-processing after AST generation
+	//
+	// A better approach would be to use CommentMap, but that requires changes to the generator
+	// For Week 1 MVP, we'll document this as a known limitation
+
+	// TODO: Implement proper comment injection using ast.CommentMap
+	// For now, return statements as-is and add markers via post-processing
+
+	return statements
+}
+
 // Name returns the plugin name
 func (p *ErrorPropagationPlugin) Name() string {
 	return "error_propagation"
@@ -75,6 +112,9 @@ func (p *ErrorPropagationPlugin) Transform(ctx *plugin.Context, node ast.Node) (
 	if !ok {
 		return node, nil
 	}
+
+	// Store context for marker generation
+	p.currentContext = ctx
 
 	// Get the Dingo file wrapper to access DingoNodes map
 	if ctx.CurrentFile != nil {

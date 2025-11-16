@@ -2,12 +2,20 @@ package main
 
 func processData(path string) (int, error) {
 	data, __err0 := ReadFile(path)
+	// DINGO:GENERATED:START error_propagation
+
 	if __err0 != nil {
 		return 0, __err0
 	}
+
+	// DINGO:GENERATED:END
 	__tmp1, __err1 := Atoi(string(data))
+	// DINGO:GENERATED:START error_propagation
+
 	if __err1 != nil {
 		return 0, __err1
 	}
+
+	// DINGO:GENERATED:END
 	return __tmp1
 }

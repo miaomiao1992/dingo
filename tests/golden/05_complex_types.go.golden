@@ -7,15 +7,23 @@ type User struct {
 
 func fetchUser(id int) (*User, error) {
 	data, __err0 := ReadFile("user.json")
+	// DINGO:GENERATED:START error_propagation
+
 	if __err0 != nil {
 		return nil, __err0
 	}
+
+	// DINGO:GENERATED:END
 	return &User{ID: id, Name: string(data)}, nil
 }
 func getNames() ([]string, error) {
 	data, __err1 := ReadFile("names.txt")
+	// DINGO:GENERATED:START error_propagation
+
 	if __err1 != nil {
 		return nil, __err1
 	}
+
+	// DINGO:GENERATED:END
 	return []string{string(data)}, nil
 }

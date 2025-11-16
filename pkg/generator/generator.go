@@ -38,7 +38,9 @@ func NewWithPlugins(fset *token.FileSet, registry *plugin.Registry, logger plugi
 	ctx := &plugin.Context{
 		FileSet:     fset,
 		TypeInfo:    nil, // TODO: Add type information when available
-		Config:      &plugin.Config{},
+		Config:      &plugin.Config{
+			EmitGeneratedMarkers: true, // Default: enabled
+		},
 		Registry:    registry,
 		Logger:      logger,
 		CurrentFile: nil, // Will be set during transformation
@@ -108,5 +110,20 @@ func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
 		return buf.Bytes(), nil
 	}
 
-	return formatted, nil
+	// Step 5: Inject DINGO:GENERATED markers (post-processing)
+	markersEnabled := true // Default
+	if g.pipeline != nil && g.pipeline.Ctx != nil && g.pipeline.Ctx.Config != nil {
+		markersEnabled = g.pipeline.Ctx.Config.EmitGeneratedMarkers
+	}
+
+	injector := NewMarkerInjector(markersEnabled)
+	withMarkers, err := injector.InjectMarkers(formatted)
+	if err != nil {
+		if g.logger != nil {
+			g.logger.Warn("Failed to inject markers: %v", err)
+		}
+		return formatted, nil // Return without markers on error
+	}
+
+	return withMarkers, nil
 }

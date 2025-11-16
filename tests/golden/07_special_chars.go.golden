@@ -4,8 +4,12 @@ import "fmt"
 
 func readWithMessage(path string) ([]byte, error) {
 	data, __err0 := ReadFile(path)
+	// DINGO:GENERATED:START error_propagation
+
 	if __err0 != nil {
 		return nil, fmt.Errorf("failed to read \\\"important\\\" file: %w", __err0)
 	}
+
+	// DINGO:GENERATED:END
 	return data, nil
 }

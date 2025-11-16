@@ -2,8 +2,10 @@ package main
 
 func parseInt(s string) (int, error) {
 	__tmp0, __err0 := Atoi(s)
+	// DINGO:GENERATED:START error_propagation
 	if __err0 != nil {
 		return 0, __err0
 	}
+	// DINGO:GENERATED:END
 	return __tmp0
 }

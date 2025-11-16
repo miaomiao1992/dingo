@@ -44,8 +44,9 @@ type Context struct {
 
 // Config holds configuration for all plugins
 type Config struct {
-	EnabledPlugins []string           // List of enabled plugin names
-	PluginOptions  map[string]Options // Plugin-specific options
+	EnabledPlugins        []string           // List of enabled plugin names
+	PluginOptions         map[string]Options // Plugin-specific options
+	EmitGeneratedMarkers  bool               // Whether to emit DINGO:GENERATED markers (default: true)
 }
 
 // Options is a map of configuration options for a plugin

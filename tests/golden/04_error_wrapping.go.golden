@@ -5,8 +5,10 @@ import "fmt"
 func readUserConfig(username string) ([]byte, error) {
 	path := "/home/" + username + "/config.json"
 	data, __err0 := ReadFile(path)
+	// DINGO:GENERATED:START error_propagation
 	if __err0 != nil {
 		return nil, fmt.Errorf("failed to read user config: %w", __err0)
 	}
+	// DINGO:GENERATED:END
 	return data, nil
 }
