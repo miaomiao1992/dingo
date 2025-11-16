@@ -1,91 +1,583 @@
 # Dingo
 
-A meta-language for Go that reduces boilerplate while maintaining full compatibility with the Go ecosystem and tooling.
+<p align="center">
+  <img src="docs/mascot.png" alt="Dingo mascot" width="200"/>
+</p>
 
-## What is Dingo?
+<p align="center">
+  <strong>Go, but with all the features you actually wanted.</strong>
+</p>
 
-Dingo is a TypeScript-for-Go approach: a language that transpiles to idiomatic Go code while providing enhanced error handling, null safety, and modern language features. Like TypeScript, Dingo compiles to standard Go with zero runtime overhead.
+---
 
-## Core Philosophy
+## Look, I love Go. But...
 
-- **Zero Runtime Overhead**: Transpiles to clean, idiomatic Go code
-- **Full Go Compatibility**: Works seamlessly with existing Go packages and tools
-- **IDE-First Design**: Maintains full gopls integration
-- **Simplicity Over Complexity**: Only adds features that meaningfully reduce boilerplate
+You know that feeling when you're writing Go and you type `if err != nil` for the 47th time in a single file?
 
-## Architecture
+Or when you forget to check for nil and your production server learns what a panic feels like?
 
-**Two-Component System:**
+Or when you're explaining to a Rust developer why Go doesn't have sum types and they look at you like you just said "we don't believe in seatbelts"?
 
-1. **Transpiler** (`dingo build`) - Converts `.dingo` files to `.go` files with source maps
-2. **Language Server** (`dingo-lsp`) - Wraps gopls to provide full IDE support
+Yeah. That's why Dingo exists.
 
-## Planned Features
+## What's Dingo?
 
-- **Enhanced Error Handling**: `Result<T, E>` type and `?` operator
-- **Null Safety**: `Option<T>` type
-- **Pattern Matching**: Exhaustive `match` expressions
-- **Sum Types**: Algebraic data types via `enum`
+Think TypeScript, but for Go.
 
-## Example
+Dingo is a language that compiles to clean, idiomatic Go code. Not some franken-runtime or a whole new ecosystem. Just better syntax that becomes regular Go.
 
-```dingo
-fn fetchUser(id: int) Result<User, Error> {
-    data := api.get("/users/" + id)?
-    user := parseUser(data)?
-    Ok(user)
-}
-```
+**The pitch:** Write code with Result types, pattern matching, and null safety. Get back perfect Go code that your team can read, your tools can process, and your production servers can run at exactly the same speed.
 
-Transpiles to clean, idiomatic Go:
+Zero runtime overhead. Zero new dependencies. Zero "what's this weird thing in my transpiled code?"
+
+## Why should you care?
+
+Here's what the Go community has been begging for since 2009:
+
+| What developers want | How badly | What Dingo gives you |
+|---------------------|-----------|---------------------|
+| Stop typing `if err != nil` every 3 lines | ⭐⭐⭐⭐⭐ | `Result<T, E>` + the `?` operator |
+| Stop shipping nil pointer panics | ⭐⭐⭐⭐⭐ | `Option<T>` type that the compiler actually checks |
+| Sum types (seriously, it's been 15 years) | ⭐⭐⭐⭐⭐ 996+ 👍 | `enum` with pattern matching |
+| Enums that can't be invalid | ⭐⭐⭐⭐⭐ 900+ 👍 | Type-safe enums with exhaustiveness |
+| Lambda functions that don't take 4 lines | ⭐⭐⭐⭐ 750+ 👍 | `\|x\| x * 2` like a normal language |
+
+The Go team has valid reasons for rejecting these features. They're not wrong about simplicity.
+
+But here's the thing: **Dingo doesn't change Go.** We just compile to it.
+
+Want sum types? Great. They become tagged structs in Go.
+Want the `?` operator? Cool. It becomes `if err != nil` checks.
+Want pattern matching? Done. It's a switch statement underneath.
+
+Your Go code stays pure. Your Dingo code stays sane.
+
+---
+
+## Show me code or I'm leaving
+
+Fair enough.
+
+### The "if err != nil" problem
+
+**What you write in Go today:**
 
 ```go
-func fetchUser(id int) (User, error) {
-    data, err := api.get("/users/" + id)
+func processOrder(orderID string) (*Order, error) {
+    order, err := fetchOrder(orderID)
     if err != nil {
-        return User{}, err
+        return nil, fmt.Errorf("fetch failed: %w", err)
     }
-    user, err := parseUser(data)
+
+    validated, err := validateOrder(order)
     if err != nil {
-        return User{}, err
+        return nil, fmt.Errorf("validation failed: %w", err)
     }
-    return user, nil
+
+    payment, err := processPayment(validated)
+    if err != nil {
+        return nil, fmt.Errorf("payment failed: %w", err)
+    }
+
+    return payment, nil
 }
 ```
 
-## Status
+75% of this function is error handling ceremony. The actual logic is hiding somewhere in there.
 
-**Current Stage: Research Complete → Moving to Implementation**
+**What you write in Dingo:**
 
-We've completed comprehensive research on meta-language architecture, Go AST manipulation, and language server design. Next phase: building the core transpiler.
+```dingo
+func processOrder(orderID: string) -> Result<Order, Error> {
+    let order = fetchOrder(orderID)?
+    let validated = validateOrder(order)?
+    let payment = processPayment(validated)?
+    return Ok(payment)
+}
+```
 
-## Roadmap
+Same safety. Same error handling. 60% less code.
 
-1. **Phase 1**: Core Transpiler (3 months)
-2. **Phase 2**: Source Mapping (1 month)
-3. **Phase 3**: Basic Language Server (2 months)
-4. **Phase 4**: IDE Features (3 months)
-5. **Phase 5**: Enhanced Features (2 months)
-6. **Phase 6**: Polish & Release (2 months)
+The `?` just means "if this is an error, return it. Otherwise, unwrap the value and keep going." That's it. That's the entire feature.
 
-**Estimated Timeline**: 12-15 months to v1.0
+Rust developers have been using this for 8 years. They love it so much they put it on t-shirts.
 
-## Inspirations
+---
 
-- **TypeScript**: Meta-language architecture and tooling
-- **Borgo**: Rust-inspired syntax transpiling to Go
-- **templ**: gopls proxy pattern
-- **Goa**: Production code generation
+## Features that'll make you smile
 
-## Why Dingo?
+### 1. Result Type — Error handling for grown-ups
 
-Go is excellent, but has pain points:
-- Verbose error handling
-- Nil pointer risks
-- Lack of sum types and pattern matching
+Stop returning `(value, error)` tuples and hoping callers remember to check both.
 
-Dingo addresses these while maintaining Go's simplicity and ecosystem compatibility.
+```dingo
+func fetchUser(id: string) -> Result<User, DatabaseError> {
+    if !isValidID(id) {
+        return Err(DatabaseError.invalidID(id))
+    }
 
-## License
+    let user = database.query(id)
+    return Ok(user)
+}
 
-TBD
+// The compiler forces you to handle both cases
+match fetchUser("123") {
+    Ok(user) => println("Found: ${user.name}"),
+    Err(error) => println("Database said no: ${error.message}")
+}
+```
+
+Your function signature now tells you exactly what can go wrong. No surprises. No "oh, I didn't know this could return an error."
+
+### 2. Error Propagation (`?`) — Because life's too short
+
+This one's from Rust, and it's honestly genius.
+
+```dingo
+func getUserProfile(userID: string) -> Result<Profile, Error> {
+    let user = fetchUser(userID)?          // Returns error if this fails
+    let posts = fetchPosts(user.ID)?       // Or this
+    let comments = fetchComments(user.ID)? // Or this
+
+    return Ok(Profile{user, posts, comments})
+}
+```
+
+Every `?` is an escape hatch. Hit an error? Jump straight to the return. Got a value? Keep going.
+
+It's like `try/catch` but without the invisible control flow that makes you question your life choices.
+
+### 3. Option Type — Nil pointers are a billion-dollar mistake
+
+Tony Hoare (the guy who invented null references) literally apologized for it. Called it his "billion-dollar mistake."
+
+We don't have to keep living with that mistake.
+
+```dingo
+func findUser(email: string) -> Option<User> {
+    let users = db.query("SELECT * FROM users WHERE email = ?", email)
+    if users.isEmpty() {
+        return None
+    }
+    return Some(users[0])
+}
+
+// Safe navigation like it's 2024
+let city = user?.address?.city?.name ?? "Unknown"
+
+// Compiler won't let you forget to check
+match findUser("test@example.com") {
+    Some(user) => sendEmail(user),
+    None => println("Who dis?")
+}
+```
+
+Can't accidentally dereference `None`. The type system literally won't let you compile if you forget to handle it.
+
+How many production panics would this have prevented in your codebase? I'll wait.
+
+### 4. Pattern Matching — Switch statements grew up
+
+Go's switch is fine. But imagine if it could do *this*:
+
+```dingo
+enum HttpResponse {
+    Ok(body: string),
+    NotFound,
+    ServerError{code: int, message: string},
+    Redirect(url: string)
+}
+
+func handleResponse(resp: HttpResponse) -> string {
+    match resp {
+        Ok(body) => "Success: ${body}",
+        NotFound => "404: Not found",
+        ServerError{code, message} => "Error ${code}: ${message}",
+        Redirect(url) => "Redirecting to ${url}"
+        // Forget a case? Compiler yells at you
+    }
+}
+```
+
+Exhaustiveness checking means the compiler knows every possible case. Miss one? Won't compile.
+
+No more "oh crap, we didn't handle the timeout case" at 2 AM.
+
+### 5. Sum Types — The #1 requested feature in Go history
+
+996 upvotes on the Go proposal. That's not just popular, that's "the entire community is screaming for this."
+
+```dingo
+enum State {
+    Idle,
+    Loading{progress: float},
+    Success{data: string},
+    Error{message: string}
+}
+
+func render(state: State) -> string {
+    match state {
+        Idle => "Ready when you are",
+        Loading{progress} if progress < 50 => "Just getting started...",
+        Loading{progress} => "Loading: ${progress}%",
+        Success{data} => showSuccess(data),
+        Error{message} => showError(message)
+    }
+}
+```
+
+A value can be one of several types. The compiler tracks which one. You can't mess it up.
+
+This is how Rust does enums. How Swift does enums. How Kotlin does sealed classes. How TypeScript does discriminated unions.
+
+Everyone has this except Go. Until now.
+
+### 6. Lambda Functions — Because verbose function literals hurt
+
+**Go makes you write:**
+```go
+users := Filter(users, func(u User) bool {
+    return u.Age > 18
+})
+```
+
+**Dingo lets you write:**
+```dingo
+users.filter(|u| u.age > 18)
+    .map(|u| u.name)
+    .sorted()
+```
+
+Same functionality. 70% less code. Infinitely more readable.
+
+You can even do Kotlin-style trailing lambdas with implicit `it`:
+```dingo
+users.filter { it.age > 18 }.map { it.name }
+```
+
+This is just nicer. That's the whole argument.
+
+### 7. Null Safety Operators — Chain nil checks like a human
+
+**The Go way:**
+```go
+var city string
+if user != nil && user.Address != nil && user.Address.City != nil {
+    city = *user.Address.City
+} else {
+    city = "Unknown"
+}
+```
+
+**The Dingo way:**
+```dingo
+let city = user?.address?.city?.name ?? "Unknown"
+```
+
+One line. Same safety. Your eyes will thank you.
+
+### 8. Ternary Operator — Yes, we're going there
+
+Go rejected this. We're adding it anyway.
+
+```dingo
+let max = a > b ? a : b
+let status = isActive ? "online" : "offline"
+println("You have ${count} item${count == 1 ? "" : "s"}")
+```
+
+Every. Single. Modern. Language. Has. This.
+
+C has it. Java has it. JavaScript has it. Python has it. Swift has it. Even PHP has it.
+
+Go's reason for not having it? "We only need one conditional construct."
+
+Cool. You do you, Go. We'll be over here with our one-liners.
+
+---
+
+## How does this actually work?
+
+Two-part system, just like TypeScript:
+
+### The Transpiler (`dingo build`)
+
+Takes your `.dingo` files. Parses them. Transforms them to Go AST. Spits out `.go` files and source maps.
+
+The generated Go code looks like what you'd write by hand. Not some machine-generated nightmare.
+
+### The Language Server (`dingo-lsp`)
+
+Wraps gopls (Go's language server). Intercepts LSP requests. Translates positions using source maps. Forwards to gopls.
+
+You get autocomplete, go-to-definition, diagnostics, refactoring — everything gopls does. In VS Code, Neovim, whatever you use.
+
+Your editor thinks it's editing Go. Your terminal thinks it's compiling Go. Only you know you're actually writing Dingo.
+
+---
+
+## What the generated code looks like
+
+Let's see what actually comes out of the transpiler.
+
+**You write this Dingo:**
+
+```dingo
+func findUser(email: string) -> Option<User> {
+    let users = db.query("SELECT * FROM users WHERE email = ?", email)
+    if users.isEmpty() {
+        return None
+    }
+    return Some(users[0])
+}
+
+match findUser("test@example.com") {
+    Some(user) => sendEmail(user),
+    None => println("Not found")
+}
+```
+
+**Dingo generates this Go:**
+
+```go
+type OptionUser struct {
+    value *User
+    isSet bool
+}
+
+func findUser(email string) OptionUser {
+    users := db.query("SELECT * FROM users WHERE email = ?", email)
+    if users.isEmpty() {
+        return OptionUser{isSet: false}
+    }
+    return OptionUser{value: &users[0], isSet: true}
+}
+
+__opt := findUser("test@example.com")
+if __opt.isSet {
+    user := *__opt.value
+    sendEmail(user)
+} else {
+    fmt.Println("Not found")
+}
+```
+
+Clean. Readable. Exactly what you'd write if you were implementing Option types by hand in Go.
+
+No magic. No runtime library. Just structs and if statements.
+
+---
+
+## Your questions, answered
+
+### Is this ready to use right now?
+
+No. We're in Phase 1 of development.
+
+The research is done. The architecture is designed. The features are planned. Now we're building.
+
+Want to follow along? Star the repo. We'll make noise when it's ready.
+
+### Will my existing Go code work with this?
+
+Yes. 100%.
+
+Import any Go package into Dingo. Call any Go function. Use any Go library. It all just works.
+
+You can even mix `.go` and `.dingo` files in the same project. Migrate gradually. No big-bang rewrite required.
+
+### What about performance?
+
+Dingo compiles to Go. Go compiles to machine code. Same machine code.
+
+Zero runtime overhead. No wrapper library. No reflection tricks. No performance penalty.
+
+If your Go code runs fast, your Dingo code runs at exactly the same speed. Because it *is* Go code.
+
+### Why not just wait for Go to add these features?
+
+The Go team has been saying no to sum types for 15 years. They're not changing their minds.
+
+And honestly? They're probably right *for Go*. These features add complexity. Go values simplicity.
+
+But Dingo isn't Go. We're a meta-language. We can add features that transpile to simple Go underneath.
+
+Best of both worlds.
+
+### How is this different from Borgo?
+
+Borgo is awesome. They proved you can transpile Rust-like syntax to Go.
+
+The difference:
+- **Borgo** = Rust syntax → Go (for Rust developers who need Go's runtime)
+- **Dingo** = Go syntax + modern features (for Go developers who want better ergonomics)
+
+If you love Rust, use Borgo. If you love Go but wish it had sum types, use Dingo.
+
+---
+
+## Roadmap (the realistic version)
+
+### Phase 1: Core Transpiler — 8-10 weeks
+- ✅ Research complete
+- 🔨 Building sum types right now
+- 🔜 Result and Option types
+- 🔜 Pattern matching
+- 🔜 The `?` operator
+
+**Goal:** Ship something you can actually use to solve Go's error handling problem.
+
+### Phase 2: Ergonomics — 6-8 weeks
+- Null safety operators (`?.`, `??`)
+- Lambda functions
+- Map/filter/reduce
+- Tuples
+- Type-safe enums
+
+**Goal:** Make writing Dingo feel modern without being weird.
+
+### Phase 3: Advanced Features — 4-6 weeks
+- Immutability
+- Ternary operator
+- Pattern guards
+- Advanced destructuring
+
+**Goal:** Feature parity with Swift/Kotlin for type safety.
+
+### Phase 4: Language Server — 8-10 weeks
+- gopls proxy working
+- Source maps translating perfectly
+- Full IDE integration
+
+**Goal:** Developer experience that matches or beats regular Go.
+
+### Phase 5: Polish & Ship — 4-6 weeks
+- Documentation you'll actually read
+- Examples that don't suck
+- Real-world testing
+- Community feedback
+
+**Target:** v1.0 in about **12-15 months**.
+
+---
+
+## What Dingo adds (and what it doesn't)
+
+### We're adding:
+✅ Type safety that prevents bugs at compile time
+✅ Modern ergonomics that reduce boilerplate
+✅ Features that are proven in Rust/Swift/Kotlin
+✅ Zero-cost abstractions (transpiles to clean Go)
+
+### We're NOT adding:
+❌ Runtime dependencies (it's just Go underneath)
+❌ Magic behavior (no operator overloading, fight me)
+❌ Ecosystem fragmentation (works with all Go packages)
+❌ Unnecessary complexity (if Go's way is fine, we keep it)
+
+---
+
+## The inspiration wall
+
+Dingo exists because these languages proved it's possible:
+
+**TypeScript** — You can add type safety to an existing language without breaking the world.
+
+**Rust** — Result, Option, pattern matching, and `?` are *chef's kiss* perfect. We're copying all of it shamelessly.
+
+**Swift** — Optional types and safe navigation make nil pointer bugs basically extinct.
+
+**Kotlin** — Pragmatic language design. Features that actually help, not just features for features' sake.
+
+**Borgo** — You can transpile modern syntax to Go and have it work. They proved it.
+
+**templ** — The gopls proxy pattern works. We're using their playbook.
+
+---
+
+## Can I help?
+
+Yes. Here's how:
+
+🌟 **Star the repo** — Shows us people actually want this
+
+💡 **Open issues** — Got ideas? Complaints? Weird edge cases? Tell us.
+
+📖 **Improve docs** — If something's confusing, it's our fault. Help us fix it.
+
+🔨 **Write code** — Check issues tagged "good first issue"
+
+Before you write code, open an issue first. Let's chat about the approach. Saves everyone time.
+
+---
+
+## Project structure (for the curious)
+
+```
+dingo/
+├── cmd/               # CLI tools (dingo build, dingo-lsp)
+├── internal/          # The actual transpiler
+│   ├── parser/        # Dingo → AST
+│   ├── typechecker/   # Make sure your types make sense
+│   ├── transpiler/    # AST → Go code
+│   └── lsp/           # Language server magic
+├── features/          # Feature proposals (read INDEX.md)
+├── docs/              # Documentation
+└── examples/          # Example code
+```
+
+**Important files:**
+- `features/INDEX.md` — Every planned feature with priorities and complexity
+- `CLAUDE.md` — Project context (yes, we use AI for help)
+- `ai-docs/` — Research notes and architecture decisions
+
+---
+
+## Current status
+
+**Where we are:** Phase 0 → Phase 1 transition
+
+✅ Research done
+🔨 Sum types implementation in progress
+🔜 Result/Option types next
+🔜 Pattern matching after that
+
+**Timeline:** MVP in about **8-10 weeks** if everything goes smoothly.
+
+(It never goes smoothly, so add 30%. That's project management.)
+
+---
+
+## One more thing
+
+Go is an amazing language. This isn't a "Go sucks" project.
+
+But languages evolve. JavaScript got classes. C++ got lambdas. Even Python added type hints.
+
+Go's evolving too — they added generics in 1.18.
+
+Dingo is just evolution they won't add themselves. Sum types. Pattern matching. Result types. The stuff the community keeps asking for.
+
+We're not changing Go. We're building on top of it.
+
+And maybe, just maybe, making your codebase a little bit nicer to work with.
+
+---
+
+<p align="center">
+  <strong>Built with 🦴 by developers who love Go but also love sum types.</strong>
+</p>
+
+<p align="center">
+  <em>Dingo: Because you can love Go and still want better error handling.</em>
+</p>
+
+---
+
+**License:** TBD (probably MIT or Apache 2.0)
+
+**GitHub:** [github.com/MadAppGang/dingo](https://github.com/MadAppGang/dingo)
+
+**Community:** GitHub issues · Discussions coming soon
+
+**Status:** In development · Not ready for production · Star to follow progress
