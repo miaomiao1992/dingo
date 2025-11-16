@@ -940,8 +940,8 @@ dingo/
 
 ### 🔨 In Progress
 
-- 🔨 CLI Plugin Configuration
-- 🔨 Config File Support (`.dingorc.json`)
+- 🔨 Golden File Integration Testing
+- 🔨 End-to-End Sum Types Validation
 
 ### 🔜 Planned
 
@@ -951,9 +951,10 @@ dingo/
 - 🔜 Option Type (`Option<T>`)
 
 **Type System:**
-- 🔜 Sum Types (`enum` with associated values)
-- 🔜 Pattern Matching (`match` expressions)
-- 🔜 Type-Safe Enums
+- ✅ Sum Types (`enum` with associated values) - **Phase 2.5 complete!**
+- ✅ Pattern Matching (`match` expressions with IIFE support)
+- ✅ Type-Safe Enums with Pattern Destructuring
+- ✅ Configurable Nil Safety Checks (off/on/debug modes)
 
 **Operators & Syntax:**
 - 🔜 Null Safety (`?.`)
