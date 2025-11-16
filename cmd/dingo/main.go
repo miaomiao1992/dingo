@@ -28,7 +28,25 @@ It provides Result/Option types, pattern matching, error propagation,
 and other quality-of-life features while maintaining 100% Go ecosystem compatibility.`,
 		Version: version,
 		SilenceUsage: true, // Don't show usage on errors
+		Run: func(cmd *cobra.Command, args []string) {
+			// Show colorful help when no command is provided
+			ui.PrintDingoHelp(version)
+		},
 	}
+
+	// Override help flag to use our custom help
+	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		ui.PrintDingoHelp(version)
+	})
+
+	// Set custom help command
+	rootCmd.SetHelpCommand(&cobra.Command{
+		Use:   "help [command]",
+		Short: "Help about any command",
+		Run: func(cmd *cobra.Command, args []string) {
+			ui.PrintDingoHelp(version)
+		},
+	})
 
 	rootCmd.AddCommand(buildCmd())
 	rootCmd.AddCommand(runCmd())

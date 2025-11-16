@@ -362,3 +362,54 @@ func ProgressBar(current, total int, width int) string {
 func Divider() string {
 	return styleMuted.Render(strings.Repeat("─", 60))
 }
+
+// PrintDingoHelp prints colorful help output
+func PrintDingoHelp(version string) {
+	// Styles
+	header := lipgloss.NewStyle().Bold(true).Foreground(colorPrimary)
+	muted := lipgloss.NewStyle().Foreground(colorMuted)
+	desc := lipgloss.NewStyle().Foreground(colorText)
+	section := lipgloss.NewStyle().Bold(true).Foreground(colorSecondary)
+	command := lipgloss.NewStyle().Foreground(colorSuccess)
+	flag := lipgloss.NewStyle().Foreground(colorHighlight)
+
+	// Header
+	fmt.Println()
+	fmt.Println(header.Render("🐕 Dingo") + " " + muted.Render("- A meta-language for Go"))
+	fmt.Println(muted.Render("  v" + version))
+	fmt.Println()
+
+	// Description
+	fmt.Println(desc.Render("Dingo transpiles to idiomatic Go code with Result/Option types,"))
+	fmt.Println(desc.Render("pattern matching, error propagation, and 100% Go compatibility."))
+	fmt.Println()
+
+	// Usage
+	fmt.Println(section.Render("Usage:"))
+	fmt.Println("  dingo [command] [flags]")
+	fmt.Println()
+
+	// Commands
+	fmt.Println(section.Render("Available Commands:"))
+	commands := []struct{ name, desc string }{
+		{"build", "Transpile Dingo source files to Go"},
+		{"run", "Compile and run a Dingo program"},
+		{"version", "Print the version number of Dingo"},
+		{"help", "Help about any command"},
+	}
+
+	for _, cmd := range commands {
+		fmt.Printf("  %s  %s\n", command.Render(fmt.Sprintf("%-12s", cmd.name)), cmd.desc)
+	}
+	fmt.Println()
+
+	// Flags
+	fmt.Println(section.Render("Flags:"))
+	fmt.Printf("  %s      help for dingo\n", flag.Render("-h, --help"))
+	fmt.Printf("  %s   version for dingo\n", flag.Render("-v, --version"))
+	fmt.Println()
+
+	// Footer
+	fmt.Println(muted.Render("Use \"dingo [command] --help\" for more information about a command."))
+	fmt.Println()
+}
