@@ -928,18 +928,48 @@ dingo/
 
 ---
 
-## Current status
+## Implementation Status
 
-**Where we are:** Phase 0 → Phase 1 transition
+### ✅ Completed
 
-✅ Research done
-🔨 Sum types implementation in progress
-🔜 Result/Option types next
-🔜 Pattern matching after that
+- ✅ Basic Transpiler (Dingo → Go)
+- ✅ CLI Tool (`dingo build`, `dingo run`, `dingo version`)
+- ✅ Beautiful Terminal Output
+- ✅ Plugin System Architecture
+- ✅ Transformation Pipeline
 
-**Timeline:** MVP in about **8-10 weeks** if everything goes smoothly.
+### 🔨 In Progress
 
-(It never goes smoothly, so add 30%. That's project management.)
+- 🔨 CLI Plugin Configuration
+- 🔨 Config File Support (`.dingorc.json`)
+
+### 🔜 Planned
+
+**Core Error Handling:**
+- 🔜 Result Type (`Result<T, E>`)
+- 🔜 Error Propagation (`?` operator)
+- 🔜 Option Type (`Option<T>`)
+
+**Type System:**
+- 🔜 Sum Types (`enum` with associated values)
+- 🔜 Pattern Matching (`match` expressions)
+- 🔜 Type-Safe Enums
+
+**Operators & Syntax:**
+- 🔜 Null Safety (`?.`)
+- 🔜 Null Coalescing (`??`)
+- 🔜 Ternary Operator (`? :`)
+- 🔜 Lambda Functions
+
+**Standard Library:**
+- 🔜 Functional Utilities (map, filter, reduce)
+
+**Tooling:**
+- 🔜 Source Maps
+- 🔜 Language Server (gopls proxy)
+- 🔜 IDE Integration
+
+**Timeline:** MVP in **4-6 weeks** · v1.0 in **12-15 months**
 
 ---
 

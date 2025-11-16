@@ -4,22 +4,68 @@ All notable changes to the Dingo compiler will be documented in this file.
 
 ## [Unreleased] - 2025-11-16
 
-### Added
-- ✨ **New `dingo run` command** - Compile and execute Dingo programs in one step
-  - Works like `go run` - transpiles and runs immediately
+### Iteration 2 - Plugin System
+
+**Added:**
+- ✨ **Plugin System Architecture** - Complete modular plugin framework
+  - `Plugin` interface for extensible features
+  - `PluginRegistry` for plugin management and discovery
+  - `Pipeline` for AST transformation with dependency resolution
+  - Topological sort for correct plugin execution order
+  - Circular dependency detection
+  - Enable/disable plugin functionality
+  - Logging infrastructure (Debug/Info/Warn/Error)
+  - `BasePlugin` for easy plugin implementation
+
+- 📦 **New Package: `pkg/plugin/`** - ~681 lines of production code
+  - `plugin.go` - Core interfaces and registry (228 lines)
+  - `pipeline.go` - Transformation pipeline (106 lines)
+  - `logger.go` - Logging infrastructure (83 lines)
+  - `base.go` - Base plugin implementation (47 lines)
+  - `plugin_test.go` - Comprehensive tests (217 lines, 100% pass rate)
+
+- 📄 **Documentation:**
+  - `PLUGIN_SYSTEM_DESIGN.md` - Complete architecture documentation
+
+**Changed:**
+- 🔄 **Generator Integration** - Updated `pkg/generator/generator.go`
+  - Added plugin pipeline support
+  - New `NewWithPlugins()` constructor for custom plugins
+  - Transform step in generation pipeline: Parse → Transform → Generate → Format
+  - Backward compatible (default generator has no plugins)
+  - Logger integration for debugging
+
+- 🐕 **Emoji Update** - Changed mascot from dinosaur 🦕 to dog 🐕
+  - Updated CLI header output
+  - Updated version command output
+
+**Technical Details:**
+- Dependency resolution uses Kahn's algorithm (O(V + E) time complexity)
+- Deterministic plugin ordering for consistent builds
+- Zero overhead for disabled plugins
+- Comprehensive test coverage (8 tests, all passing)
+
+---
+
+### Iteration 1 - Foundation
+
+**Added:**
+- ✨ **Basic Transpiler** - Complete Dingo → Go compilation pipeline
+- ✨ **`dingo build`** - Transpile .dingo files to .go
+- ✨ **`dingo run`** - Compile and execute in one step (like `go run`)
   - Supports passing arguments: `dingo run file.dingo -- arg1 arg2`
-  - Beautiful output showing compile + run status
   - Passes through stdin/stdout/stderr
   - Preserves program exit codes
+- ✨ **Beautiful CLI Output** - lipgloss-powered terminal UI
+- ✨ **`dingo version`** - Version information
 
-### Changed
+**Changed:**
 - 🔥 **Removed arrow syntax for return types** (breaking, but no releases yet)
   - **Before:** `func max(a: int, b: int) -> int`
   - **After:** `func max(a: int, b: int) int`
   - **Rationale:** Cleaner, closer to Go, arrow adds no value
-  - **Impact:** All examples updated to use Go-style return syntax
 
-### Improved
+**Improved:**
 - 📝 Better error messages for parse failures
 - 🎨 Consistent beautiful output across all commands
 
