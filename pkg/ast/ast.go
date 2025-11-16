@@ -148,6 +148,149 @@ func (o *OptionType) Pos() token.Pos { return o.Option }
 func (o *OptionType) End() token.Pos { return o.Rbrack + 1 }
 
 // ============================================================================
+// Sum Types (Enums and Pattern Matching)
+// ============================================================================
+
+// EnumDecl represents an enum declaration (sum type)
+// Example:
+//   enum Shape {
+//       Circle { radius: float64 },
+//       Rectangle { width: float64, height: float64 },
+//       Point,
+//   }
+//
+// Implements ast.Decl interface
+type EnumDecl struct {
+	Enum       token.Pos       // Position of 'enum' keyword
+	Name       *ast.Ident      // Enum name
+	TypeParams *ast.FieldList  // Generic type parameters (nil if not generic)
+	Lbrace     token.Pos       // Position of '{'
+	Variants   []*VariantDecl  // Enum variants
+	Rbrace     token.Pos       // Position of '}'
+}
+
+func (e *EnumDecl) Pos() token.Pos { return e.Enum }
+func (e *EnumDecl) End() token.Pos { return e.Rbrace + 1 }
+
+// declNode ensures EnumDecl implements ast.Decl
+func (*EnumDecl) declNode() {}
+
+// VariantDecl represents a single variant of an enum
+// Supports three forms:
+//   - Unit: Point
+//   - Tuple: Circle(radius: float64)
+//   - Struct: Rectangle { width: float64, height: float64 }
+type VariantDecl struct {
+	Name   *ast.Ident     // Variant name
+	Fields *ast.FieldList // Fields (nil for unit variants, non-nil for tuple/struct)
+	Kind   VariantKind    // Unit, Tuple, or Struct
+}
+
+func (v *VariantDecl) Pos() token.Pos { return v.Name.Pos() }
+func (v *VariantDecl) End() token.Pos {
+	if v.Fields != nil {
+		return v.Fields.End()
+	}
+	return v.Name.End()
+}
+
+// VariantKind specifies the kind of enum variant
+type VariantKind int
+
+const (
+	VariantUnit VariantKind = iota  // Unit variant (no data)
+	VariantTuple                     // Tuple variant (positional fields)
+	VariantStruct                    // Struct variant (named fields)
+)
+
+// MatchExpr represents a match expression for pattern matching
+// Example:
+//   match shape {
+//       Circle { radius } => 3.14 * radius * radius,
+//       Rectangle { width, height } => width * height,
+//       Point => 0.0,
+//   }
+//
+// Implements ast.Expr interface
+type MatchExpr struct {
+	Match  token.Pos   // Position of 'match' keyword
+	Expr   ast.Expr    // Expression being matched
+	Lbrace token.Pos   // Position of '{'
+	Arms   []*MatchArm // Match arms
+	Rbrace token.Pos   // Position of '}'
+}
+
+func (m *MatchExpr) Pos() token.Pos { return m.Match }
+func (m *MatchExpr) End() token.Pos { return m.Rbrace + 1 }
+
+// exprNode ensures MatchExpr implements ast.Expr
+func (*MatchExpr) exprNode() {}
+
+// MatchArm represents a single arm of a match expression
+// Example: Circle { radius } => 3.14 * radius * radius
+type MatchArm struct {
+	Pattern *Pattern   // Pattern to match
+	Guard   ast.Expr   // Optional guard condition (if clause)
+	Arrow   token.Pos  // Position of '=>'
+	Body    ast.Expr   // Expression or block to execute
+}
+
+func (m *MatchArm) Pos() token.Pos { return m.Pattern.Pos() }
+func (m *MatchArm) End() token.Pos { return m.Body.End() }
+
+// Pattern represents a pattern in a match arm
+// Can be:
+//   - Wildcard: _
+//   - Unit variant: Point
+//   - Tuple variant: Circle(radius)
+//   - Struct variant: Rectangle { width, height }
+type Pattern struct {
+	PatternPos token.Pos     // Position of pattern start
+	Wildcard   bool          // true if this is a _ wildcard
+	Variant    *ast.Ident    // Variant name (nil for wildcard)
+	Fields     []*FieldPattern // Field patterns for destructuring
+	Kind       PatternKind   // Unit, Tuple, Struct, or Wildcard
+}
+
+func (p *Pattern) Pos() token.Pos { return p.PatternPos }
+func (p *Pattern) End() token.Pos {
+	if len(p.Fields) > 0 {
+		return p.Fields[len(p.Fields)-1].End()
+	}
+	if p.Variant != nil {
+		return p.Variant.End()
+	}
+	return p.PatternPos + 1 // Wildcard
+}
+
+// PatternKind specifies the kind of pattern
+type PatternKind int
+
+const (
+	PatternWildcard PatternKind = iota  // _ pattern
+	PatternUnit                         // Point pattern
+	PatternTuple                        // Circle(r) pattern
+	PatternStruct                       // Rectangle { w, h } pattern
+)
+
+// FieldPattern represents a field binding in a pattern
+// For tuple patterns: just a binding name
+// For struct patterns: field name + binding name
+type FieldPattern struct {
+	FieldName *ast.Ident // Original field name (nil for tuple patterns)
+	Binding   *ast.Ident // Variable name to bind to
+}
+
+func (f *FieldPattern) Pos() token.Pos {
+	if f.FieldName != nil {
+		return f.FieldName.Pos()
+	}
+	return f.Binding.Pos()
+}
+
+func (f *FieldPattern) End() token.Pos { return f.Binding.End() }
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
 
@@ -157,6 +300,8 @@ func IsDingoNode(node ast.Node) bool {
 	case *ErrorPropagationExpr, *NullCoalescingExpr, *TernaryExpr, *LambdaExpr:
 		return true
 	case *ResultType, *OptionType:
+		return true
+	case *EnumDecl, *MatchExpr:
 		return true
 	default:
 		return false
@@ -221,6 +366,35 @@ func Walk(node ast.Node, f func(ast.Node) bool) {
 
 		case *OptionType:
 			ast.Inspect(x.Value, f)
+			return false
+
+		case *EnumDecl:
+			ast.Inspect(x.Name, f)
+			if x.TypeParams != nil {
+				ast.Inspect(x.TypeParams, f)
+			}
+			for _, v := range x.Variants {
+				ast.Inspect(v.Name, f)
+				if v.Fields != nil {
+					ast.Inspect(v.Fields, f)
+				}
+			}
+			return false
+
+		case *MatchExpr:
+			ast.Inspect(x.Expr, f)
+			for _, arm := range x.Arms {
+				// Visit pattern
+				if arm.Pattern != nil && arm.Pattern.Variant != nil {
+					ast.Inspect(arm.Pattern.Variant, f)
+				}
+				// Visit guard
+				if arm.Guard != nil {
+					ast.Inspect(arm.Guard, f)
+				}
+				// Visit body
+				ast.Inspect(arm.Body, f)
+			}
 			return false
 		}
 

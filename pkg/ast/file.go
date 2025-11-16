@@ -25,6 +25,8 @@ func (t *TernaryExpr) IsDingoNode() bool           { return true }
 func (l *LambdaExpr) IsDingoNode() bool            { return true }
 func (r *ResultType) IsDingoNode() bool            { return true }
 func (o *OptionType) IsDingoNode() bool            { return true }
+func (e *EnumDecl) IsDingoNode() bool              { return true }
+func (m *MatchExpr) IsDingoNode() bool             { return true }
 
 // NewFile creates a new Dingo file
 func NewFile(goFile *ast.File) *File {

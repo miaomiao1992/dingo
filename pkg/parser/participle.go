@@ -28,10 +28,11 @@ type Import struct {
 	Path string `parser:"'import' @String"`
 }
 
-// Declaration can be a function or variable declaration
+// Declaration can be a function, variable, or enum declaration
 type Declaration struct {
 	Func *Function `parser:"@@"`
 	Var  *Variable `parser:"| @@"`
+	Enum *Enum     `parser:"| @@"`
 }
 
 // Function represents a function declaration
@@ -58,9 +59,41 @@ type Parameter struct {
 
 // Type represents a type expression
 type Type struct {
-	Name    string `parser:"@Ident"`
-	Pointer bool   `parser:"@'*'?"`
-	Array   bool   `parser:"@'['? ']'?"`
+	Name       string        `parser:"@Ident"`
+	Pointer    bool          `parser:"@'*'?"`
+	Array      bool          `parser:"@'['? ']'?"`
+	TypeParams []*Type       `parser:"( '<' @@ ( ',' @@ )* '>' )?"`  // Generic type parameters
+}
+
+// Enum represents an enum declaration (sum type)
+type Enum struct {
+	Name       string         `parser:"'enum' @Ident"`
+	TypeParams []*TypeParam   `parser:"( '<' @@ ( ',' @@ )* '>' )?"`  // Generic type parameters
+	Variants   []*Variant     `parser:"'{' ( @@ ( ',' @@ )* ','? )? '}'"`  // Trailing comma allowed
+}
+
+// TypeParam represents a generic type parameter
+type TypeParam struct {
+	Name string `parser:"@Ident"`
+}
+
+// Variant represents an enum variant
+type Variant struct {
+	Name         string        `parser:"@Ident"`
+	TupleFields  []*Field      `parser:"( '(' ( @@ ( ',' @@ )* ','? )? ')' )?"`  // Tuple variant: Circle(float64)
+	StructFields []*NamedField `parser:"( '{' ( @@ ( ',' @@ )* ','? )? '}' )?"`  // Struct variant: Circle { radius: float64 }
+}
+
+// Field represents a field in a tuple variant (just type)
+type Field struct {
+	Name string `parser:"( @Ident ':' )?"`  // Optional name for tuple fields
+	Type *Type  `parser:"@@"`
+}
+
+// NamedField represents a named field in a struct variant
+type NamedField struct {
+	Name string `parser:"@Ident"`
+	Type *Type  `parser:"':' @@"`
 }
 
 // Block represents a block of statements
@@ -114,12 +147,45 @@ type UnaryExpression struct {
 
 // PrimaryExpression is the base expression
 type PrimaryExpression struct {
-	Call    *CallExpression    `parser:"  @@"`        // Try call first (has lookahead)
+	Match   *Match             `parser:"  @@"`        // Match expression
+	Call    *CallExpression    `parser:"| @@"`        // Try call first (has lookahead)
 	Number  *int64             `parser:"| @Int"`
 	String  *string            `parser:"| @String"`
 	Bool    *bool              `parser:"| ( @'true' | 'false' )"`
 	Subexpr *Expression        `parser:"| '(' @@ ')'"`
 	Ident   *string            `parser:"| @Ident"`     // Ident last (most general)
+}
+
+// Match represents a match expression
+type Match struct {
+	Expr *Expression `parser:"'match' @@"`
+	Arms []*MatchArm `parser:"'{' ( @@ ( ',' )? )+ '}'"`  // One or more arms, optional trailing comma
+}
+
+// MatchArm represents a single arm of a match expression
+type MatchArm struct {
+	Pattern *MatchPattern `parser:"@@"`
+	Guard   *Expression   `parser:"( 'if' @@ )?"`  // Optional guard
+	Body    *Expression   `parser:"'=' '>' @@"`    // Use => for match arms
+}
+
+// MatchPattern represents a pattern in a match arm
+type MatchPattern struct {
+	Wildcard     bool              `parser:"@'_'"`                                     // Wildcard pattern
+	VariantName  string            `parser:"| @Ident"`                                 // Variant or unit pattern
+	TupleFields  []*PatternBinding `parser:"( '(' ( @@ ( ',' @@ )* ','? )? ')' )?"`  // Tuple destructuring
+	StructFields []*NamedPatternBinding `parser:"( '{' ( @@ ( ',' @@ )* ','? )? '}' )?"`  // Struct destructuring
+}
+
+// PatternBinding represents a binding in a tuple pattern
+type PatternBinding struct {
+	Name string `parser:"@Ident"`  // Variable to bind to
+}
+
+// NamedPatternBinding represents a named binding in a struct pattern
+type NamedPatternBinding struct {
+	FieldName string `parser:"@Ident"`
+	Binding   string `parser:"( ':' @Ident )?"`  // Optional explicit binding (defaults to field name)
 }
 
 // PostfixExpression handles postfix operators like ? and !

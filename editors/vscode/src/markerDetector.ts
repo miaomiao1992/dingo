@@ -37,16 +37,14 @@ export class MarkerDetector {
             // Check for block end
             const endMatch = text.match(this.endPattern);
             if (endMatch && inBlock) {
-                if (blockStart !== null) {
-                    // Create a single range spanning all lines from start to end (inclusive)
-                    const startLine = document.lineAt(blockStart);
-                    const endLine = document.lineAt(i);
+                if (blockStart !== null && blockStart + 1 < i) {
+                    // Create range EXCLUDING the marker comment lines
+                    // Start at line AFTER the START comment, end at line BEFORE the END comment
+                    const startPos = document.lineAt(blockStart + 1).range.start;
+                    const endPos = document.lineAt(i - 1).range.end;
 
                     markers.push({
-                        range: new vscode.Range(
-                            startLine.range.start,
-                            endLine.range.end
-                        ),
+                        range: new vscode.Range(startPos, endPos),
                         type: blockType,
                         context: blockContext
                     });
