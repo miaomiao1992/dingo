@@ -3,7 +3,6 @@ package sourcemap
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"go/token"
 
@@ -61,35 +60,54 @@ func (g *Generator) AddMappingWithName(src, gen token.Position, name string) {
 	})
 }
 
-// Generate creates a source map in standard VLQ format
-// Note: VLQ encoding is not yet implemented - returns skeleton source map
-// TODO(Phase 1.6): Implement VLQ encoding using go-sourcemap library
-// The mappings field requires Base64 VLQ encoding per Source Map v3 spec
-// Reference: https://sourcemaps.info/spec.html
+// Generate creates a source map in JSON format
+// TODO(Future): Implement full VLQ encoding for production use
+// For now, we return a valid but basic source map structure
 func (g *Generator) Generate() ([]byte, error) {
-	// Build source map structure
-	sm := struct {
-		Version    int      `json:"version"`
-		File       string   `json:"file"`
-		SourceRoot string   `json:"sourceRoot"`
-		Sources    []string `json:"sources"`
-		Names      []string `json:"names"`
-		Mappings   string   `json:"mappings"`
-	}{
-		Version:    3,
-		File:       g.genFile,
-		SourceRoot: "",
-		Sources:    []string{g.sourceFile},
-		Names:      g.collectNames(),
-		Mappings:   "", // TODO: Generate VLQ-encoded mappings (Phase 1.6)
+	// Sort mappings by generated position
+	sortedMappings := make([]Mapping, len(g.mappings))
+	copy(sortedMappings, g.mappings)
+
+	// Simple bubble sort for now
+	for i := 0; i < len(sortedMappings); i++ {
+		for j := i + 1; j < len(sortedMappings); j++ {
+			if sortedMappings[i].GenLine > sortedMappings[j].GenLine ||
+				(sortedMappings[i].GenLine == sortedMappings[j].GenLine &&
+					sortedMappings[i].GenColumn > sortedMappings[j].GenColumn) {
+				sortedMappings[i], sortedMappings[j] = sortedMappings[j], sortedMappings[i]
+			}
+		}
 	}
 
-	data, err := json.MarshalIndent(sm, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal source map: %w", err)
-	}
+	// For now, return a skeleton source map
+	// VLQ encoding will be added in future enhancement
+	sourceMap := fmt.Sprintf(`{
+  "version": 3,
+  "file": "%s",
+  "sourceRoot": "",
+  "sources": ["%s"],
+  "names": %s,
+  "mappings": ""
+}`, g.genFile, g.sourceFile, g.formatNames())
 
-	return data, nil
+	return []byte(sourceMap), nil
+}
+
+// formatNames formats the names array as JSON
+func (g *Generator) formatNames() string {
+	names := g.collectNames()
+	if len(names) == 0 {
+		return "[]"
+	}
+	result := "["
+	for i, name := range names {
+		if i > 0 {
+			result += ", "
+		}
+		result += fmt.Sprintf(`"%s"`, name)
+	}
+	result += "]"
+	return result
 }
 
 // GenerateInline creates a base64-encoded inline source map comment

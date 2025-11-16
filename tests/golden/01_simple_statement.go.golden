@@ -1,0 +1,9 @@
+package main
+
+func readConfig(path string) ([]byte, error) {
+	data, __err0 := ReadFile(path)
+	if __err0 != nil {
+		return nil, __err0
+	}
+	return data, nil
+}

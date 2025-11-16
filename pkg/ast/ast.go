@@ -32,12 +32,15 @@ const (
 // ErrorPropagationExpr represents error propagation with configurable syntax
 // Supports three syntaxes: expr?, expr!, try expr
 // Example: let user = fetchUser(id)?
+// Example with message: let user = fetchUser(id)? "failed to fetch user"
 //
 // Implements ast.Expr interface so it can be used anywhere a Go expression can
 type ErrorPropagationExpr struct {
-	X      ast.Expr    // The expression being propagated (e.g., fetchUser(id))
-	OpPos  token.Pos   // Position of the operator ('?', '!', or 'try' keyword)
-	Syntax SyntaxStyle // Which syntax was used
+	X          ast.Expr    // The expression being propagated (e.g., fetchUser(id))
+	OpPos      token.Pos   // Position of the operator ('?', '!', or 'try' keyword)
+	Syntax     SyntaxStyle // Which syntax was used
+	Message    string      // Optional error wrapping message
+	MessagePos token.Pos   // Position of the message string (if present)
 }
 
 func (e *ErrorPropagationExpr) Pos() token.Pos {

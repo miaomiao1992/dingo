@@ -1,0 +1,61 @@
+{
+  "name": "dingo",
+  "displayName": "Dingo Language Support",
+  "description": "Syntax highlighting and language support for Dingo - a modern meta-language for Go",
+  "version": "0.1.0",
+  "publisher": "dingo",
+  "icon": "icons/dingo-icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/dingo"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "dingo",
+    "go",
+    "golang",
+    "result",
+    "option",
+    "error-handling"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "dingo",
+        "aliases": [
+          "Dingo",
+          "dingo"
+        ],
+        "extensions": [
+          ".dingo"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/dingo-light.png",
+          "dark": "./icons/dingo-dark.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dingo",
+        "scopeName": "source.dingo",
+        "path": "./syntaxes/dingo.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node scripts/build-grammar.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^2.22.0",
+    "js-yaml": "^4.1.0"
+  }
+}

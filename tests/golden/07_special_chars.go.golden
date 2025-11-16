@@ -1,0 +1,11 @@
+package main
+
+import "fmt"
+
+func readWithMessage(path string) ([]byte, error) {
+	data, __err0 := ReadFile(path)
+	if __err0 != nil {
+		return nil, fmt.Errorf("failed to read \\\"important\\\" file: %w", __err0)
+	}
+	return data, nil
+}

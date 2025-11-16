@@ -1,0 +1,48 @@
+// Result Type Example
+package main
+
+import "errors"
+
+// Function returning Result
+func fetchUser(id: string) -> Result<User, error> {
+    if id == "" {
+        return Err(errors.New("invalid ID"))
+    }
+
+    user := User{
+        id: id,
+        name: "John Doe",
+        age: 30,
+    }
+
+    return Ok(user)
+}
+
+// Using error propagation operator
+func processUser(id: string) -> Result<User, error> {
+    let user = fetchUser(id)?
+
+    if user.age < 18 {
+        return Err(errors.New("user too young"))
+    }
+
+    return Ok(user)
+}
+
+// Pattern matching on Result
+func handleUser(id: string) {
+    match fetchUser(id) {
+        Ok(user) => {
+            println("Got user: ${user.name}")
+        }
+        Err(error) => {
+            println("Error: ${error}")
+        }
+    }
+}
+
+type User struct {
+    id: string
+    name: string
+    age: int
+}

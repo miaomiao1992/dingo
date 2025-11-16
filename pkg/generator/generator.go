@@ -36,11 +36,12 @@ func NewWithPlugins(fset *token.FileSet, registry *plugin.Registry, logger plugi
 	}
 
 	ctx := &plugin.Context{
-		FileSet:  fset,
-		TypeInfo: nil, // TODO: Add type information when available
-		Config:   &plugin.Config{},
-		Registry: registry,
-		Logger:   logger,
+		FileSet:     fset,
+		TypeInfo:    nil, // TODO: Add type information when available
+		Config:      &plugin.Config{},
+		Registry:    registry,
+		Logger:      logger,
+		CurrentFile: nil, // Will be set during transformation
 	}
 
 	pipeline, err := plugin.NewPipeline(registry, ctx)
@@ -63,7 +64,12 @@ func (g *Generator) SetLogger(logger plugin.Logger) {
 
 // Generate converts a Dingo AST to Go source code
 func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
-	// Step 1: Transform AST using plugin pipeline (if configured)
+	// Step 1: Set the current file in the pipeline context
+	if g.pipeline != nil && g.pipeline.Ctx != nil {
+		g.pipeline.Ctx.CurrentFile = file
+	}
+
+	// Step 2: Transform AST using plugin pipeline (if configured)
 	transformed := file.File
 	if g.pipeline != nil {
 		var err error
@@ -79,7 +85,7 @@ func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
 		}
 	}
 
-	// Step 2: Print AST to Go source code
+	// Step 3: Print AST to Go source code
 	var buf bytes.Buffer
 
 	cfg := printer.Config{
@@ -91,7 +97,7 @@ func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
 		return nil, fmt.Errorf("failed to print AST: %w", err)
 	}
 
-	// Step 3: Format the generated code
+	// Step 4: Format the generated code
 	formatted, err := format.Source(buf.Bytes())
 	if err != nil {
 		// If formatting fails, return unformatted code

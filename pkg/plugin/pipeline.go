@@ -9,7 +9,7 @@ import (
 // Pipeline executes plugins in dependency order
 type Pipeline struct {
 	registry *Registry
-	context  *Context
+	Ctx      *Context // Exported for generator access
 }
 
 // NewPipeline creates a new transformation pipeline
@@ -21,7 +21,7 @@ func NewPipeline(registry *Registry, ctx *Context) (*Pipeline, error) {
 
 	return &Pipeline{
 		registry: registry,
-		context:  ctx,
+		Ctx:      ctx,
 	}, nil
 }
 
@@ -40,10 +40,10 @@ func (p *Pipeline) Transform(file *ast.File) (*ast.File, error) {
 	}
 
 	// Log pipeline execution
-	if p.context.Logger != nil {
-		p.context.Logger.Debug("Running transformation pipeline with %d plugins", len(plugins))
+	if p.Ctx.Logger != nil {
+		p.Ctx.Logger.Debug("Running transformation pipeline with %d plugins", len(plugins))
 		for _, plugin := range plugins {
-			p.context.Logger.Debug("  - %s: %s", plugin.Name(), plugin.Description())
+			p.Ctx.Logger.Debug("  - %s: %s", plugin.Name(), plugin.Description())
 		}
 	}
 
@@ -57,7 +57,7 @@ func (p *Pipeline) Transform(file *ast.File) (*ast.File, error) {
 		// Apply each plugin to this node
 		for _, plugin := range plugins {
 			var transformed ast.Node
-			transformed, err = plugin.Transform(p.context, node)
+			transformed, err = plugin.Transform(p.Ctx, node)
 			if err != nil {
 				err = fmt.Errorf("plugin %q failed: %w", plugin.Name(), err)
 				return false
@@ -90,7 +90,7 @@ func (p *Pipeline) TransformNode(node ast.Node) (ast.Node, error) {
 	plugins := p.registry.Enabled()
 
 	for _, plugin := range plugins {
-		transformed, err := plugin.Transform(p.context, node)
+		transformed, err := plugin.Transform(p.Ctx, node)
 		if err != nil {
 			return nil, fmt.Errorf("plugin %q failed: %w", plugin.Name(), err)
 		}

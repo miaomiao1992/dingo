@@ -12,9 +12,6 @@ import (
 	dingoast "github.com/MadAppGang/dingo/pkg/ast"
 )
 
-// currentFile holds the file being converted (for tracking Dingo nodes)
-var currentFile *dingoast.File
-
 // ============================================================================
 // Participle Grammar Definitions (Simplified for Phase 1)
 // ============================================================================
@@ -128,7 +125,8 @@ type PrimaryExpression struct {
 // PostfixExpression handles postfix operators like ? and !
 type PostfixExpression struct {
 	Primary        *PrimaryExpression `parser:"@@"`
-	ErrorPropagate *bool              `parser:"@'?'?"`  // Optional ? operator
+	ErrorPropagate *bool              `parser:"@'?'?"`      // Optional ? operator
+	ErrorMessage   *string            `parser:"( @String )?"`  // Optional error message after ?
 }
 
 // CallExpression represents a function call
@@ -142,8 +140,9 @@ type CallExpression struct {
 // ============================================================================
 
 type participleParser struct {
-	parser *participle.Parser[DingoFile]
-	mode   Mode
+	parser      *participle.Parser[DingoFile]
+	mode        Mode
+	currentFile *dingoast.File // Thread-safe: instance variable instead of global
 }
 
 func newParticipleParser(mode Mode) Parser {
@@ -226,8 +225,8 @@ func (p *participleParser) convertToGoAST(dingoFile *DingoFile, file *token.File
 	// Create Dingo file wrapper
 	result := dingoast.NewFile(goFile)
 
-	// Set global context for tracking Dingo nodes during conversion
-	currentFile = result
+	// Set instance context for tracking Dingo nodes during conversion
+	p.currentFile = result
 
 	// Convert imports
 	for _, imp := range dingoFile.Imports {
@@ -419,11 +418,23 @@ func (p *participleParser) convertPostfix(postfix *PostfixExpression, file *toke
 			Syntax: dingoast.SyntaxQuestion,
 		}
 
+		// Capture error message if provided
+		if postfix.ErrorMessage != nil {
+			// Remove quotes from the string literal
+			msg := *postfix.ErrorMessage
+			if len(msg) >= 2 && msg[0] == '"' && msg[len(msg)-1] == '"' {
+				errExpr.Message = msg[1 : len(msg)-1]
+			} else {
+				errExpr.Message = msg
+			}
+			errExpr.MessagePos = primary.End() + 1 // Position after '?'
+		}
+
 		// Track this Dingo node in the current file
 		// We use the primary expression as the key (placeholder in the AST)
 		// and map it to the ErrorPropagationExpr Dingo node
-		if currentFile != nil {
-			currentFile.AddDingoNode(primary, errExpr)
+		if p.currentFile != nil {
+			p.currentFile.AddDingoNode(primary, errExpr)
 		}
 
 		// Return the primary expression as a placeholder

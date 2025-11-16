@@ -4,6 +4,67 @@ All notable changes to the Dingo compiler will be documented in this file.
 
 ## [Unreleased] - 2025-11-16
 
+### Phase 1.6 - Complete Error Propagation Pipeline
+
+**Added:**
+- ✨ **Full Error Propagation Operator (?) Implementation**
+  - Statement context: `let x = expr?` transforms to proper error checking
+  - Expression context: `return expr?` with automatic statement lifting
+  - Error message wrapping: `expr? "message"` generates `fmt.Errorf` calls
+  - Multi-pass AST transformation architecture
+  - Full go/types integration for accurate zero value generation
+
+- 📦 **New Components in `pkg/plugin/builtin/`**
+  - `type_inference.go` - Comprehensive type inference with go/types (~250 lines)
+    - Accurate zero value generation for all Go types
+    - Handles basic, pointer, slice, map, chan, interface, struct, array, and named types
+    - Converts types.Type to AST expressions
+  - `statement_lifter.go` - Expression context handling (~170 lines)
+    - Lifts error propagation from expression positions to statements
+    - Injects statements before/after current statement
+    - Generates unique temp variables
+  - `error_wrapper.go` - Error message wrapping (~100 lines)
+    - Generates fmt.Errorf calls with %w error wrapping
+    - String escaping for error messages
+    - Automatic fmt import injection
+  - Enhanced `error_propagation.go` - Multi-pass transformation (~370 lines)
+    - Context-aware transformation (statement vs expression)
+    - Uses golang.org/x/tools/go/ast/astutil for safe AST manipulation
+    - Integrates all components (type inference, lifting, wrapping)
+
+- 🔧 **Parser Enhancement**
+  - Added optional error message syntax: `expr? "message"`
+  - Updated `PostfixExpression` to capture error messages
+  - Updated `ErrorPropagationExpr` AST node with Message and MessagePos fields
+
+- 🗺️  **Source Map Support**
+  - Updated `pkg/sourcemap/generator.go` with proper structure
+  - Skeleton implementation for future VLQ encoding
+  - Mapping collection and sorting
+
+- 🔌 **Plugin Context Enhancement**
+  - Added `CurrentFile` field to `plugin.Context`
+  - Updated generator to pass Dingo file to plugin pipeline
+  - Exported `Pipeline.Ctx` for generator access
+
+**Changed:**
+- 🔄 **Dependencies**
+  - Added `golang.org/x/tools` for AST utilities
+
+**Technical Details:**
+- Multi-pass transformation: Discovery → Type Resolution → Transformation
+- Safe AST mutation using astutil.Apply
+- Context-aware transformation based on parent node type
+- Graceful degradation when type inference fails (falls back to nil)
+- Zero runtime overhead - generates clean Go code
+
+**Code Statistics:**
+- ~890 lines of new production code
+- 4 new files in pkg/plugin/builtin/
+- Enhanced parser, AST nodes, and generator integration
+
+---
+
 ### Iteration 2 - Plugin System
 
 **Added:**

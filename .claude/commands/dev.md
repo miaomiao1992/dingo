@@ -110,8 +110,8 @@ Update session state: `"phase": "implementation"`
 
 ## Phase 2: Implementation
 
-### Step 2.1: Invoke golang-system-architect
-Use Task tool with golang-system-architect:
+### Step 2.1: Invoke golang-developer for Implementation
+Use Task tool with golang-developer:
 
 **Prompt**:
 ```
@@ -140,19 +140,41 @@ Update session state: `"phase": "code_review"`
 
 ## Phase 3: Code Review
 
-### Step 3.1: Ask Review Preferences
-Use AskUserQuestion (multiSelect: true):
+### Step 3.1: Fetch Available Models and Ask Review Preferences
+
+First, get available models from claudish:
+```bash
+claudish --list-models > $SESSION_DIR/03-reviews/available-models.txt
+```
+
+Parse the output to extract model names (lines containing model IDs before the description).
+
+Then use AskUserQuestion (multiSelect: true):
 
 Options:
 - "Internal code-reviewer agent"
-- "Gemini (via claudish)"
-- "GPT-4 (via claudish)"
-- "Claude Opus (via claudish)"
+- {Each model from claudish --list-models as separate option}
+- "Skip code review"
+
+Example options based on current claudish output:
+- "Internal code-reviewer agent"
+- "x-ai/grok-code-fast-1 (Grok Code Fast)"
+- "openai/gpt-5-codex (GPT-5 Codex)"
+- "minimax/minimax-m2 (MiniMax M2)"
+- "z-ai/glm-4.6 (GLM-4.6)"
+- "qwen/qwen3-vl-235b-a22b-instruct (Qwen3 VL)"
+- "anthropic/claude-sonnet-4.5 (Claude Sonnet 4.5)"
 - "Skip code review"
 
 If "Skip" selected, jump to Phase 5.
 
-Write selections to: `$SESSION_DIR/03-reviews/reviewers.json`
+Write selections to: `$SESSION_DIR/03-reviews/reviewers.json` in format:
+```json
+{
+  "internal": true/false,
+  "external_models": ["model-id-1", "model-id-2"]
+}
+```
 
 ### Step 3.2: Create Review Iteration Directory
 ```bash
@@ -163,7 +185,7 @@ mkdir -p $REVIEW_ITER
 ### Step 3.3: Run Reviews in Parallel
 
 **For internal code-reviewer**:
-Use Task tool:
+Use Task tool with code-reviewer agent:
 
 **Prompt**:
 ```
@@ -185,41 +207,59 @@ Return ONLY a one-line status.
 ```
 
 **For external models** (run in parallel):
-For each selected model, use Bash:
+For each selected external model, use Task tool with **code-reviewer** agent (NOT golang-developer):
 
-```bash
-claudish -m {model} "$(cat <<'EOF'
-You are conducting a code review for the Dingo project.
+**Prompt template** (substitute {MODEL_ID} and {MODEL_NAME}):
+```
+You are conducting a code review using the external model {MODEL_NAME} via claudish.
 
-CONTEXT FILES TO READ:
-- Implementation plan: $SESSION_DIR/01-planning/final-plan.md
+INPUT FILES:
 - Changes made: $SESSION_DIR/02-implementation/changes-made.md
-- Use 'find' and 'cat' commands to examine the actual code files
+- Implementation plan: $SESSION_DIR/01-planning/final-plan.md
+- Previous review feedback (if exists): $SESSION_DIR/03-reviews/iteration-{N-1}/consolidated.md
 
 YOUR TASK:
-Review the code changes. Focus on: correctness, Go best practices, performance, maintainability.
+Use claudish to delegate this review to {MODEL_NAME}:
 
-CATEGORIZE ISSUES:
+claudish --model {MODEL_ID} << 'REVIEW_PROMPT'
+You are conducting a code review for the Dingo transpiler project.
+
+Read these files for context:
+- $SESSION_DIR/01-planning/final-plan.md
+- $SESSION_DIR/02-implementation/changes-made.md
+- All source files listed in changes-made.md
+
+Review the code changes focusing on:
+- Correctness and bug-free implementation
+- Go best practices and idioms
+- Performance considerations
+- Code maintainability and readability
+- Architecture alignment with the plan
+
+Categorize all issues as:
 - CRITICAL: Must fix (bugs, security, correctness)
 - IMPORTANT: Should fix (code quality, best practices)
 - MINOR: Nice to have (style, optimizations)
 
-OUTPUT FORMAT:
-Write your review to: $REVIEW_ITER/{model}-review.md
+Provide detailed feedback with specific file locations and line numbers.
+REVIEW_PROMPT
 
-At the END of the file, add:
----
-STATUS: APPROVED or CHANGES_NEEDED
-CRITICAL_COUNT: N
-IMPORTANT_COUNT: N
-MINOR_COUNT: N
+OUTPUT FILES:
+- $REVIEW_ITER/{MODEL_ID}-review.md - Complete review with categorized issues
+- At the END of the file, include this summary:
+  ---
+  STATUS: APPROVED or CHANGES_NEEDED
+  CRITICAL_COUNT: N
+  IMPORTANT_COUNT: N
+  MINOR_COUNT: N
 
-After writing the file, output only: "Review written to {model}-review.md"
-EOF
-)"
+Return ONLY: "Review by {MODEL_NAME} complete: {STATUS}"
 ```
 
-Run all external reviews in parallel using multiple Bash calls in one message.
+**CRITICAL - Agent Selection**:
+- **ALWAYS use code-reviewer agent for ALL code reviews** (internal AND external)
+- **NEVER use golang-developer for code reviews** - it's for implementation, not review
+- Run ALL reviews in parallel: One Task call per reviewer in a single message
 
 ### Step 3.4: Collect Review Status
 Read ONLY the summary/status from each review file (last few lines):
@@ -259,8 +299,8 @@ Read and display ONLY `$REVIEW_ITER/consolidated-summary.txt`.
 ### Step 4.1: Check if Fixes Needed
 Read all review status files. If ALL say "APPROVED", skip to Phase 5.
 
-### Step 4.2: Invoke golang-system-architect for Fixes
-Use Task tool:
+### Step 4.2: Invoke golang-developer for Fixes
+Use Task tool with golang-developer:
 
 **Prompt**:
 ```
@@ -298,8 +338,8 @@ Update session state: `"phase": "testing"`
 
 ## Phase 5: Testing
 
-### Step 5.1: Invoke test-scenario-architect
-Use Task tool:
+### Step 5.1: Invoke golang-tester
+Use Task tool with golang-tester:
 
 **Prompt**:
 ```
@@ -328,7 +368,7 @@ Read ONLY `$SESSION_DIR/04-testing/test-summary.txt`.
 ### Step 5.2: Handle Test Failures
 If tests fail:
 
-1. Invoke golang-system-architect:
+1. Invoke golang-developer:
 ```
 Fix failing tests.
 
@@ -342,7 +382,7 @@ OUTPUT FILES:
 Return brief status.
 ```
 
-2. Re-run test-scenario-architect (update test-results and test-summary)
+2. Re-run golang-tester (update test-results and test-summary)
 
 3. If still failing after 3 iterations, also run code-reviewer to check for issues introduced by fixes
 

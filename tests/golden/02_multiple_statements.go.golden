@@ -1,0 +1,14 @@
+package main
+
+func loadData(path string) (map[string]interface{}, error) {
+	data, __err0 := ReadFile(path)
+	if __err0 != nil {
+		return nil, __err0
+	}
+	var result map[string]interface{}
+	err, __err1 := Unmarshal(data, &result)
+	if __err1 != nil {
+		return nil, __err1
+	}
+	return result, nil
+}

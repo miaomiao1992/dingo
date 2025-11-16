@@ -1,0 +1,21 @@
+package main
+
+type User struct {
+	ID   int
+	Name string
+}
+
+func fetchUser(id int) (*User, error) {
+	data, __err0 := ReadFile("user.json")
+	if __err0 != nil {
+		return nil, __err0
+	}
+	return &User{ID: id, Name: string(data)}, nil
+}
+func getNames() ([]string, error) {
+	data, __err1 := ReadFile("names.txt")
+	if __err1 != nil {
+		return nil, __err1
+	}
+	return []string{string(data)}, nil
+}

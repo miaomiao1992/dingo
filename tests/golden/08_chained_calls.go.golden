@@ -1,0 +1,21 @@
+package main
+
+import "fmt"
+
+type Config struct {
+	Host string
+	Port int
+}
+
+func pipeline(path string) (*Config, error) {
+	data, __err0 := ReadFile(path)
+	if __err0 != nil {
+		return nil, fmt.Errorf("failed to read config: %w", __err0)
+	}
+	var cfg Config
+	err, __err1 := Unmarshal(data, &cfg)
+	if __err1 != nil {
+		return nil, fmt.Errorf("failed to parse config: %w", __err1)
+	}
+	return &cfg, nil
+}

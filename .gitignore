@@ -1,2 +1,42 @@
+# Build artifacts
 dingo
-ai-docs/sessions
+*.test
+*.out
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+coverage.txt
+coverage.html
+
+# Go workspace
+go.work
+go.work.sum
+
+# AI session files
+ai-docs/sessions/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# VS Code extension
+editors/vscode/node_modules/
+editors/vscode/*.vsix
+editors/vscode/.vscode-test/
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# Generated files
+*.gen.go
+*.pb.go

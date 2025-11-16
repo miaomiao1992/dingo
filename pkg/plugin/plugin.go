@@ -34,11 +34,12 @@ type Plugin interface {
 
 // Context provides plugins with necessary information
 type Context struct {
-	FileSet  *token.FileSet // Source file information
-	TypeInfo *types.Info    // Type information (when available)
-	Config   *Config        // Plugin configuration
-	Registry *Registry      // Access to other plugins
-	Logger   Logger         // Logging interface
+	FileSet     *token.FileSet // Source file information
+	TypeInfo    *types.Info    // Type information (when available)
+	Config      *Config        // Plugin configuration
+	Registry    *Registry      // Access to other plugins
+	Logger      Logger         // Logging interface
+	CurrentFile ast.Node       // Current file being transformed (can be *dingoast.File)
 }
 
 // Config holds configuration for all plugins

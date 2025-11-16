@@ -1,0 +1,8 @@
+package main
+
+func loadData(path: string) (map[string]interface{}, error) {
+	let data = ReadFile(path)?
+	var result map[string]interface{}
+	let err = Unmarshal(data, &result)?
+	return result, nil
+}

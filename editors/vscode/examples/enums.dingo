@@ -1,0 +1,66 @@
+// Enums and Pattern Matching Example
+package main
+
+// Sum type enum
+enum Color {
+    Red
+    Green
+    Blue
+    RGB(r: int, g: int, b: int)
+    Named(name: string)
+}
+
+// Enum with data
+enum Message {
+    Quit
+    Move { x: int, y: int }
+    Write(text: string)
+    ChangeColor(Color)
+}
+
+// Pattern matching on enums
+func processMessage(msg: Message) {
+    match msg {
+        Quit => {
+            println("Quitting...")
+        }
+        Move { x, y } => {
+            println("Moving to (${x}, ${y})")
+        }
+        Write(text) => {
+            println("Writing: ${text}")
+        }
+        ChangeColor(color) => {
+            match color {
+                Red => println("Red")
+                Green => println("Green")
+                Blue => println("Blue")
+                RGB(r, g, b) => println("RGB(${r}, ${g}, ${b})")
+                Named(name) => println("Color: ${name}")
+            }
+        }
+    }
+}
+
+// Enum methods
+impl Color {
+    func toHex(self) -> string {
+        match self {
+            Red => "#FF0000"
+            Green => "#00FF00"
+            Blue => "#0000FF"
+            RGB(r, g, b) => "#${r:02x}${g:02x}${b:02x}"
+            Named(name) => name
+        }
+    }
+}
+
+func main() {
+    let msg1 = Move { x: 10, y: 20 }
+    let msg2 = Write("Hello, Dingo!")
+    let msg3 = ChangeColor(RGB(255, 128, 0))
+
+    processMessage(msg1)
+    processMessage(msg2)
+    processMessage(msg3)
+}
