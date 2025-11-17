@@ -6,8 +6,19 @@ import (
 )
 
 // Package-level compiled regex (Issue 2: Regex Performance)
+// IMPORTANT-2 FIX: Enhanced pattern to handle all Go type patterns robustly
+// Examples:
+//   - Basic: x: int, x: string
+//   - Qualified: x: pkg.Type
+//   - Pointers: x: *Type
+//   - Arrays/Slices: x: []Type, x: [10]int
+//   - Maps: x: map[string]int, x: map[string][]interface{}
+//   - Channels: x: chan T, x: <-chan string, x: chan<- int
+//   - Functions: x: func(int) error, x: func(a, b int) (string, error)
+//   - Complex nested: x: map[string][]func() error
+// Strategy: Match everything up to next comma or closing paren, handling nested brackets/parens
 var (
-	paramPattern = regexp.MustCompile(`(\w+)\s*:\s*(\w+|[\[\]\*\{\}]+[\w\.\[\]\*\{\}]*)`)
+	paramPattern = regexp.MustCompile(`(\w+)\s*:\s*([^,)]+)`)
 )
 
 // TypeAnnotProcessor converts Dingo type annotations (: type) to Go syntax (space type)

@@ -7,5 +7,5 @@ func parseInt(s string) (int, error) {
 		return 0, __err0
 	}
 	// dingo:e:1
-	return __tmp0
+	return __tmp0, nil
 }
