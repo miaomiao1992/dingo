@@ -11,10 +11,30 @@ import (
 	"github.com/MadAppGang/dingo/pkg/generator"
 	"github.com/MadAppGang/dingo/pkg/parser"
 	"github.com/MadAppGang/dingo/pkg/plugin"
-	"github.com/MadAppGang/dingo/pkg/plugin/builtin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// testLogger implements plugin.Logger for testing
+type testLogger struct {
+	t *testing.T
+}
+
+func (l *testLogger) Info(msg string) {
+	l.t.Logf("INFO: %s", msg)
+}
+
+func (l *testLogger) Error(msg string) {
+	l.t.Logf("ERROR: %s", msg)
+}
+
+func (l *testLogger) Debug(format string, args ...interface{}) {
+	l.t.Logf("DEBUG: "+format, args...)
+}
+
+func (l *testLogger) Warn(format string, args ...interface{}) {
+	l.t.Logf("WARN: "+format, args...)
+}
 
 // TestGoldenFiles runs golden file tests comparing Dingo → Go transpilation
 func TestGoldenFiles(t *testing.T) {
@@ -70,16 +90,8 @@ func TestGoldenFiles(t *testing.T) {
 			dingoAST, err := parser.ParseFile(fset, dingoFile, dingoSrc, 0)
 			require.NoError(t, err, "Failed to parse Dingo file: %s", dingoFile)
 
-			// Create generator with all plugins
+			// Create generator (plugins are registered internally)
 			registry := plugin.NewRegistry()
-			errPropPlugin := builtin.NewErrorPropagationPlugin()
-			err = registry.Register(errPropPlugin)
-			require.NoError(t, err, "Failed to register error propagation plugin")
-
-			sumTypesPlugin := builtin.NewSumTypesPlugin()
-			err = registry.Register(sumTypesPlugin)
-			require.NoError(t, err, "Failed to register sum types plugin")
-
 			logger := &testLogger{t: t}
 			gen, err := generator.NewWithPlugins(fset, registry, logger)
 			require.NoError(t, err, "Failed to create generator")
