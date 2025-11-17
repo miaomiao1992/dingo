@@ -64,8 +64,9 @@ and other quality-of-life features while maintaining 100% Go ecosystem compatibi
 
 func buildCmd() *cobra.Command {
 	var (
-		output string
-		watch  bool
+		output               string
+		watch                bool
+		multiValueReturnMode string
 	)
 
 	cmd := &cobra.Command{
@@ -81,21 +82,25 @@ The transpiler:
 Example:
   dingo build hello.dingo          # Generates hello.go
   dingo build -o output.go main.dingo
-  dingo build *.dingo              # Build all .dingo files`,
+  dingo build *.dingo              # Build all .dingo files
+  dingo build --multi-value-return=single file.dingo  # Restrict to (T, error) only`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runBuild(args, output, watch)
+			return runBuild(args, output, watch, multiValueReturnMode)
 		},
 	}
 
 	cmd.Flags().StringVarP(&output, "output", "o", "", "Output file path (default: replace .dingo with .go)")
 	cmd.Flags().BoolVarP(&watch, "watch", "w", false, "Watch for file changes and rebuild")
+	cmd.Flags().StringVar(&multiValueReturnMode, "multi-value-return", "full", "Multi-value return propagation mode: 'full' (default, supports (A,B,error)) or 'single' (restricts to (T,error))")
 
 	return cmd
 }
 
 func runCmd() *cobra.Command {
-	return &cobra.Command{
+	var multiValueReturnMode string
+
+	cmd := &cobra.Command{
 		Use:   "run [file.dingo] [-- args...]",
 		Short: "Compile and run a Dingo program",
 		Long: `Run compiles a Dingo source file and executes it immediately.
@@ -110,7 +115,8 @@ to your program after -- (double dash).
 Examples:
   dingo run hello.dingo
   dingo run main.dingo -- arg1 arg2 arg3
-  dingo run server.dingo -- --port 8080`,
+  dingo run server.dingo -- --port 8080
+  dingo run --multi-value-return=single file.dingo`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inputFile := args[0]
@@ -121,9 +127,13 @@ Examples:
 				programArgs = args[1:]
 			}
 
-			return runDingoFile(inputFile, programArgs)
+			return runDingoFile(inputFile, programArgs, multiValueReturnMode)
 		},
 	}
+
+	cmd.Flags().StringVar(&multiValueReturnMode, "multi-value-return", "full", "Multi-value return propagation mode: 'full' (default, supports (A,B,error)) or 'single' (restricts to (T,error))")
+
+	return cmd
 }
 
 func versionCmd() *cobra.Command {
@@ -136,7 +146,17 @@ func versionCmd() *cobra.Command {
 	}
 }
 
-func runBuild(files []string, output string, watch bool) error {
+func runBuild(files []string, output string, watch bool, multiValueReturnMode string) error {
+	// Create config from flags
+	config := &preprocessor.Config{
+		MultiValueReturnMode: multiValueReturnMode,
+	}
+
+	// Validate config
+	if err := config.ValidateMultiValueReturnMode(); err != nil {
+		return fmt.Errorf("configuration error: %w", err)
+	}
+
 	// Create beautiful output handler
 	buildUI := ui.NewBuildOutput()
 
@@ -151,7 +171,7 @@ func runBuild(files []string, output string, watch bool) error {
 	var lastError error
 
 	for _, file := range files {
-		if err := buildFile(file, output, buildUI); err != nil {
+		if err := buildFile(file, output, buildUI, config); err != nil {
 			success = false
 			lastError = err
 			buildUI.PrintError(err.Error())
@@ -174,7 +194,7 @@ func runBuild(files []string, output string, watch bool) error {
 	return nil
 }
 
-func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput) error {
+func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput, config *preprocessor.Config) error {
 	if outputPath == "" {
 		// Default: replace .dingo with .go
 		if len(inputPath) > 6 && inputPath[len(inputPath)-6:] == ".dingo" {
@@ -193,9 +213,9 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput) err
 		return fmt.Errorf("failed to read file: %w", err)
 	}
 
-	// Step 2: Preprocess
+	// Step 2: Preprocess (with config)
 	prepStart := time.Now()
-	prep := preprocessor.New(src)
+	prep := preprocessor.NewWithConfig(src, config)
 	goSource, sourceMap, err := prep.Process()
 	prepDuration := time.Since(prepStart)
 
@@ -308,7 +328,7 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput) err
 	return nil
 }
 
-func runDingoFile(inputPath string, programArgs []string) error {
+func runDingoFile(inputPath string, programArgs []string, multiValueReturnMode string) error {
 	// Create beautiful output
 	buildUI := ui.NewBuildOutput()
 
@@ -327,6 +347,17 @@ func runDingoFile(inputPath string, programArgs []string) error {
 	// Step 1: Build (transpile)
 	buildStart := time.Now()
 
+	// Create config from flags
+	config := &preprocessor.Config{
+		MultiValueReturnMode: multiValueReturnMode,
+	}
+
+	// Validate config
+	if err := config.ValidateMultiValueReturnMode(); err != nil {
+		buildUI.PrintError(fmt.Sprintf("Configuration error: %v", err))
+		return err
+	}
+
 	// Read source
 	src, err := os.ReadFile(inputPath)
 	if err != nil {
@@ -334,8 +365,8 @@ func runDingoFile(inputPath string, programArgs []string) error {
 		return err
 	}
 
-	// Preprocess
-	prep := preprocessor.New(src)
+	// Preprocess (with config)
+	prep := preprocessor.NewWithConfig(src, config)
 	goSource, _, err := prep.Process()
 	if err != nil {
 		buildUI.PrintError(fmt.Sprintf("Preprocessing error: %v", err))

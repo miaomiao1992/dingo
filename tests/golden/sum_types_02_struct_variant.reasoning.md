@@ -1,3 +1,43 @@
+---
+title: "Enum with struct variants and associated data"
+category: "Type System"
+subcategory: "Sum Types"
+test_id: "sum_types_02_struct_variant"
+order: 2
+
+complexity: "intermediate"
+feature: "sum-types"
+phase: "Phase 2.5"
+status: "implemented"
+
+description: "Validates sum types with associated data through struct variants, demonstrating Rust-style enums with named fields transpiled to type-safe Go structs using pointer fields and constructor functions"
+summary: "Struct variants with associated data"
+code_reduction: 78
+lines_dingo: 10
+lines_go: 46
+
+go_proposal: "19412"
+go_proposal_link: "https://github.com/golang/go/issues/19412"
+feature_file: "sum-types.md"
+related_tests:
+  - "sum_types_01_simple"
+  - "sum_types_03_generic"
+  - "pattern_match_01_basic"
+
+tags:
+  - "sum-types"
+  - "enums"
+  - "associated-data"
+  - "struct-variants"
+  - "type-safety"
+keywords:
+  - "enum"
+  - "associated values"
+  - "struct variants"
+  - "tagged union"
+  - "pointer fields"
+---
+
 # Test Reasoning: sum_types_02_struct_variant
 
 ## Test File

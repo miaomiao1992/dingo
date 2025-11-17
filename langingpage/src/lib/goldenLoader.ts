@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import matter from 'gray-matter';
 import type { Loader } from 'astro/loaders';
 import {
   extractFeatureType,
@@ -16,14 +17,47 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface GoldenExample {
+  // Basic identification
   id: string;
   title: string;
+
+  // Legacy fields (backward compatibility)
   featureType: string;
   featureDisplayName: string;
+
+  // Code content
   dingoCode: string;
   goCode: string;
   reasoning?: string;
+
+  // Frontmatter metadata
+  category?: string;
+  subcategory?: string;
+  test_id?: string;
   order: number;
+
+  // Classification
+  complexity?: 'basic' | 'intermediate' | 'advanced';
+  feature?: string;
+  phase?: string;
+  status?: 'implemented' | 'planned' | 'experimental';
+
+  // Metadata
+  description?: string;
+  summary?: string;
+  code_reduction?: number;
+  lines_dingo?: number;
+  lines_go?: number;
+
+  // References
+  go_proposal?: string;
+  go_proposal_link?: string;
+  feature_file?: string;
+  related_tests?: string[];
+
+  // Context
+  tags?: string[];
+  keywords?: string[];
 }
 
 /**
@@ -90,7 +124,7 @@ export function goldenLoader(): Loader {
           // Read file contents with error handling
           const dingoCode = fs.readFileSync(path.join(goldenDir, files.dingo), 'utf-8');
           const goCode = fs.readFileSync(path.join(goldenDir, files.go), 'utf-8');
-          const reasoning = files.reasoning
+          const reasoningRaw = files.reasoning
             ? fs.readFileSync(path.join(goldenDir, files.reasoning), 'utf-8')
             : undefined;
 
@@ -113,38 +147,78 @@ export function goldenLoader(): Loader {
             continue;
           }
 
-          // Extract metadata
-          const featureType = extractFeatureType(baseName);
-          const featureDisplayName = featureTypes[featureType] || 'Other';
-          const order = extractOrder(baseName);
-
-          // Extract title from reasoning H1 heading or fallback to generated title
-          let title = generateTitle(baseName);
-          if (reasoning) {
-            const h1Match = reasoning.match(/^#\s+(.+)$/m);
-            if (h1Match) {
-              title = h1Match[1].trim();
-              // Remove "Test Reasoning: " prefix if present
-              title = title.replace(/^Test Reasoning:\s*/i, '');
+          // Parse frontmatter from reasoning file
+          let frontmatter: Record<string, any> = {};
+          let reasoning: string | undefined = reasoningRaw;
+          if (reasoningRaw) {
+            try {
+              const parsed = matter(reasoningRaw);
+              frontmatter = parsed.data;
+              reasoning = parsed.content;
+            } catch (error) {
+              logger.warn(`Failed to parse frontmatter in ${files.reasoning}: ${error}`);
+              // Keep original reasoning if frontmatter parsing fails
             }
           }
 
-          // Create entry
+          // Extract metadata from file name (legacy fallback)
+          const featureType = extractFeatureType(baseName);
+          const featureDisplayName = featureTypes[featureType] || 'Other';
+          const fileNameOrder = extractOrder(baseName);
+
+          // Use frontmatter values with fallbacks
+          const title = frontmatter.title || generateTitle(baseName);
+          const order = frontmatter.order || fileNameOrder;
+
+          // Create entry with all metadata
           const entry: GoldenExample = {
+            // Basic identification
             id: baseName,
             title,
+
+            // Legacy fields (backward compatibility)
             featureType,
             featureDisplayName,
+
+            // Code content
             dingoCode,
             goCode,
             reasoning,
+
+            // Frontmatter metadata
+            category: frontmatter.category,
+            subcategory: frontmatter.subcategory,
+            test_id: frontmatter.test_id,
             order,
+
+            // Classification
+            complexity: frontmatter.complexity,
+            feature: frontmatter.feature,
+            phase: frontmatter.phase,
+            status: frontmatter.status,
+
+            // Metadata
+            description: frontmatter.description,
+            summary: frontmatter.summary,
+            code_reduction: frontmatter.code_reduction,
+            lines_dingo: frontmatter.lines_dingo,
+            lines_go: frontmatter.lines_go,
+
+            // References
+            go_proposal: frontmatter.go_proposal,
+            go_proposal_link: frontmatter.go_proposal_link,
+            feature_file: frontmatter.feature_file,
+            related_tests: frontmatter.related_tests,
+
+            // Context
+            tags: frontmatter.tags,
+            keywords: frontmatter.keywords,
           };
 
           // Store entry in collection
           store.set({
             id: baseName,
-            data: entry,
+            data: entry as Record<string, unknown>,
           });
 
           logger.info(`Loaded example: ${baseName} (${featureDisplayName})`);

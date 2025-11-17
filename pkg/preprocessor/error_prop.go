@@ -27,85 +27,52 @@ type ImportTracker struct {
 }
 
 // Common standard library functions that require imports
-// Maps both bare function names AND qualified calls (pkg.Function)
+// Maps ONLY package-qualified function names (pkg.Function)
+// This prevents false positives when user-defined functions have common names
 var stdLibFunctions = map[string]string{
 	// os package
-	"ReadFile":    "os",
-	"WriteFile":   "os",
-	"Open":        "os",
-	"Create":      "os",
-	"Stat":        "os",
-	"Remove":      "os",
-	"Mkdir":       "os",
-	"MkdirAll":    "os",
-	"Getwd":       "os",
-	"Chdir":       "os",
-	"os.ReadFile": "os",
+	"os.ReadFile":  "os",
 	"os.WriteFile": "os",
-	"os.Open":     "os",
-	"os.Create":   "os",
-	"os.Stat":     "os",
-	"os.Remove":   "os",
-	"os.Mkdir":    "os",
-	"os.MkdirAll": "os",
-	"os.Getwd":    "os",
-	"os.Chdir":    "os",
+	"os.Open":      "os",
+	"os.Create":    "os",
+	"os.Stat":      "os",
+	"os.Remove":    "os",
+	"os.Mkdir":     "os",
+	"os.MkdirAll":  "os",
+	"os.Getwd":     "os",
+	"os.Chdir":     "os",
 
 	// encoding/json
-	"Marshal":      "encoding/json",
-	"Unmarshal":    "encoding/json",
-	"NewEncoder":   "encoding/json",
-	"NewDecoder":   "encoding/json",
-	"json.Marshal": "encoding/json",
-	"json.Unmarshal": "encoding/json",
-	"json.NewEncoder": "encoding/json",
-	"json.NewDecoder": "encoding/json",
+	"json.Marshal":     "encoding/json",
+	"json.Unmarshal":   "encoding/json",
+	"json.NewEncoder":  "encoding/json",
+	"json.NewDecoder":  "encoding/json",
 
 	// strconv
-	"Atoi":         "strconv",
-	"Itoa":         "strconv",
-	"ParseInt":     "strconv",
-	"ParseFloat":   "strconv",
-	"ParseBool":    "strconv",
-	"FormatInt":    "strconv",
-	"FormatFloat":  "strconv",
-	"strconv.Atoi": "strconv",
-	"strconv.Itoa": "strconv",
-	"strconv.ParseInt": "strconv",
-	"strconv.ParseFloat": "strconv",
-	"strconv.ParseBool": "strconv",
-	"strconv.FormatInt": "strconv",
+	"strconv.Atoi":        "strconv",
+	"strconv.Itoa":        "strconv",
+	"strconv.ParseInt":    "strconv",
+	"strconv.ParseFloat":  "strconv",
+	"strconv.ParseBool":   "strconv",
+	"strconv.FormatInt":   "strconv",
 	"strconv.FormatFloat": "strconv",
 
 	// io
-	"ReadAll":    "io",
 	"io.ReadAll": "io",
 
 	// net/http
-	"Get":         "net/http",
-	"Post":        "net/http",
-	"NewRequest":  "net/http",
-	"http.Get":    "net/http",
-	"http.Post":   "net/http",
+	"http.Get":        "net/http",
+	"http.Post":       "net/http",
 	"http.NewRequest": "net/http",
 
 	// path/filepath
-	"Join":          "path/filepath",
-	"Base":          "path/filepath",
-	"Dir":           "path/filepath",
-	"Ext":           "path/filepath",
-	"Clean":         "path/filepath",
-	"filepath.Join": "path/filepath",
-	"filepath.Base": "path/filepath",
-	"filepath.Dir":  "path/filepath",
-	"filepath.Ext":  "path/filepath",
+	"filepath.Join":  "path/filepath",
+	"filepath.Base":  "path/filepath",
+	"filepath.Dir":   "path/filepath",
+	"filepath.Ext":   "path/filepath",
 	"filepath.Clean": "path/filepath",
 
 	// fmt (already tracked via needsFmt, but add for completeness)
-	"Sprintf":     "fmt",
-	"Fprintf":     "fmt",
-	"Printf":      "fmt",
-	"Errorf":      "fmt",
 	"fmt.Sprintf": "fmt",
 	"fmt.Fprintf": "fmt",
 	"fmt.Printf":  "fmt",
@@ -180,6 +147,7 @@ type ErrorPropProcessor struct {
 	needsFmt      bool
 	importTracker *ImportTracker
 	mappings      []Mapping // Store mappings for adjustment after import injection
+	config        *Config   // Configuration for preprocessor behavior
 }
 
 // funcContext tracks the current function for zero value generation
@@ -188,10 +156,19 @@ type funcContext struct {
 	zeroValues  []string
 }
 
-// NewErrorPropProcessor creates a new error propagation preprocessor
+// NewErrorPropProcessor creates a new error propagation preprocessor with default config
 func NewErrorPropProcessor() *ErrorPropProcessor {
+	return NewErrorPropProcessorWithConfig(nil)
+}
+
+// NewErrorPropProcessorWithConfig creates a new error propagation preprocessor with custom config
+func NewErrorPropProcessorWithConfig(config *Config) *ErrorPropProcessor {
+	if config == nil {
+		config = DefaultConfig()
+	}
 	return &ErrorPropProcessor{
 		tryCounter: 0,
+		config:     config,
 	}
 }
 
@@ -224,7 +201,10 @@ func (e *ErrorPropProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 		}
 
 		// Process the line, passing the current output line number
-		transformed, newMappings := e.processLine(line, inputLineNum+1, outputLineNum)
+		transformed, newMappings, err := e.processLine(line, inputLineNum+1, outputLineNum)
+		if err != nil {
+			return nil, nil, fmt.Errorf("line %d: %w", inputLineNum+1, err)
+		}
 		output.WriteString(transformed)
 		if inputLineNum < len(e.lines)-1 {
 			output.WriteByte('\n')
@@ -274,16 +254,16 @@ func (e *ErrorPropProcessor) GetNeededImports() []string {
 }
 
 // processLine processes a single line
-// Returns: (transformed_text, mappings)
-func (e *ErrorPropProcessor) processLine(line string, originalLineNum int, outputLineNum int) (string, []Mapping) {
+// Returns: (transformed_text, mappings, error)
+func (e *ErrorPropProcessor) processLine(line string, originalLineNum int, outputLineNum int) (string, []Mapping, error) {
 	// Check if line contains ? operator (and not ternary)
 	if !strings.Contains(line, "?") {
-		return line, nil
+		return line, nil, nil
 	}
 
 	// Check if it's a ternary (has : after ?)
 	if e.isTernaryLine(line) {
-		return line, nil
+		return line, nil, nil
 	}
 
 	// Pattern: let/var NAME = EXPR? ["message"]
@@ -291,8 +271,11 @@ func (e *ErrorPropProcessor) processLine(line string, originalLineNum int, outpu
 		rightSide := matches[3] // Everything after =
 		if strings.Contains(rightSide, "?") {
 			expr, errMsg := e.extractExpressionAndMessage(rightSide)
-			result, mappings := e.expandAssignment(matches, expr, errMsg, originalLineNum, outputLineNum)
-			return result, mappings
+			result, mappings, err := e.expandAssignment(matches, expr, errMsg, originalLineNum, outputLineNum)
+			if err != nil {
+				return "", nil, err
+			}
+			return result, mappings, nil
 		}
 	}
 
@@ -301,13 +284,16 @@ func (e *ErrorPropProcessor) processLine(line string, originalLineNum int, outpu
 		returnPart := matches[1] // Everything after return
 		if strings.Contains(returnPart, "?") {
 			expr, errMsg := e.extractExpressionAndMessage(returnPart)
-			result, mappings := e.expandReturn(matches, expr, errMsg, originalLineNum, outputLineNum)
-			return result, mappings
+			result, mappings, err := e.expandReturn(matches, expr, errMsg, originalLineNum, outputLineNum)
+			if err != nil {
+				return "", nil, err
+			}
+			return result, mappings, nil
 		}
 	}
 
 	// If we can't recognize the pattern, leave as-is
-	return line, nil
+	return line, nil, nil
 }
 
 // extractExpressionAndMessage extracts the expression and optional error message
@@ -326,7 +312,7 @@ func (e *ErrorPropProcessor) extractExpressionAndMessage(line string) (string, s
 
 // expandAssignment expands: let x = expr? → full error handling
 // Creates mappings for all 7 generated lines back to the original source line
-func (e *ErrorPropProcessor) expandAssignment(matches []string, expr string, errMsg string, originalLine int, startOutputLine int) (string, []Mapping) {
+func (e *ErrorPropProcessor) expandAssignment(matches []string, expr string, errMsg string, originalLine int, startOutputLine int) (string, []Mapping, error) {
 	keyword := matches[1]  // "let" or "var"
 	varName := matches[2]  // variable name
 	exprClean := strings.TrimSpace(strings.TrimSuffix(expr, "?"))
@@ -435,18 +421,40 @@ func (e *ErrorPropProcessor) expandAssignment(matches []string, expr string, err
 		Name:            "error_prop",
 	})
 
-	return buf.String(), mappings
+	return buf.String(), mappings, nil
 }
 
 // expandReturn expands: return expr? → full error handling
 // Creates mappings for all 7 generated lines back to the original source line
-func (e *ErrorPropProcessor) expandReturn(matches []string, expr string, errMsg string, originalLine int, startOutputLine int) (string, []Mapping) {
+func (e *ErrorPropProcessor) expandReturn(matches []string, expr string, errMsg string, originalLine int, startOutputLine int) (string, []Mapping, error) {
 	exprClean := strings.TrimSpace(strings.TrimSuffix(expr, "?"))
 
 	// Track function call for import detection
 	e.trackFunctionCallInExpr(exprClean)
 
-	tmpVar := fmt.Sprintf("__tmp%d", e.tryCounter)
+	// CRITICAL-2 FIX: Generate correct number of temporary variables for multi-value returns
+	// Determine how many non-error values the function returns
+	numNonErrorReturns := 1 // default: single value + error
+	if e.currentFunc != nil && len(e.currentFunc.returnTypes) > 1 {
+		// Function has N return types, last one is error, so N-1 are non-error values
+		numNonErrorReturns = len(e.currentFunc.returnTypes) - 1
+
+		// Check config mode: enforce single-value restriction if configured
+		if e.config != nil && e.config.MultiValueReturnMode == "single" && numNonErrorReturns > 1 {
+			// Return error - will be caught and reported by Process()
+			return "", nil, fmt.Errorf(
+				"multi-value error propagation not allowed in 'single' mode (use --multi-value-return=full): function returns %d values plus error",
+				numNonErrorReturns,
+			)
+		}
+	}
+
+	// Generate temporary variable names for all non-error values
+	tmpVars := []string{}
+	for i := 0; i < numNonErrorReturns; i++ {
+		tmpVars = append(tmpVars, fmt.Sprintf("__tmp%d", e.tryCounter))
+		e.tryCounter++
+	}
 	errVar := fmt.Sprintf("__err%d", e.tryCounter)
 	e.tryCounter++
 
@@ -461,9 +469,10 @@ func (e *ErrorPropProcessor) expandReturn(matches []string, expr string, errMsg 
 	indent := e.getIndent(matches[0])
 	mappings := []Mapping{}
 
-	// Line 1: __tmpN, __errN := expr
+	// Line 1: __tmp0, __tmp1, ..., __errN := expr
 	buf.WriteString(indent)
-	buf.WriteString(fmt.Sprintf("%s, %s := %s\n", tmpVar, errVar, exprClean))
+	allVars := append(tmpVars, errVar)
+	buf.WriteString(fmt.Sprintf("%s := %s\n", strings.Join(allVars, ", "), exprClean))
 	mappings = append(mappings, Mapping{
 		OriginalLine:    originalLine,
 		OriginalColumn:  qPos + 1, // 1-based column position of ?
@@ -535,30 +544,12 @@ func (e *ErrorPropProcessor) expandReturn(matches []string, expr string, errMsg 
 		Name:            "error_prop",
 	})
 
-	// Line 7: return __tmpN, nil (complete tuple for functions returning multiple values)
+	// Line 7: return __tmp0, __tmp1, ..., nil (all non-error values + nil for error)
 	buf.WriteString(indent)
-	// CRITICAL-3 LIMITATION: Multi-value return handling
-	//
-	// PROBLEM: When calling a function that returns (A, B, error), the current code generates:
-	//   __tmp, __err := funcCall()  // Only captures one value + error
-	//   return __tmp, nil           // Missing the second value
-	//
-	// CORRECT CODE should be:
-	//   __tmp1, __tmp2, __err := funcCall()
-	//   return __tmp1, __tmp2, nil
-	//
-	// LIMITATION: At the preprocessor level (text-based), we don't have type information
-	// to determine function signatures. Proper fix requires:
-	// 1. AST-level type checking (go/types package)
-	// 2. Parsing function signatures to count return values
-	// 3. Generating correct number of tmp variables
-	//
-	// CURRENT BEHAVIOR: Assumes single value + error returns
-	// WORKAROUND: Users must use multi-value returns in assignment context, not return context
-	//
-	// TODO (Phase 3): Move error propagation to AST transformer with type info
-	var returnVals []string
-	returnVals = append(returnVals, tmpVar)
+	// CRITICAL-2 FIX: Return all temporary variables in success path
+	// For function returning (A, B, error), generate: return __tmp0, __tmp1, nil
+	// For function returning (A, error), generate: return __tmp0, nil
+	returnVals := append([]string{}, tmpVars...) // copy all tmp vars
 
 	// Add nil for error position (last return value)
 	if e.currentFunc != nil && len(e.currentFunc.returnTypes) > 1 {
@@ -574,7 +565,7 @@ func (e *ErrorPropProcessor) expandReturn(matches []string, expr string, errMsg 
 		Name:            "error_prop",
 	})
 
-	return buf.String(), mappings
+	return buf.String(), mappings, nil
 }
 
 // generateReturnStatement generates the return statement with proper zero values
@@ -869,16 +860,17 @@ func (e *ErrorPropProcessor) isTernaryLine(line string) bool {
 }
 
 // trackFunctionCallInExpr extracts function name from expression and tracks it
-// Handles patterns like: FuncName(args), pkg.FuncName(args), obj.Method(args)
+// Handles patterns like: pkg.FuncName(args), obj.Method(args)
 //
-// IMPORTANT-1 FIX: Now tracks BOTH qualified calls (pkg.Function) and bare function names
-// to support patterns like:
-//   - http.Get()     → detects "http.Get" and injects "net/http"
+// IMPORTANT-1 FIX: Now tracks ONLY qualified calls (pkg.Function) to prevent false positives
+// Supports patterns like:
+//   - os.ReadFile()   → detects "os.ReadFile" and injects "os"
+//   - http.Get()      → detects "http.Get" and injects "net/http"
 //   - filepath.Join() → detects "filepath.Join" and injects "path/filepath"
-//   - json.Marshal() → detects "json.Marshal" and injects "encoding/json"
+//   - json.Marshal()  → detects "json.Marshal" and injects "encoding/json"
 //
-// This prevents false positives where user-defined functions with common names
-// would incorrectly trigger import injection.
+// User-defined functions like ReadFile() will NOT trigger import injection
+// unless called as os.ReadFile() or with package qualification.
 func (e *ErrorPropProcessor) trackFunctionCallInExpr(expr string) {
 	// Simple extraction: find identifier before '('
 	parenIdx := strings.Index(expr, "(")
@@ -892,24 +884,12 @@ func (e *ErrorPropProcessor) trackFunctionCallInExpr(expr string) {
 	// Split by '.' to handle qualified names (pkg.Func or obj.Method)
 	parts := strings.Split(beforeParen, ".")
 
-	// IMPORTANT-1 FIX: Track BOTH the qualified name AND the bare function name
-	// This enables detection of both:
-	//   1. Qualified calls: http.Get() → "http.Get"
-	//   2. Bare calls: ReadFile() → "ReadFile" (but only if in stdLibFunctions)
-
+	// Track qualified calls (pkg.Function pattern)
 	if len(parts) >= 2 {
-		// Qualified call: try "pkg.Function" pattern first (more specific)
+		// Qualified call: construct "pkg.Function" pattern
 		qualifiedName := strings.Join(parts[len(parts)-2:], ".")
 		if e.importTracker != nil {
 			e.importTracker.TrackFunctionCall(qualifiedName)
-		}
-	}
-
-	// Also track the last part (bare function name) as fallback
-	if len(parts) > 0 {
-		funcName := strings.TrimSpace(parts[len(parts)-1])
-		if funcName != "" && e.importTracker != nil {
-			e.importTracker.TrackFunctionCall(funcName)
 		}
 	}
 }

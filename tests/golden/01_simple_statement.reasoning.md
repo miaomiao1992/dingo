@@ -1,3 +1,45 @@
+---
+title: "Error propagation test suite with ? operator"
+category: "Error Handling"
+subcategory: "Error Propagation"
+test_id: "error_prop_suite"
+order: 0
+
+complexity: "basic"
+feature: "error-propagation"
+phase: "Phase 2.4"
+status: "implemented"
+
+description: "Comprehensive test suite for the ? operator covering simple statements, multiple propagation, expressions, error wrapping, complex types, mixed contexts, special characters, and chained calls"
+summary: "Complete ? operator test suite (8 tests)"
+code_reduction: 65
+
+go_proposal: "71203"
+go_proposal_link: "https://github.com/golang/go/issues/71203"
+feature_file: "error-propagation.md"
+related_tests:
+  - "error_prop_01_simple"
+  - "error_prop_02_multiple"
+  - "error_prop_03_expression"
+  - "error_prop_04_wrapping"
+  - "error_prop_05_complex_types"
+  - "error_prop_06_mixed_context"
+  - "error_prop_07_special_chars"
+  - "error_prop_08_chained_calls"
+
+tags:
+  - "error-handling"
+  - "operator"
+  - "syntax-sugar"
+  - "test-suite"
+keywords:
+  - "? operator"
+  - "error propagation"
+  - "early return"
+  - "error wrapping"
+  - "try operator"
+---
+
 # Test Suite Reasoning: Error Propagation (`?` Operator)
 
 ## Test Suite Overview

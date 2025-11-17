@@ -18,6 +18,7 @@ import (
 type Preprocessor struct {
 	source     []byte
 	processors []FeatureProcessor
+	config     *Config // Configuration for preprocessor behavior
 }
 
 // FeatureProcessor defines the interface for individual feature preprocessors
@@ -38,16 +39,26 @@ type ImportProvider interface {
 	GetNeededImports() []string
 }
 
-// New creates a new preprocessor with all registered features
+// New creates a new preprocessor with all registered features and default config
 func New(source []byte) *Preprocessor {
+	return NewWithConfig(source, nil)
+}
+
+// NewWithConfig creates a new preprocessor with custom configuration
+func NewWithConfig(source []byte, config *Config) *Preprocessor {
+	if config == nil {
+		config = DefaultConfig()
+	}
+
 	return &Preprocessor{
 		source: source,
+		config: config,
 		processors: []FeatureProcessor{
 			// Order matters! Process in this sequence:
 			// 0. Type annotations (: → space) - must be first
 			NewTypeAnnotProcessor(),
-			// 1. Error propagation (expr?)
-			NewErrorPropProcessor(),
+			// 1. Error propagation (expr?) - pass config to enable mode control
+			NewErrorPropProcessorWithConfig(config),
 			// 2. Keywords (let → var) - after error prop so it doesn't interfere
 			NewKeywordProcessor(),
 			// 3. Lambdas (|x| expr)
@@ -184,8 +195,23 @@ func injectImportsWithPosition(source []byte, needed []string) ([]byte, int, err
 // CRITICAL-2 FIX: Only shifts mappings for lines AFTER the import insertion point
 func adjustMappingsForImports(sourceMap *SourceMap, numImportLines int, importInsertionLine int) {
 	for i := range sourceMap.Mappings {
-		// Only shift mappings for generated lines at or after the import insertion point
-		if sourceMap.Mappings[i].GeneratedLine >= importInsertionLine {
+		// CRITICAL-2 FIX: Only shift mappings for lines AFTER import insertion
+		//
+		// importInsertionLine is the line number (1-based) where imports are inserted
+		// (typically line 2 or 3, right after the package declaration).
+		//
+		// We use > (not >=) to exclude the insertion line itself. Mappings AT the
+		// insertion line are for package-level declarations BEFORE the imports, and
+		// should NOT be shifted.
+		//
+		// Example:
+		//   Line 1: package main
+		//   Line 2: [IMPORTS INSERTED HERE] ← importInsertionLine = 2
+		//   Line 3: func foo() { ... } (shifts to line 5 if 2 imports added)
+		//
+		// Mappings with GeneratedLine=1 or 2 stay as-is.
+		// Mappings with GeneratedLine=3+ are shifted by numImportLines.
+		if sourceMap.Mappings[i].GeneratedLine > importInsertionLine {
 			sourceMap.Mappings[i].GeneratedLine += numImportLines
 		}
 	}

@@ -386,19 +386,24 @@ EOF
 
 #### Internal Review Task
 
+**CRITICAL**: Use `astro-reviewer` agent (NOT golang-developer).
+
 ```
-You are conducting an internal code review.
+AGENT: astro-reviewer
+DESCRIPTION: Internal review for Astro landing page
+
+You are conducting an internal code review of Astro implementation.
 
 Session ID: $SESSION_ID
 Review Context: .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/review-context.md
 Output File: .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/internal-review.md
 
-Task: Perform comprehensive review.
+Task: Perform comprehensive Astro code review.
 
 Required Actions:
 1. Read review context file
 2. Read ai-docs/ knowledge base (INDEX.md, best-practices-checklist.md, relevant modules)
-3. Review all files listed in files-changed.json
+3. Review all files listed in files-changed.json against Astro best practices
 4. Run dev server and perform visual validation (if applicable)
 5. Write detailed report to output file
 6. Return ONLY summary:
@@ -420,56 +425,201 @@ IMPORTANT: Write full report to file. Return only summary.
 
 #### External Review Task (for each external model)
 
+**CRITICAL**: Use `astro-reviewer` agent in PROXY MODE (NOT golang-developer).
+
+**Pattern**: `astro-reviewer` agent delegates to external LLM via claudish CLI.
+
 ```
-You are conducting an external code review via claudish proxy.
+AGENT: astro-reviewer
+DESCRIPTION: External [model-name] review via claudish proxy
+
+You are an Astro code reviewer using PROXY MODE to delegate to an external LLM.
 
 Session ID: $SESSION_ID
-Model: [model-identifier]
+External Model: [model-identifier] (e.g., "x-ai/grok-code-fast-1")
 Review Context: .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/review-context.md
 Output File: .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/[model-name]-review.md
 
-Task: Delegate this review to the specified model.
+Task: Delegate this Astro code review to the external model via claudish.
+
+**PROXY MODE INSTRUCTIONS**:
+
+You are the astro-reviewer agent acting as a proxy coordinator. Your job is to:
+1. Prepare the review context for the external model
+2. Execute claudish CLI to delegate the review
+3. Ensure the external model has access to all necessary files
+4. Capture and return the review results
 
 Required Actions:
-1. Execute claudish command:
 
-   cat .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/review-context.md | \
-   claudish --stdin --model [model-identifier] "$(cat <<'PROMPT'
-   You are using the astro-reviewer agent in proxy mode.
+1. Read the review context:
+   ```bash
+   cat .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/review-context.md
+   ```
 
-   Review Context: [provided via stdin]
-   Session Folder: .astro-dev-sessions/$SESSION_ID
+2. Execute claudish to delegate review to external model:
+   ```bash
+   claudish --model [model-identifier] "$(cat <<'EXTERNAL_PROMPT'
+   You are a code reviewer analyzing an Astro landing page implementation.
 
-   Task: Comprehensive code review of Astro implementation.
+   CONTEXT:
+   - Project: Dingo landing page (Astro framework)
+   - Session: $SESSION_ID
+   - Iteration: $ITERATION
 
-   Instructions:
-   1. Read review context from stdin
-   2. Consult ai-docs/ knowledge base
-   3. Review all files in the session's files-changed.json
-   4. Validate against best-practices-checklist.md
-   5. Write detailed report to: .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/[model-name]-review.md
-   6. Return concise summary only
+   KNOWLEDGE BASE:
+   You MUST consult these files in ai-docs/ directory:
+   - ai-docs/INDEX.md - Navigation guide
+   - ai-docs/01-why-astro.md - Core principles
+   - ai-docs/best-practices-checklist.md - Decision trees
+   - ai-docs/02-islands-architecture.md - Islands pattern
+   - ai-docs/07-astro-components.md - Component patterns
+   - Other relevant modules as needed
 
-   Output Format:
-   # [Model Name] Review Summary
+   REVIEW CONTEXT:
+   $(cat .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/review-context.md)
+
+   TASK:
+   Perform a comprehensive code review of the Astro implementation:
+
+   1. Validate against Astro best practices (ai-docs/)
+   2. Check Islands Architecture usage (client: directives)
+   3. Verify component choices (.astro vs framework)
+   4. Review performance implications
+   5. Check for unnecessary client-side JavaScript
+   6. Validate against best-practices-checklist.md
+
+   SEVERITY LEVELS:
+   - CRITICAL: Violates core Astro principles, sends unnecessary JS, breaks performance
+   - MEDIUM: Suboptimal patterns, could be improved
+   - MINOR: Style/convention issues
+
+   OUTPUT REQUIREMENTS:
+
+   Return your review in this format:
+
+   # [Your Model Name] Review Summary
    Status: PASS / NEEDS_FIXES / MAJOR_ISSUES
    Critical: [count]
    Medium: [count]
+   Minor: [count]
 
-   ## Top 3 Issues
-   1. [Issue]
-   2. [Issue]
-   3. [Issue]
+   ## Top Issues
+   1. [Severity] - [File:line] - [Issue description]
+   2. [Severity] - [File:line] - [Issue description]
+   3. [Severity] - [File:line] - [Issue description]
 
-   Full report: [file path]
-   PROMPT
-   )"
+   ## Detailed Findings
+   [For each issue, provide:]
+   - Severity: CRITICAL/MEDIUM/MINOR
+   - Location: file:line
+   - Violates: [ai-docs module reference]
+   - Issue: [Description]
+   - Fix: [Specific solution]
+   - Reference: [Link to ai-docs or best practices]
 
-2. Write output to: .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/[model-name]-review.md
-3. Return ONLY summary
+   ## Positive Observations
+   [What was done well]
 
-IMPORTANT: All detailed data goes to file. Return only summary.
+   EXTERNAL_PROMPT
+   )" > .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/[model-name]-review.md
+   ```
+
+3. Read the external model's review output
+
+4. Return ONLY a concise summary:
+
+# [Model Name] External Review Summary
+Status: PASS / NEEDS_FIXES / MAJOR_ISSUES
+Critical: [count]
+Medium: [count]
+
+## Top 3 Issues
+1. [Issue]
+2. [Issue]
+3. [Issue]
+
+Full report: .astro-dev-sessions/$SESSION_ID/04-reviews/iteration-$ITERATION/[model-name]-review.md
+
+IMPORTANT:
+- You are coordinating the external review, not performing it yourself
+- Use claudish to delegate to the external LLM
+- Ensure the external model has full context about Astro and ai-docs/
+- Write the external model's output to the review file
+- Return only a summary to the orchestrator
 ```
+
+### Step 4.2b: Orchestrator Invocation Pattern
+
+**CRITICAL FOR ORCHESTRATOR**: This section shows exactly how to invoke the agents.
+
+**Example: Launching 4 reviews in parallel (Internal + 3 External)**
+
+Use a SINGLE message with MULTIPLE Task tool calls:
+
+```text
+I'm launching 4 reviews in parallel:
+
+1. Internal review (astro-reviewer agent)
+2. Grok Fast external review (astro-reviewer agent in proxy mode)
+3. GPT-4 external review (astro-reviewer agent in proxy mode)
+4. Gemini external review (astro-reviewer agent in proxy mode)
+
+[Then use 4 Task tool calls in the same message]
+```
+
+**Task Tool Call #1: Internal Review**
+```json
+{
+  "subagent_type": "astro-reviewer",
+  "description": "Internal review - sidebar menu",
+  "prompt": "[Full internal review task from Step 4.2, with $SESSION_ID and $ITERATION substituted]"
+}
+```
+
+**Task Tool Call #2: Grok External Review**
+```json
+{
+  "subagent_type": "astro-reviewer",
+  "description": "Grok review via claudish",
+  "prompt": "[Full external review task from Step 4.2, with model='x-ai/grok-code-fast-1', $SESSION_ID and $ITERATION substituted]"
+}
+```
+
+**Task Tool Call #3: GPT-4 External Review**
+```json
+{
+  "subagent_type": "astro-reviewer",
+  "description": "GPT-4 review via claudish",
+  "prompt": "[Full external review task from Step 4.2, with model='openai/gpt-4-turbo', $SESSION_ID and $ITERATION substituted]"
+}
+```
+
+**Task Tool Call #4: Gemini External Review**
+```json
+{
+  "subagent_type": "astro-reviewer",
+  "description": "Gemini review via claudish",
+  "prompt": "[Full external review task from Step 4.2, with model='google/gemini-2.5-flash', $SESSION_ID and $ITERATION substituted]"
+}
+```
+
+**ANTI-PATTERN** ❌ DO NOT DO THIS:
+```json
+{
+  "subagent_type": "golang-developer",  // ❌ WRONG! This is for Go code, not Astro!
+  "description": "Grok review",
+  "prompt": "Review the Astro code..."
+}
+```
+
+**KEY POINTS**:
+- ✅ ALL reviews use `astro-reviewer` agent (never golang-developer)
+- ✅ Internal review: astro-reviewer in direct mode
+- ✅ External reviews: astro-reviewer in proxy mode (delegates via claudish)
+- ✅ Launch ALL reviewers in parallel (single message, multiple Task calls)
+- ❌ NEVER use golang-developer for Astro code review
+- ❌ NEVER launch reviewers sequentially (must be parallel)
 
 ### Step 4.3: Aggregate Review Results
 
@@ -770,6 +920,8 @@ As the orchestration coordinator, you MUST follow these principles:
 - Create session folder for every run
 - Ensure .gitignore covers session folders
 - Launch agents with clear tasks
+- **Use `astro-reviewer` agent for ALL Astro code reviews** (internal AND external)
+- Launch ALL reviews in parallel (single message, multiple Task calls)
 - Read summaries from agent responses
 - Read files only when needed for user interaction
 - Aggregate data from summaries
@@ -779,6 +931,7 @@ As the orchestration coordinator, you MUST follow these principles:
 - Manage workflow state
 
 ### ❌ DON'T:
+- **NEVER use `golang-developer` agent for Astro code review** (CRITICAL BUG!)
 - Process large data in context (use files)
 - Read full review reports into context
 - Write code yourself (agents do that)
@@ -787,6 +940,7 @@ As the orchestration coordinator, you MUST follow these principles:
 - Pollute context with intermediate data
 - Skip session folder creation
 - Commit session folders to git
+- Launch reviewers sequentially (must be parallel)
 
 ---
 

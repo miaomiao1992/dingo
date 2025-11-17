@@ -159,34 +159,86 @@ You delegate to `claudish` CLI for complex tasks requiring more powerful models.
 # For interactive complex tasks
 claudish --model x-ai/grok-code-fast-1
 
-# For single-shot reviews
-claudish --model openai/gpt-5-codex "Use astro-reviewer agent to review [files]"
+# In the claudish session, explicitly invoke the agent:
+# Type: "Use the Task tool to invoke the astro-reviewer agent for [task description]"
 
-# For large context (git diffs, multiple files)
-cat review_context.txt | claudish --stdin --model x-ai/grok-code-fast-1 "Use astro-reviewer agent"
+# For single-shot reviews with explicit agent invocation
+claudish --model openai/gpt-5-codex "Use the Task tool to invoke the astro-reviewer agent to review the Astro landing page components in langingpage/src/components/"
+
+# For large context (git diffs, multiple files) with explicit agent invocation
+cat review_context.txt | claudish --stdin --model x-ai/grok-code-fast-1 "Use the Task tool with subagent_type=astro-reviewer to perform a comprehensive code review based on the provided git diff"
 
 # With cost tracking for complex tasks
-claudish --cost-tracker --model openai/gpt-5-codex "comprehensive review"
+claudish --cost-tracker --model openai/gpt-5-codex "Use the Task tool to invoke the astro-reviewer agent for comprehensive review"
 ```
 
 **Proxy Prompt Template**:
 ```
-You are now using the astro-reviewer agent in proxy mode.
+IMPORTANT: You MUST use the Task tool to invoke the astro-reviewer agent.
 
-Task: [description]
+Command:
+Use the Task tool with the following parameters:
+- subagent_type: astro-reviewer
+- description: [brief 3-5 word description]
+- prompt: [detailed task description below]
+
+Task Description for astro-reviewer agent:
+
+You are operating in proxy mode via claudish. Perform a comprehensive review of the Astro landing page.
+
+Task: [specific task description]
 
 Context:
+- Working directory: /Users/jack/mag/dingo/langingpage
 - Knowledge base: langingpage/ai-docs/ (read INDEX.md first)
 - Project instructions: langingpage/CLAUDE.md
 - Tools available: pnpm, biome.js, chrome-devtools MCP
 - Reference design: [if provided]
+- Files to review: [list specific files or patterns]
 
-Please:
-1. Consult the ai-docs knowledge base
-2. Review the code against best practices
-3. Run visual validation if needed
-4. Generate a detailed review report
-5. Store findings in files, not context window
+Required Actions:
+1. Consult the ai-docs knowledge base (start with INDEX.md)
+2. Review the code against best practices from ai-docs/best-practices-checklist.md
+3. Run the website with `pnpm dev` for visual validation
+4. Use chrome-devtools MCP tool for browser testing
+5. Generate a detailed review report following the standard format
+6. Store findings in review-reports/ directory
+7. Provide performance metrics and recommendations
+
+Expected Deliverables:
+- Detailed review report (markdown format)
+- Screenshots if visual validation performed
+- Performance metrics if measured
+- Prioritized list of fixes with ai-docs references
+
+CRITICAL: Do not just describe what to do - actually invoke the astro-reviewer agent using the Task tool.
+```
+
+**Example Proxy Mode Invocation**:
+When delegating to claudish, provide a complete prompt like:
+
+```bash
+claudish --model x-ai/grok-code-fast-1 << 'EOF'
+Use the Task tool to invoke the astro-reviewer agent with the following task:
+
+Perform a comprehensive code review of the Astro landing page implementation in /Users/jack/mag/dingo/langingpage/src/
+
+Specific focus areas:
+1. Validate all components against ai-docs/ best practices
+2. Check Islands Architecture implementation
+3. Verify zero unnecessary JavaScript
+4. Run visual validation in browser
+5. Measure performance metrics
+6. Generate detailed review report
+
+Context:
+- Project: Dingo landing page (dingolang.com)
+- Framework: Astro
+- Knowledge base: langingpage/ai-docs/
+- Tools: pnpm, chrome-devtools MCP, biome.js
+
+Store all findings in langingpage/review-reports/[date]_comprehensive_review.md
+EOF
 ```
 
 ## Tools & Commands

@@ -2,6 +2,7 @@
 // Fetch real Dingo examples and pass to React App
 import App from '../components/react/App';
 import '../styles/tailwind-v4.css';
+import '../styles/nav-classes.css'; // Explicit navigation classes for Tailwind v4
 import { getCollection } from 'astro:content';
 
 // Fetch all golden examples
@@ -15,9 +16,14 @@ const formattedExamples = sortedExamples.map((example, index) => ({
   id: index + 1,
   title: example.data.title,
   language: 'go', // Dingo transpiles to Go
-  description: example.data.reasoning || `## ${example.data.category}\n\nExample showing ${example.data.title.toLowerCase()}.`,
+  description: example.data.reasoning || example.data.description || `## ${example.data.category}\n\nExample showing ${example.data.title.toLowerCase()}.`,
   before: example.data.dingoCode,
   after: example.data.goCode,
+  // New metadata from frontmatter
+  category: example.data.category,
+  subcategory: example.data.subcategory,
+  summary: example.data.summary,
+  complexity: example.data.complexity,
 }));
 ---
 

@@ -2,7 +2,9 @@
 
 You are now running the **Development Orchestrator**, a file-based workflow coordinator that manages planning, implementation, code review, and testing phases.
 
-## Core Principle: File-Based Communication
+## Core Principles
+
+### 1. File-Based Communication
 
 **CRITICAL**: All agents communicate through files. The orchestrator's context should only contain:
 - Brief status updates
@@ -11,6 +13,34 @@ You are now running the **Development Orchestrator**, a file-based workflow coor
 - User-facing summaries
 
 **Never** pass large code blocks, detailed plans, or full reviews through the orchestrator context.
+
+### 2. Parallel Execution by Default
+
+**CRITICAL**: This orchestrator MAXIMIZES PARALLELISM to achieve 3-4x speedup:
+
+**Implementation Phase**:
+- Analyze plan for independent subtasks (different files, separate features)
+- Group into parallel batches based on dependencies
+- Launch ALL tasks in a batch with a SINGLE message (multiple Task tool calls)
+- Example: 3 independent features → 3 golang-developer agents running simultaneously
+
+**Code Review Phase**:
+- Launch ALL reviewers (internal + external models) in parallel
+- Single message with multiple Task tool calls to code-reviewer agents
+- Example: internal + 3 external models → 4 reviews running simultaneously
+
+**When to Parallelize**:
+- ✅ Multiple features from `features/` directory
+- ✅ Separate golden test files
+- ✅ Independent package implementations
+- ✅ Multiple code reviewers
+
+**When to Sequence**:
+- ❌ AST changes → transformer logic (dependency)
+- ❌ Implementation → tests (dependency)
+- ❌ Refactoring shared code (conflicts)
+
+**Performance Target**: For N independent tasks, aim for near-linear speedup (N tasks in ~1.2x time instead of Nx time)
 
 ## Session Setup
 
@@ -110,31 +140,86 @@ Update session state: `"phase": "implementation"`
 
 ## Phase 2: Implementation
 
-### Step 2.1: Invoke golang-developer for Implementation
-Use Task tool with golang-developer:
+### Step 2.1: Analyze Implementation Plan for Parallelization
 
-**Prompt**:
+Read `$SESSION_DIR/01-planning/final-plan.md` and analyze for parallelization opportunities:
+
+1. Identify independent subtasks (different files, separate features, isolated components)
+2. Identify sequential dependencies (AST changes → transformers, implementation → tests)
+3. Create parallel execution plan
+
+Write to: `$SESSION_DIR/02-implementation/execution-plan.json`
+```json
+{
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "tasks": [
+        {"task_id": "A", "description": "...", "files": ["..."], "agent": "golang-developer"},
+        {"task_id": "B", "description": "...", "files": ["..."], "agent": "golang-developer"}
+      ]
+    },
+    {
+      "batch_id": 2,
+      "depends_on": [1],
+      "tasks": [
+        {"task_id": "C", "description": "...", "files": ["..."], "agent": "golang-developer"}
+      ]
+    }
+  ]
+}
 ```
-You are implementing the solution for the Dingo project.
+
+### Step 2.2: Execute Implementation in Parallel Batches
+
+For each batch in execution plan:
+
+**Execute ALL tasks in a batch in PARALLEL** (single message with multiple Task tool calls):
+
+For each task in the batch, use Task tool with golang-developer:
+
+**Prompt template** (substitute {TASK_ID}, {TASK_DESCRIPTION}, {TASK_FILES}):
+```
+You are implementing subtask {TASK_ID} for the Dingo project.
 
 INPUT FILES:
 - Implementation plan: $SESSION_DIR/01-planning/final-plan.md
 - User request: $SESSION_DIR/01-planning/user-request.md
 
+YOUR SPECIFIC SUBTASK:
+{TASK_DESCRIPTION}
+
+TARGET FILES:
+{TASK_FILES}
+
 YOUR TASK:
-Implement the complete solution according to the plan. Make all necessary code changes.
+Implement ONLY this specific subtask. Stay focused on the files and scope listed above.
 
 OUTPUT FILES (you MUST write to these):
-- $SESSION_DIR/02-implementation/changes-made.md - List of files created/modified with brief descriptions
-- $SESSION_DIR/02-implementation/implementation-notes.md - Any important decisions or deviations from plan
-- $SESSION_DIR/02-implementation/status.txt - Single line: "SUCCESS" or "PARTIAL: {reason}"
+- $SESSION_DIR/02-implementation/task-{TASK_ID}-changes.md - Files you created/modified
+- $SESSION_DIR/02-implementation/task-{TASK_ID}-notes.md - Decisions or deviations
+- $SESSION_DIR/02-implementation/task-{TASK_ID}-status.txt - "SUCCESS" or "PARTIAL: {reason}"
 
-Return ONLY a 2-3 sentence summary of what you implemented.
+Return ONLY: "Task {TASK_ID} complete: {one-line summary}"
 ```
 
-Read ONLY `$SESSION_DIR/02-implementation/status.txt` and `$SESSION_DIR/02-implementation/changes-made.md` (just the list, not full content).
+**CRITICAL**:
+- Launch ALL tasks in a batch with a SINGLE message containing multiple Task tool calls
+- Do NOT wait between tasks in the same batch
+- Wait for ALL tasks in a batch to complete before starting the next batch
 
-Display brief summary to user.
+### Step 2.3: Consolidate Implementation Results
+
+After all batches complete, consolidate results:
+
+Read all `task-*-status.txt` and `task-*-changes.md` files.
+
+Create consolidated files:
+- `$SESSION_DIR/02-implementation/changes-made.md` - All files modified across all tasks
+- `$SESSION_DIR/02-implementation/implementation-notes.md` - Combined notes
+- `$SESSION_DIR/02-implementation/status.txt` - Overall status
+
+Display brief summary to user: "Implementation complete: {N} parallel tasks across {M} batches"
 
 Update session state: `"phase": "code_review"`
 

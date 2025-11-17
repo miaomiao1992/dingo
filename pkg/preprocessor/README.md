@@ -1,37 +1,96 @@
-# Preprocessor Package
+# Dingo Preprocessor Architecture
 
-## Purpose
+## Overview
 
-The preprocessor transforms Dingo-specific syntax into valid Go syntax before AST parsing. It operates on raw text, performing line-level transformations that are simpler and faster than AST manipulation.
+The preprocessor transforms Dingo source code to valid Go code through a pipeline of processors. Each processor handles a specific language feature (error propagation, pattern matching, etc.).
 
-## Responsibilities
+## Processing Pipeline
 
-### Primary Features
+### Stage 1: Feature Processors (Ordered)
 
-1. **Error Propagation (`?` operator)** - Primary implementation (693 lines, production-ready)
-   - Transforms `expr?` into proper error checking patterns
-   - Generates unique temporary variables and error returns
-   - Supports error message wrapping: `expr? "context message"`
-   - Maintains accurate source maps for bidirectional position tracking
+Processors run in sequence, each receiving the output of the previous processor:
 
-2. **Type Annotations** - Transforms parameter syntax
-   - Converts `func max(a: int, b: int)` to `func max(a int, b int)`
-   - Simplifies parser by normalizing to Go syntax
+1. **Error Propagation** (`error_prop.go`)
+   - Expands `?` operator to error checking code
+   - Tracks function calls for automatic import detection
+   - Generates source mappings for error propagation sites
 
-3. **Keyword Transformations** - Simple syntax sugar
-   - Converts `let x = value` to `var x = value`
-   - Additional keyword mappings as needed
+2. **Pattern Matching** (future: `pattern_match.go`)
+   - Expands `match` expressions to switch statements
 
-4. **Automatic Import Detection** - Tracks function calls
-   - Detects standard library functions: `ReadFile`, `WriteFile`, `Marshal`, `Unmarshal`, `Atoi`, `ParseInt`, etc.
-   - Automatically injects missing imports after all transformations
-   - Uses `golang.org/x/tools/go/ast/astutil` for safe import management
-   - Deduplicates and sorts imports for consistency
+3. **Result/Option Types** (future: `result_option.go`)
+   - Transforms Result<T,E> and Option<T> to Go structs
 
-5. **Source Mapping** - Position tracking
-   - Maintains bidirectional mappings: Dingo source ↔ Generated Go
-   - Automatically adjusts line numbers when imports are added
-   - Critical for IDE features (go-to-definition, error reporting)
+### Stage 2: Import Injection (FINAL STEP)
+
+After ALL processors complete:
+
+1. Collect all needed imports from `ImportTracker`
+2. Parse transformed Go source to AST
+3. Inject imports using `astutil.AddImport`
+4. Adjust source map offsets for injected lines
+5. Format and return final Go source
+
+**CRITICAL POLICY**: Import injection is ALWAYS the final step. No processor may run after imports are injected.
+
+## Source Mapping Rules
+
+### Mapping Creation
+
+Each processor creates mappings as it transforms code:
+
+```go
+mapping := Mapping{
+	OriginalLine:    originalLineInDingoSource,
+	OriginalColumn:  originalColumnInDingoSource,
+	GeneratedLine:   currentLineInTransformedGoCode,
+	GeneratedColumn: currentColumnInTransformedGoCode,
+	Length:          lengthOfTransformedToken,
+	Name:            "feature_name",  // e.g., "error_prop"
+}
+```
+
+### Offset Adjustment
+
+When imports are injected, mappings are adjusted:
+
+1. Calculate import insertion line (after package declaration)
+2. Count number of import lines added
+3. Shift ALL mappings with `GeneratedLine > importInsertionLine` by the number of added lines
+4. Mappings AT or BEFORE the insertion line remain unchanged
+
+**Example**:
+```
+BEFORE import injection:
+  Line 1: package main
+  Line 2:
+  Line 3: func foo() { ... }  ← mapping: Generated=3
+
+AFTER injecting 2 imports at line 2:
+  Line 1: package main
+  Line 2:
+  Line 3: import "os"
+  Line 4:
+  Line 5: func foo() { ... }  ← mapping adjusted: Generated=5
+
+Adjustment logic:
+  - importInsertionLine = 2
+  - numImportLines = 2
+  - Original mapping: GeneratedLine=3
+  - 3 > 2 → shift by 2 → new GeneratedLine=5
+```
+
+### Critical Fix (CRITICAL-2)
+
+The offset adjustment uses `>` (not `>=`) to exclude the insertion line itself:
+
+```go
+if sourceMap.Mappings[i].GeneratedLine > importInsertionLine {
+	sourceMap.Mappings[i].GeneratedLine += numImportLines
+}
+```
+
+This prevents shifting mappings that are exactly at the insertion line.
 
 ## Why Preprocessor vs Transformer?
 
@@ -81,7 +140,7 @@ Complex features requiring semantic analysis belong in the AST transformer:
    - Deduplication across all processors
    - Automatic filtering of already-present imports
 
-3. **Import Injection**
+3. **Import Injection** (FINAL STEP)
    - After all transformations complete
    - Uses `go/parser` + `astutil.AddImport` for correctness
    - Generates properly formatted import block
@@ -175,6 +234,7 @@ When adding new preprocessor features:
 4. Write comprehensive unit tests
 5. Update source map generation if line counts change
 6. Document the feature in this README
+7. **NEVER** run processors after import injection
 
 ## Related Packages
 

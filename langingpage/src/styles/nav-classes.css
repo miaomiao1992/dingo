@@ -1,0 +1,110 @@
+/* Navigation menu classes for React component */
+/* These need to be explicitly defined for Tailwind v4 to detect them */
+
+@layer utilities {
+  .px-3 {
+    padding-inline: calc(var(--spacing) * 3);
+  }
+
+  .py-2 {
+    padding-block: calc(var(--spacing) * 2);
+  }
+
+  .py-2\.5 {
+    padding-block: calc(var(--spacing) * 2.5);
+  }
+
+  .pl-2 {
+    padding-left: calc(var(--spacing) * 2);
+  }
+
+  .mt-1 {
+    margin-top: calc(var(--spacing) * 1);
+  }
+
+  .mb-3 {
+    margin-bottom: calc(var(--spacing) * 3);
+  }
+
+  .space-y-1 > :not(:last-child) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 1) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 1) * calc(1 - var(--tw-space-y-reverse)));
+  }
+
+  .text-gray-400 {
+    color: var(--color-gray-400, #9ca3af);
+  }
+
+  .font-medium {
+    font-weight: var(--font-weight-medium, 500);
+  }
+
+  .justify-between {
+    justify-content: space-between;
+  }
+
+  .transition-all {
+    transition-property: all;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+
+  .duration-300 {
+    --tw-duration: 300ms;
+    transition-duration: 300ms;
+  }
+
+  .ease-in-out {
+    --tw-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .max-h-0 {
+    max-height: 0;
+  }
+
+  .max-h-\[2000px\] {
+    max-height: 2000px;
+  }
+
+  .opacity-0 {
+    opacity: 0;
+  }
+
+  .opacity-100 {
+    opacity: 1;
+  }
+
+  .bg-green-50 {
+    background-color: var(--color-green-100, #d1fae5);
+  }
+
+  .text-green-700 {
+    color: var(--color-green-600, #059669);
+  }
+
+  .bg-amber-50 {
+    background-color: #fffbeb;
+  }
+
+  .text-amber-700 {
+    color: #b45309;
+  }
+
+  .bg-red-50 {
+    background-color: var(--color-red-100, #fee2e2);
+  }
+
+  .text-red-700 {
+    color: var(--color-red-600, #dc2626);
+  }
+
+  .text-blue-700 {
+    color: var(--color-blue-600);
+  }
+
+  .group {
+    /* Marker class for group hover */
+  }
+}

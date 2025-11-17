@@ -1,3 +1,41 @@
+---
+title: "Simple enum with unit variants"
+category: "Type System"
+subcategory: "Sum Types"
+test_id: "sum_types_01_simple"
+order: 1
+
+complexity: "basic"
+feature: "sum-types"
+phase: "Phase 2.5"
+status: "implemented"
+
+description: "Demonstrates basic sum types with simple enumeration (unit variants only), transpiling to idiomatic Go tagged union pattern with constructor functions and type guards"
+summary: "Basic enum pattern with unit variants"
+code_reduction: 79
+lines_dingo: 7
+lines_go: 33
+
+go_proposal: "19412"
+go_proposal_link: "https://github.com/golang/go/issues/19412"
+feature_file: "sum-types.md"
+related_tests:
+  - "sum_types_02_struct_variant"
+  - "sum_types_03_generic"
+
+tags:
+  - "sum-types"
+  - "enums"
+  - "type-safety"
+  - "tagged-union"
+keywords:
+  - "enum"
+  - "sum types"
+  - "algebraic data types"
+  - "tagged union"
+  - "unit variants"
+---
+
 # Test Reasoning: sum_types_01_simple_enum
 
 ## Test File

@@ -1,0 +1,116 @@
+{
+  "mappings": [
+    {
+      "generated_line": 12,
+      "generated_column": 1,
+      "original_line": 8,
+      "original_column": 25,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 13,
+      "generated_column": 1,
+      "original_line": 8,
+      "original_column": 25,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 14,
+      "generated_column": 1,
+      "original_line": 8,
+      "original_column": 25,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 15,
+      "generated_column": 1,
+      "original_line": 8,
+      "original_column": 25,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 16,
+      "generated_column": 1,
+      "original_line": 8,
+      "original_column": 25,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 17,
+      "generated_column": 1,
+      "original_line": 8,
+      "original_column": 25,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 18,
+      "generated_column": 1,
+      "original_line": 8,
+      "original_column": 25,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 28,
+      "generated_column": 1,
+      "original_line": 18,
+      "original_column": 23,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 29,
+      "generated_column": 1,
+      "original_line": 18,
+      "original_column": 23,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 30,
+      "generated_column": 1,
+      "original_line": 18,
+      "original_column": 23,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 31,
+      "generated_column": 1,
+      "original_line": 18,
+      "original_column": 23,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 32,
+      "generated_column": 1,
+      "original_line": 18,
+      "original_column": 23,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 33,
+      "generated_column": 1,
+      "original_line": 18,
+      "original_column": 23,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 34,
+      "generated_column": 1,
+      "original_line": 18,
+      "original_column": 23,
+      "length": 1,
+      "name": "error_prop"
+    }
+  ]
+}
