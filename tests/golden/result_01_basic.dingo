@@ -1,0 +1,22 @@
+package main
+
+import "errors"
+
+enum Result {
+	Ok(float64),
+	Err(error),
+}
+
+func divide(a float64, b float64) Result {
+	if b == 0.0 {
+		return Result_Err(errors.New("division by zero"))
+	}
+	return Result_Ok(a / b)
+}
+
+func main() {
+	result := divide(10.0, 2.0)
+	if result.IsOk() {
+		println("Result:", *result.ok_0)
+	}
+}

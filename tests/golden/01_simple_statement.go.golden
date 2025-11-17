@@ -1,11 +1,11 @@
 package main
 
 func readConfig(path string) ([]byte, error) {
-	data, __err0 := ReadFile(path)
-	// DINGO:GENERATED:START error_propagation
-	if __err0 != nil {
-		return nil, __err0
+	data, err := ReadFile(path)
+	// dingo:s:1
+	if err != nil {
+		return nil, err
 	}
-	// DINGO:GENERATED:END
+	// dingo:e:1
 	return data, nil
 }

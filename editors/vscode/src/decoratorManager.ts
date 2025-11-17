@@ -5,10 +5,12 @@ import { ConfigManager, HighlightStyle } from './config';
 export class DecoratorManager {
     private decorationType: vscode.TextEditorDecorationType;
     private markerHideDecorationType: vscode.TextEditorDecorationType;
+    private variableDecorationType: vscode.TextEditorDecorationType;
 
     constructor(private configManager: ConfigManager) {
         this.decorationType = this.createDecorationType();
         this.markerHideDecorationType = this.createMarkerHideDecorationType();
+        this.variableDecorationType = this.createVariableDecorationType();
     }
 
     /**
@@ -17,14 +19,21 @@ export class DecoratorManager {
     public updateDecorationType() {
         this.decorationType.dispose();
         this.markerHideDecorationType.dispose();
+        this.variableDecorationType.dispose();
         this.decorationType = this.createDecorationType();
         this.markerHideDecorationType = this.createMarkerHideDecorationType();
+        this.variableDecorationType = this.createVariableDecorationType();
     }
 
     /**
      * Apply decorations to an editor
      */
-    public applyDecorations(editor: vscode.TextEditor, ranges: MarkerRange[], markerLines?: vscode.Range[]) {
+    public applyDecorations(
+        editor: vscode.TextEditor,
+        ranges: MarkerRange[],
+        markerLines?: vscode.Range[],
+        variableRanges?: vscode.Range[]
+    ) {
         if (!this.configManager.isHighlightingEnabled()) {
             this.clearDecorations(editor);
             return;
@@ -40,6 +49,13 @@ export class DecoratorManager {
         } else {
             editor.setDecorations(this.markerHideDecorationType, []);
         }
+
+        // Apply variable highlighting if enabled
+        if (variableRanges && this.configManager.shouldHighlightVariables()) {
+            editor.setDecorations(this.variableDecorationType, variableRanges);
+        } else {
+            editor.setDecorations(this.variableDecorationType, []);
+        }
     }
 
     /**
@@ -48,6 +64,7 @@ export class DecoratorManager {
     public clearDecorations(editor: vscode.TextEditor) {
         editor.setDecorations(this.decorationType, []);
         editor.setDecorations(this.markerHideDecorationType, []);
+        editor.setDecorations(this.variableDecorationType, []);
     }
 
     /**
@@ -56,6 +73,7 @@ export class DecoratorManager {
     public dispose() {
         this.decorationType.dispose();
         this.markerHideDecorationType.dispose();
+        this.variableDecorationType.dispose();
     }
 
     /**
@@ -104,6 +122,18 @@ export class DecoratorManager {
     private createMarkerHideDecorationType(): vscode.TextEditorDecorationType {
         return vscode.window.createTextEditorDecorationType({
             opacity: '0.3',
+            fontStyle: 'italic',
+            color: '#888888'
+        });
+    }
+
+    /**
+     * Create decoration type for highlighting generated variables
+     * Makes them visually suppressed (fade into background)
+     */
+    private createVariableDecorationType(): vscode.TextEditorDecorationType {
+        return vscode.window.createTextEditorDecorationType({
+            opacity: '0.4',
             fontStyle: 'italic',
             color: '#888888'
         });

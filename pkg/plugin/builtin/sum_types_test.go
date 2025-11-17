@@ -647,17 +647,19 @@ func TestGenerateVariantFields_EmptyFieldList(t *testing.T) {
 
 func TestGenerateVariantFields_FieldsWithNilNames(t *testing.T) {
 	p := NewSumTypesPlugin()
+	p.currentContext = &plugin.Context{Logger: &plugin.NoOpLogger{}}
 
 	variant := makeStructVariant("Circle")
 	variant.Fields = &ast.FieldList{
 		List: []*ast.Field{
-			{Names: nil, Type: &ast.Ident{Name: "float64"}}, // Nil names
+			{Names: nil, Type: &ast.Ident{Name: "float64"}}, // Nil names (tuple field)
 		},
 	}
 
-	// Should skip malformed fields
+	// UPDATED: After Phase 2.5, nil names are handled as tuple variants
 	fields := p.generateVariantFields(variant)
-	assert.Empty(t, fields, "Should skip fields with nil names")
+	require.Len(t, fields, 1, "Nil names should be treated as tuple fields")
+	assert.Equal(t, "circle_0", fields[0].Names[0].Name, "Should generate synthetic name")
 }
 
 // ============================================================================

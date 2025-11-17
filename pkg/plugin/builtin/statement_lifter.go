@@ -39,9 +39,28 @@ func (sl *StatementLifter) LiftExpression(
 	zeroValue ast.Expr,
 	errorWrapper ast.Expr, // Optional: wrapped error (from ErrorWrapper)
 ) *LiftResult {
-	// Generate unique variable names
-	tmpVar := fmt.Sprintf("__tmp%d", sl.counter)
-	errVar := fmt.Sprintf("__err%d", sl.counter)
+	return sl.LiftExpressionWithVars(expr, zeroValue, errorWrapper, "", "")
+}
+
+// LiftExpressionWithVars is like LiftExpression but allows specifying variable names
+// If tmpVarName or errVarName are empty, unique names will be generated
+func (sl *StatementLifter) LiftExpressionWithVars(
+	expr ast.Expr,
+	zeroValue ast.Expr,
+	errorWrapper ast.Expr,
+	tmpVarName string,
+	errVarName string,
+) *LiftResult {
+	// Generate variable names if not provided
+	if tmpVarName == "" {
+		tmpVarName = fmt.Sprintf("__tmp%d", sl.counter)
+	}
+	if errVarName == "" {
+		errVarName = fmt.Sprintf("__err%d", sl.counter)
+	}
+
+	tmpVar := tmpVarName
+	errVar := errVarName
 	sl.counter++
 
 	// Create assignment: tmpVar, errVar := expr

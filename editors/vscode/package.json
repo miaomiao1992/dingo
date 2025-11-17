@@ -46,6 +46,11 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "configurationDefaults": {
+      "files.associations": {
+        "*.go.golden": "go"
+      }
+    },
     "grammars": [
       {
         "language": "dingo",
@@ -80,18 +85,23 @@
         },
         "dingo.generatedCodeColor": {
           "type": "string",
-          "default": "#3b82f660",
-          "description": "Background color for generated code (hex with alpha channel, default: ~38% opacity)"
+          "default": "#3b82f610",
+          "description": "Background color for generated code (hex with alpha channel, default: ~6% opacity - very subtle)"
         },
         "dingo.generatedCodeBorderColor": {
           "type": "string",
-          "default": "#3b82f680",
-          "description": "Border color for bold/outline styles (default: ~50% opacity)"
+          "default": "#3b82f630",
+          "description": "Border color for bold/outline styles (default: ~19% opacity)"
         },
         "dingo.hideGeneratedMarkers": {
           "type": "boolean",
-          "default": false,
-          "description": "Hide DINGO:GENERATED comment markers in the editor (decorative only, comments remain in file)"
+          "default": true,
+          "description": "Hide dingo:s:N/dingo:e:N comment markers in the editor (makes them transparent/gray)"
+        },
+        "dingo.highlightGeneratedVariables": {
+          "type": "boolean",
+          "default": true,
+          "description": "Suppress generated variables (__err0, __tmp0, err, etc.) by making them fade into background"
         }
       }
     },

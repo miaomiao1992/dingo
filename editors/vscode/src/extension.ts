@@ -124,15 +124,16 @@ function updateHighlights(document: vscode.TextDocument) {
         return;
     }
 
-    // Find marker ranges and marker lines
+    // Find marker ranges, marker lines, and generated variables
     const ranges = markerDetector.findMarkerRanges(document);
     const markerLines = markerDetector.findMarkerLines(document);
+    const variableRanges = markerDetector.findGeneratedVariables(document);
 
     // Apply decorations to all visible editors showing this document
     vscode.window.visibleTextEditors
         .filter(editor => editor.document === document)
         .forEach(editor => {
-            decoratorManager?.applyDecorations(editor, ranges, markerLines);
+            decoratorManager?.applyDecorations(editor, ranges, markerLines, variableRanges);
         });
 }
 

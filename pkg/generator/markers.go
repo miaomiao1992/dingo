@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+// Plugin IDs for marker generation:
+// 1 = error_propagation (? operator)
+// 2 = result_type (Result<T, E>)
+// 3 = option_type (Option<T>)
+// 4 = pattern_matching (match expressions)
+// 5 = sum_types (enum)
+
 // MarkerInjector handles injection of DINGO:GENERATED markers into Go source code
 type MarkerInjector struct {
 	enabled bool
@@ -33,6 +40,7 @@ func (m *MarkerInjector) InjectMarkers(source []byte) ([]byte, error) {
 	errorCheckPattern := regexp.MustCompile(`(?m)(^[ \t]*if __err\d+ != nil \{[^}]*return[^}]*\}[ \t]*\n)`)
 
 	// Inject markers around error propagation blocks
+	// Using plugin ID 1 for error_propagation
 	result := errorCheckPattern.ReplaceAllStringFunc(sourceStr, func(match string) string {
 		// Extract indentation from the if statement
 		indent := ""
@@ -40,8 +48,8 @@ func (m *MarkerInjector) InjectMarkers(source []byte) ([]byte, error) {
 			indent = match[:idx]
 		}
 
-		startMarker := fmt.Sprintf("%s// DINGO:GENERATED:START error_propagation\n", indent)
-		endMarker := fmt.Sprintf("%s// DINGO:GENERATED:END\n", indent)
+		startMarker := fmt.Sprintf("%s// dingo:s:1\n", indent)
+		endMarker := fmt.Sprintf("%s// dingo:e:1\n", indent)
 
 		return startMarker + match + endMarker
 	})
@@ -64,8 +72,8 @@ func (m *MarkerInjector) injectErrorPropagationMarkers(lines []string) []string 
 			// Extract indentation
 			indent := getIndentation(line)
 
-			// Add start marker
-			result = append(result, indent+"// DINGO:GENERATED:START error_propagation")
+			// Add start marker (plugin ID 1 = error_propagation)
+			result = append(result, indent+"// dingo:s:1")
 			result = append(result, line)
 			i++
 
@@ -85,8 +93,8 @@ func (m *MarkerInjector) injectErrorPropagationMarkers(lines []string) []string 
 					i++
 				}
 
-				// Add end marker
-				result = append(result, indent+"// DINGO:GENERATED:END")
+				// Add end marker (plugin ID 1 = error_propagation)
+				result = append(result, indent+"// dingo:e:1")
 			}
 		} else {
 			result = append(result, line)

@@ -7,8 +7,12 @@ export interface MarkerRange {
 }
 
 export class MarkerDetector {
-    private readonly startPattern = /\/\/\s*DINGO:GENERATED:START(?:\s+(\w+))?(?:\s+(.+))?$/;
-    private readonly endPattern = /\/\/\s*DINGO:GENERATED:END\s*$/;
+    // Pattern matches: // dingo:s:1 or // dingo:start (for backward compatibility)
+    private readonly startPattern = /\/\/\s*dingo:(?:s:\d+|start)(?:\s+(\w+))?(?:\s+(.+))?$/i;
+    // Pattern matches: // dingo:e:1 or // dingo:end (for backward compatibility)
+    private readonly endPattern = /\/\/\s*dingo:(?:e:\d+|end)\s*$/i;
+    private readonly generatedVarPattern = /\b(__err\d+|__tmp\d+)\b/g;
+    private readonly errVarPattern = /\b(err)\b/g;
 
     /**
      * Find all DINGO:GENERATED marker ranges in a document
@@ -65,11 +69,11 @@ export class MarkerDetector {
     }
 
     /**
-     * Check if a document contains any DINGO:GENERATED markers
+     * Check if a document contains any dingo markers
      */
     public hasMarkers(document: vscode.TextDocument): boolean {
         const text = document.getText();
-        return text.includes('DINGO:GENERATED:START');
+        return text.includes('dingo:s:') || text.includes('dingo:start') || text.includes('DINGO:GENERATED:START');
     }
 
     /**
@@ -89,5 +93,38 @@ export class MarkerDetector {
         }
 
         return markerLines;
+    }
+
+    /**
+     * Find all generated variable occurrences in a document
+     * Returns ranges for variables like __err0, __tmp0, err, etc.
+     * Suppresses these variables throughout the entire file
+     */
+    public findGeneratedVariables(document: vscode.TextDocument): vscode.Range[] {
+        const variableRanges: vscode.Range[] = [];
+
+        for (let i = 0; i < document.lineCount; i++) {
+            const line = document.lineAt(i);
+            const text = line.text;
+
+            // Highlight __err0, __tmp0, etc. everywhere
+            this.generatedVarPattern.lastIndex = 0;
+            let match;
+            while ((match = this.generatedVarPattern.exec(text)) !== null) {
+                const startPos = new vscode.Position(i, match.index);
+                const endPos = new vscode.Position(i, match.index + match[0].length);
+                variableRanges.push(new vscode.Range(startPos, endPos));
+            }
+
+            // Highlight "err" everywhere (when reuse_err_variable = true, it's used throughout)
+            this.errVarPattern.lastIndex = 0;
+            while ((match = this.errVarPattern.exec(text)) !== null) {
+                const startPos = new vscode.Position(i, match.index);
+                const endPos = new vscode.Position(i, match.index + match[0].length);
+                variableRanges.push(new vscode.Range(startPos, endPos));
+            }
+        }
+
+        return variableRanges;
     }
 }

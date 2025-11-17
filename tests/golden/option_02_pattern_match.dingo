@@ -1,0 +1,29 @@
+package main
+
+enum Option {
+	Some(string),
+	None,
+}
+
+func findUser(id int) Option {
+	if id > 0 {
+		return Option_Some("User" + string(rune(id)))
+	}
+	return Option_None()
+}
+
+func getUserOrDefault(id int) string {
+	user := findUser(id)
+	match user {
+		Some(name) => return name,
+		None => return "Anonymous"
+	}
+}
+
+func main() {
+	name1 := getUserOrDefault(42)
+	println("User 1:", name1)
+
+	name2 := getUserOrDefault(-1)
+	println("User 2:", name2)
+}

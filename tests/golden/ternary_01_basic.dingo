@@ -1,0 +1,7 @@
+package main
+
+func main() {
+	// Basic ternary operator
+	let status = age >= 18 ? "adult" : "minor"
+	let max = a > b ? a : b
+}

@@ -1,0 +1,77 @@
+package main
+
+import "errors"
+
+type ResultTag uint8
+
+const (
+	ResultTag_Ok ResultTag = iota
+	ResultTag_Err
+)
+
+type Result struct {
+	tag   ResultTag
+	ok_0  *string
+	err_0 *error
+}
+
+func Result_Ok(arg0 string) Result {
+	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+}
+func Result_Err(arg0 error) Result {
+	return Result{tag: ResultTag_Err, err_0: &arg0}
+}
+func (e Result) IsOk() bool {
+	return e.tag == ResultTag_Ok
+}
+func (e Result) IsErr() bool {
+	return e.tag == ResultTag_Err
+}
+func fetchUser(id int) Result {
+	if id <= 0 {
+		return Result_Err(errors.New("invalid user ID"))
+	}
+	return Result_Ok("User" + string(rune(id)))
+}
+func validateUser(name string) Result {
+	if name == "" {
+		return Result_Err(errors.New("empty user name"))
+	}
+	return Result_Ok(name)
+}
+func processUser(id int) Result {
+	user := fetchUser(id)
+	switch user.tag {
+	case ResultTag_Ok:
+		u := *user.ok_0
+		validated := validateUser(u)
+		switch validated.tag {
+		case ResultTag_Ok:
+			v := *validated.ok_0
+			return Result_Ok(v)
+		case ResultTag_Err:
+			e := *validated.err_0
+			return Result_Err(e)
+		default:
+			panic("unreachable: match should be exhaustive")
+		}
+	case ResultTag_Err:
+		e := *user.err_0
+		return Result_Err(e)
+	default:
+		panic("unreachable: match should be exhaustive")
+	}
+}
+func main() {
+	result := processUser(42)
+	switch result.tag {
+	case ResultTag_Ok:
+		user := *result.ok_0
+		println("Success:", user)
+	case ResultTag_Err:
+		error := *result.err_0
+		println("Error:", error)
+	default:
+		panic("unreachable: match should be exhaustive")
+	}
+}

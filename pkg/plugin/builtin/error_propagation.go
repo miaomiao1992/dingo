@@ -7,6 +7,7 @@ import (
 	"go/token"
 
 	dingoast "github.com/MadAppGang/dingo/pkg/ast"
+	"github.com/MadAppGang/dingo/pkg/config"
 	"github.com/MadAppGang/dingo/pkg/plugin"
 	"golang.org/x/tools/go/ast/astutil"
 )
@@ -57,7 +58,7 @@ type pendingInjection struct {
 // NewErrorPropagationPlugin creates a new error propagation transformation plugin
 func NewErrorPropagationPlugin() *ErrorPropagationPlugin {
 	return &ErrorPropagationPlugin{
-		BasePlugin:      *plugin.NewBasePlugin("error_propagation", "Error propagation with ? operator", nil),
+		BasePlugin:      *plugin.NewBasePlugin("error_propagation", "Error propagation with ? operator", []string{"sum_types"}),
 		statementLifter: NewStatementLifter(),
 		errorWrapper:    NewErrorWrapper(),
 		tmpCounter:      0,
@@ -217,10 +218,11 @@ func (p *ErrorPropagationPlugin) transformErrorPropagation(cursor *astutil.Curso
 
 	// Generate error wrapper if message provided
 	var errorWrapper ast.Expr
+	var errVarForWrapper string
 	if errExpr.Message != "" {
 		p.needsFmtImport = true
-		errVar := fmt.Sprintf("__err%d", p.errCounter)
-		errorWrapper = p.errorWrapper.WrapError(errVar, errExpr.Message)
+		errVarForWrapper = p.getErrorVarName()
+		errorWrapper = p.errorWrapper.WrapError(errVarForWrapper, errExpr.Message)
 	}
 
 	// Check context and transform accordingly
@@ -254,9 +256,8 @@ func (p *ErrorPropagationPlugin) transformStatementContext(
 		return
 	}
 
-	// Generate unique error variable
-	errVar := fmt.Sprintf("__err%d", p.errCounter)
-	p.errCounter++
+	// Generate error variable name based on config
+	errVar := p.getErrorVarName()
 
 	// Modify the assignment to capture the error
 	// Change: x := expr  →  x, __err0 := expr
@@ -305,8 +306,15 @@ func (p *ErrorPropagationPlugin) transformExpressionContext(
 	zeroValue ast.Expr,
 	errorWrapper ast.Expr,
 ) {
+	// Generate temp variable name
+	tmpVar := fmt.Sprintf("__tmp%d", p.tmpCounter)
+	p.tmpCounter++
+
+	// Generate error variable name based on config
+	errVar := p.getErrorVarName()
+
 	// Use statement lifter to extract statements
-	liftResult := p.statementLifter.LiftExpression(errExpr.X, zeroValue, errorWrapper)
+	liftResult := p.statementLifter.LiftExpressionWithVars(errExpr.X, zeroValue, errorWrapper, tmpVar, errVar)
 
 	// Replace the expression with the temp variable
 	cursor.Replace(liftResult.Replacement)
@@ -463,6 +471,25 @@ func (p *ErrorPropagationPlugin) generateZeroValue() ast.Expr {
 
 	// Fallback: use nil
 	return &ast.Ident{Name: "nil"}
+}
+
+// getErrorVarName returns the error variable name based on config
+// If ReuseErrVariable is enabled, always returns "err"
+// Otherwise, generates unique names like "__err0", "__err1", etc.
+func (p *ErrorPropagationPlugin) getErrorVarName() string {
+	// Check if we should reuse "err" variable
+	if p.currentContext != nil && p.currentContext.DingoConfig != nil {
+		if cfg, ok := p.currentContext.DingoConfig.(*config.Config); ok {
+			if cfg.Features.ReuseErrVariable {
+				return "err"
+			}
+		}
+	}
+
+	// Generate unique error variable name
+	errVar := fmt.Sprintf("__err%d", p.errCounter)
+	p.errCounter++
+	return errVar
 }
 
 // Reset resets the plugin's internal state (useful for testing)

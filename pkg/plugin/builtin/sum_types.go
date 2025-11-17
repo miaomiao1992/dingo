@@ -229,13 +229,16 @@ func (p *SumTypesPlugin) generateTagEnum(enumDecl *dingoast.EnumDecl) []ast.Decl
 	for i, variant := range enumDecl.Variants {
 		constName := tagName + "_" + variant.Name.Name
 		var value ast.Expr
+		var typ ast.Expr
 		if i == 0 {
-			// First constant uses iota
+			// First constant uses iota with explicit type
 			value = &ast.Ident{Name: "iota"}
+			typ = &ast.Ident{Name: tagName}
 		}
+		// Subsequent constants are bare (no type/value) - iota continues automatically
 		constSpecs[i] = &ast.ValueSpec{
 			Names: []*ast.Ident{{Name: constName}},
-			Type:  &ast.Ident{Name: tagName},
+			Type:  typ,
 			Values: func() []ast.Expr {
 				if value != nil {
 					return []ast.Expr{value}

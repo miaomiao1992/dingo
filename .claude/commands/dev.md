@@ -207,59 +207,54 @@ Return ONLY a one-line status.
 ```
 
 **For external models** (run in parallel):
-For each selected external model, use Task tool with **code-reviewer** agent (NOT golang-developer):
+For each selected external model, use Task tool with **code-reviewer** agent in PROXY MODE:
 
 **Prompt template** (substitute {MODEL_ID} and {MODEL_NAME}):
 ```
-You are conducting a code review using the external model {MODEL_NAME} via claudish.
+You are operating in PROXY MODE to conduct a code review using the external model {MODEL_NAME}.
 
 INPUT FILES:
 - Changes made: $SESSION_DIR/02-implementation/changes-made.md
 - Implementation plan: $SESSION_DIR/01-planning/final-plan.md
 - Previous review feedback (if exists): $SESSION_DIR/03-reviews/iteration-{N-1}/consolidated.md
 
-YOUR TASK:
-Use claudish to delegate this review to {MODEL_NAME}:
+YOUR TASK (PROXY MODE):
+1. Read the input files above to gather context
+2. Use the claudish CLI tool to delegate this review to {MODEL_NAME} (model ID: {MODEL_ID})
+3. Provide the external model with:
+   - Context from the input files
+   - The list of changed files from changes-made.md
+   - Request to review focusing on:
+     * Correctness and bug-free implementation
+     * Go best practices and idioms
+     * Performance considerations
+     * Code maintainability and readability
+     * Architecture alignment with the plan
+   - Request to categorize issues as CRITICAL/IMPORTANT/MINOR
+4. Receive the response from the external model
+5. Format and write the review to the output file
 
-claudish --model {MODEL_ID} << 'REVIEW_PROMPT'
-You are conducting a code review for the Dingo transpiler project.
-
-Read these files for context:
-- $SESSION_DIR/01-planning/final-plan.md
-- $SESSION_DIR/02-implementation/changes-made.md
-- All source files listed in changes-made.md
-
-Review the code changes focusing on:
-- Correctness and bug-free implementation
-- Go best practices and idioms
-- Performance considerations
-- Code maintainability and readability
-- Architecture alignment with the plan
-
-Categorize all issues as:
-- CRITICAL: Must fix (bugs, security, correctness)
-- IMPORTANT: Should fix (code quality, best practices)
-- MINOR: Nice to have (style, optimizations)
-
-Provide detailed feedback with specific file locations and line numbers.
-REVIEW_PROMPT
-
-OUTPUT FILES:
-- $REVIEW_ITER/{MODEL_ID}-review.md - Complete review with categorized issues
-- At the END of the file, include this summary:
-  ---
-  STATUS: APPROVED or CHANGES_NEEDED
-  CRITICAL_COUNT: N
-  IMPORTANT_COUNT: N
-  MINOR_COUNT: N
+OUTPUT FILES (you MUST write):
+- $REVIEW_ITER/{MODEL_ID}-review.md - Complete review with:
+  * Categorized issues (CRITICAL, IMPORTANT, MINOR)
+  * Specific file locations and line numbers
+  * At the END, include this summary section:
+    ---
+    STATUS: APPROVED or CHANGES_NEEDED
+    CRITICAL_COUNT: N
+    IMPORTANT_COUNT: N
+    MINOR_COUNT: N
 
 Return ONLY: "Review by {MODEL_NAME} complete: {STATUS}"
 ```
 
-**CRITICAL - Agent Selection**:
+**CRITICAL - Agent Selection and Execution**:
 - **ALWAYS use code-reviewer agent for ALL code reviews** (internal AND external)
 - **NEVER use golang-developer for code reviews** - it's for implementation, not review
-- Run ALL reviews in parallel: One Task call per reviewer in a single message
+- **Run ALL reviews in parallel**: Submit multiple Task tool calls in a SINGLE message (one per reviewer)
+- **NEVER use Bash tool for external reviews**: The code-reviewer agent handles claudish internally in PROXY MODE
+- External reviewers receive "PROXY MODE" instruction with model ID/name
+- All agents (internal and external) return file paths and brief status only
 
 ### Step 3.4: Collect Review Status
 Read ONLY the summary/status from each review file (last few lines):
@@ -426,7 +421,10 @@ Ask user:
 3. **Brief confirmations only**: Agents return max 3 sentence confirmations
 4. **Update session state**: After each phase, update session-state.json
 5. **Use TodoWrite**: Create todos for phases, not individual agent steps
-6. **Parallel execution**: Run external reviews in one message with multiple Bash calls
+6. **Parallel execution**: Run all reviews in parallel with multiple Task tool calls in a SINGLE message
+   - Internal review: Task tool → code-reviewer agent (direct mode)
+   - External reviews: Task tool → code-reviewer agent (PROXY MODE with model ID)
+   - **NEVER use Bash tool for reviews** - agents handle their own tools
 7. **Preserve session dir**: Never delete session directory, it's the audit trail
 
 ## TodoWrite Structure

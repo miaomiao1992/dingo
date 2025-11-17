@@ -60,6 +60,22 @@ func (e *ErrorPropagationExpr) End() token.Pos {
 // exprNode ensures ErrorPropagationExpr implements ast.Expr
 func (*ErrorPropagationExpr) exprNode() {}
 
+// SafeNavigationExpr represents the safe navigation operator (?.)
+// Example: let city = user?.address?.city
+//
+// Implements ast.Expr interface
+type SafeNavigationExpr struct {
+	X     ast.Expr  // Left operand (potentially nil value)
+	OpPos token.Pos // Position of '?.'
+	Sel   *ast.Ident // Field/method being accessed
+}
+
+func (s *SafeNavigationExpr) Pos() token.Pos { return s.X.Pos() }
+func (s *SafeNavigationExpr) End() token.Pos { return s.Sel.End() }
+
+// exprNode ensures SafeNavigationExpr implements ast.Expr
+func (*SafeNavigationExpr) exprNode() {}
+
 // NullCoalescingExpr represents the `??` operator (a ?? b)
 // Example: let name = user.name ?? "Unknown"
 //
@@ -72,6 +88,9 @@ type NullCoalescingExpr struct {
 
 func (n *NullCoalescingExpr) Pos() token.Pos { return n.X.Pos() }
 func (n *NullCoalescingExpr) End() token.Pos { return n.Y.End() }
+
+// exprNode ensures NullCoalescingExpr implements ast.Expr
+func (*NullCoalescingExpr) exprNode() {}
 
 // TernaryExpr represents the ternary operator (cond ? then : else)
 // Example: let status = age >= 18 ? "adult" : "minor"
@@ -87,6 +106,9 @@ type TernaryExpr struct {
 
 func (t *TernaryExpr) Pos() token.Pos { return t.Cond.Pos() }
 func (t *TernaryExpr) End() token.Pos { return t.Else.End() }
+
+// exprNode ensures TernaryExpr implements ast.Expr
+func (*TernaryExpr) exprNode() {}
 
 // LambdaExpr represents lambda/arrow functions
 // Examples:
@@ -110,6 +132,9 @@ func (l *LambdaExpr) End() token.Pos {
 	}
 	return l.Body.End()
 }
+
+// exprNode ensures LambdaExpr implements ast.Expr
+func (*LambdaExpr) exprNode() {}
 
 // ============================================================================
 // Dingo-Specific Type Nodes
@@ -297,7 +322,7 @@ func (f *FieldPattern) End() token.Pos { return f.Binding.End() }
 // IsDingoNode reports whether a node is a Dingo-specific extension
 func IsDingoNode(node ast.Node) bool {
 	switch node.(type) {
-	case *ErrorPropagationExpr, *NullCoalescingExpr, *TernaryExpr, *LambdaExpr:
+	case *ErrorPropagationExpr, *SafeNavigationExpr, *NullCoalescingExpr, *TernaryExpr, *LambdaExpr:
 		return true
 	case *ResultType, *OptionType:
 		return true
@@ -339,6 +364,11 @@ func Walk(node ast.Node, f func(ast.Node) bool) {
 		switch x := n.(type) {
 		case *ErrorPropagationExpr:
 			ast.Inspect(x.X, f)
+			return false
+
+		case *SafeNavigationExpr:
+			ast.Inspect(x.X, f)
+			ast.Inspect(x.Sel, f)
 			return false
 
 		case *NullCoalescingExpr:

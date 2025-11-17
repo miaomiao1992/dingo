@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/MadAppGang/dingo/pkg/generator"
 	"github.com/MadAppGang/dingo/pkg/parser"
+	"github.com/MadAppGang/dingo/pkg/plugin"
+	"github.com/MadAppGang/dingo/pkg/plugin/builtin"
 	"github.com/MadAppGang/dingo/pkg/ui"
 )
 
@@ -209,16 +211,29 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput) err
 		Duration: parseDuration,
 	})
 
-	// Step 2: Transform (skipped for now)
-	buildUI.PrintStep(ui.Step{
-		Name:    "Transform",
-		Status:  ui.StepSkipped,
-		Message: "no plugins enabled",
-	})
+	// Step 2: Setup plugins
+	registry, err := builtin.NewDefaultRegistry()
+	if err != nil {
+		buildUI.PrintStep(ui.Step{
+			Name:   "Setup",
+			Status: ui.StepError,
+		})
+		return fmt.Errorf("failed to setup plugins: %w", err)
+	}
 
-	// Step 3: Generate
+	// Step 3: Generate with plugins
 	genStart := time.Now()
-	gen := generator.New(fset)
+	logger := plugin.NewNoOpLogger() // Silent logger for CLI
+	gen, err := generator.NewWithPlugins(fset, registry, logger)
+	if err != nil {
+		buildUI.PrintStep(ui.Step{
+			Name:     "Generate",
+			Status:   ui.StepError,
+			Duration: time.Since(genStart),
+		})
+		return fmt.Errorf("failed to create generator: %w", err)
+	}
+
 	outputCode, err := gen.Generate(file)
 	genDuration := time.Since(genStart)
 
@@ -294,8 +309,20 @@ func runDingoFile(inputPath string, programArgs []string) error {
 		return err
 	}
 
-	// Generate
-	gen := generator.New(fset)
+	// Generate with plugins
+	registry, err := builtin.NewDefaultRegistry()
+	if err != nil {
+		buildUI.PrintError(fmt.Sprintf("Failed to setup plugins: %v", err))
+		return err
+	}
+
+	logger := plugin.NewNoOpLogger()
+	gen, err := generator.NewWithPlugins(fset, registry, logger)
+	if err != nil {
+		buildUI.PrintError(fmt.Sprintf("Failed to create generator: %v", err))
+		return err
+	}
+
 	goCode, err := gen.Generate(file)
 	if err != nil {
 		buildUI.PrintError(fmt.Sprintf("Generation error: %v", err))
