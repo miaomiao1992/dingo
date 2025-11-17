@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.reddit.com)",
+      "Bash(mkdir:*)",
+      "Bash(mkdir -p ai-docs/research/golang_missing)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

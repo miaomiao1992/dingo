@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Configuration for ADEV external AI reviewers",
+
+  "comment": "Models are dynamically fetched from 'claudish --list-models'",
+  "comment2": "Enable the models you want to use for external QA review",
+
+  "external_reviewers": [
+    {
+      "model": "FETCHED_DYNAMICALLY",
+      "enabled": true,
+      "description": "Models populated from claudish --list-models at runtime"
+    }
+  ],
+
+  "settings": {
+    "parallel_execution": true,
+    "max_concurrent_reviewers": 3,
+    "timeout_minutes": 10,
+    "retry_on_failure": true,
+    "max_retries": 2
+  },
+
+  "qa_focus_areas": [
+    "code_quality",
+    "best_practices",
+    "performance",
+    "accessibility",
+    "security",
+    "maintainability",
+    "astro_specific"
+  ],
+
+  "severity_thresholds": {
+    "critical": "Issues that prevent deployment or break core functionality",
+    "medium": "Important improvements that affect UX or maintainability",
+    "minor": "Nice-to-have enhancements and optimizations"
+  },
+
+  "report_format": {
+    "include_code_examples": true,
+    "include_screenshots": true,
+    "include_metrics": true,
+    "group_by_severity": true,
+    "show_file_locations": true
+  }
+}

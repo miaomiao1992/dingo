@@ -16,10 +16,9 @@ coverage.html
 go.work
 go.work.sum
 
-# AI session files
+# AI session files (sessions are ephemeral, but framework files are tracked)
 ai-docs/sessions/
-.claude/
-.adev/
+.adev/sessions/
 
 # Editor files
 .vscode/
