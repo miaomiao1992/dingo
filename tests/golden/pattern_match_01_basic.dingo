@@ -1,0 +1,25 @@
+package main
+
+// Test: Basic pattern matching
+// Feature: Pattern matching with match expression
+// Complexity: basic
+
+enum Status {
+	Pending,
+	Active,
+	Complete,
+}
+
+func getStatusMessage(s Status) string {
+	return match s {
+		Status_Pending => "Waiting to start",
+		Status_Active => "Currently running",
+		Status_Complete => "Finished",
+	}
+}
+
+func main() {
+	status := Status_Active()
+	msg := getStatusMessage(status)
+	println(msg)
+}

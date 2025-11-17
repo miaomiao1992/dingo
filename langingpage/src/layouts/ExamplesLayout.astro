@@ -1,0 +1,162 @@
+---
+// Layout for examples page with sticky header navigation and footer
+// Reference: ai-docs/08-layouts.md (nested layouts)
+//            ai-docs/07-astro-components.md (slots)
+
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <header class="site-header">
+    <div class="container">
+      <div class="header-content">
+        <h1 class="site-title">
+          <span class="logo">🦤</span>
+          Dingo Code Examples
+        </h1>
+        <nav class="header-nav">
+          <a href="https://github.com/MadAppGang/dingo" target="_blank" rel="noopener noreferrer" class="nav-link">
+            GitHub
+          </a>
+          <a href="https://github.com/MadAppGang/dingo#readme" target="_blank" rel="noopener noreferrer" class="nav-link">
+            Documentation
+          </a>
+        </nav>
+      </div>
+      <p class="subtitle">
+        See how Dingo's powerful features transpile to idiomatic Go code
+      </p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <slot />
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>
+        Built with <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> |
+        <a href="https://dingolang.com" target="_blank" rel="noopener">dingolang.com</a>
+      </p>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  .site-header {
+    background: var(--color-code-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: 2rem 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .site-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .logo {
+    font-size: 2rem;
+  }
+
+  .header-nav {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .nav-link {
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-link:hover {
+    color: var(--color-accent);
+  }
+
+  .subtitle {
+    margin-top: 0.5rem;
+    color: var(--color-text);
+    opacity: 0.8;
+    font-size: 1rem;
+  }
+
+  .main-content {
+    padding: 3rem 0 4rem;
+    min-height: 60vh;
+  }
+
+  .site-footer {
+    background: var(--color-code-bg);
+    border-top: 1px solid var(--color-border);
+    padding: 2rem 0;
+    margin-top: 4rem;
+    text-align: center;
+  }
+
+  .site-footer p {
+    color: var(--color-text);
+    opacity: 0.7;
+  }
+
+  .site-footer a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .site-footer a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .site-title {
+      font-size: 1.5rem;
+    }
+
+    .logo {
+      font-size: 1.75rem;
+    }
+
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-nav {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+</style>

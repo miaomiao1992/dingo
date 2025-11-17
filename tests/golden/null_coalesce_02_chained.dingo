@@ -1,0 +1,34 @@
+package main
+
+// Test: Chained null coalescing
+// Feature: Null coalescing with multiple fallbacks
+// Complexity: intermediate
+
+enum Option {
+	Some(string),
+	None,
+}
+
+func main() {
+	let firstName Option = Option_None()
+	let middleName Option = Option_None()
+	let lastName Option = Option_Some("Smith")
+
+	// Chained null coalescing - try each in order
+	let name = firstName ?? middleName ?? lastName ?? "Unknown"
+
+	// With function calls
+	let primary = getConfig("primary")
+	let fallback = getConfig("fallback")
+	let config = primary ?? fallback ?? "default"
+
+	println("Name:", name)
+	println("Config:", config)
+}
+
+func getConfig(key string) Option {
+	if key == "fallback" {
+		return Option_Some("backup-value")
+	}
+	return Option_None()
+}

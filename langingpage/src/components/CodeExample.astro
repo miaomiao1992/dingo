@@ -1,0 +1,114 @@
+---
+// Side-by-side code comparison component showing Dingo → Go transformation
+// Reference: ai-docs/07-astro-components.md (component composition)
+//            ai-docs/best-practices-checklist.md (layout patterns)
+
+import CodeBlock from './CodeBlock.astro';
+import ReasoningPanel from './ReasoningPanel.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  dingoCode: string;
+  goCode: string;
+  reasoning?: string;
+}
+
+const { id, title, dingoCode, goCode, reasoning } = Astro.props;
+---
+
+<article class="code-example" id={id}>
+  <header class="example-header">
+    <h3 class="example-title">{title}</h3>
+  </header>
+
+  <div class="code-comparison">
+    <div class="code-panel before">
+      <CodeBlock code={dingoCode} language="typescript" label="BEFORE" title="Dingo" />
+    </div>
+
+    <div class="arrow-divider" aria-hidden="true">
+      <span class="arrow">→</span>
+    </div>
+
+    <div class="code-panel after">
+      <CodeBlock code={goCode} language="go" label="AFTER" title="Go" />
+    </div>
+  </div>
+
+  {reasoning && <ReasoningPanel markdown={reasoning} />}
+</article>
+
+<style>
+  .code-example {
+    margin-bottom: 3rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .example-header {
+    margin-bottom: 1rem;
+  }
+
+  .example-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .code-comparison {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .code-panel {
+    min-width: 0;
+  }
+
+  .arrow-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 3rem;
+  }
+
+  .arrow {
+    font-size: 2rem;
+    color: var(--color-accent);
+    font-weight: bold;
+  }
+
+  /* Mobile: stack vertically */
+  @media (max-width: 768px) {
+    .code-comparison {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .arrow-divider {
+      padding: 0;
+      height: 2rem;
+    }
+
+    .arrow {
+      transform: rotate(90deg);
+      font-size: 1.5rem;
+    }
+
+    .example-title {
+      font-size: 1.125rem;
+    }
+  }
+
+  /* Tablet: smaller side-by-side */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .code-comparison {
+      gap: 1rem;
+    }
+
+    .arrow {
+      font-size: 1.5rem;
+    }
+  }
+</style>

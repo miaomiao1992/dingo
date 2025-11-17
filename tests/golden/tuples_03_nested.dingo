@@ -1,0 +1,28 @@
+package main
+
+// Test: Nested tuples
+// Feature: Tuples containing tuples
+// Complexity: advanced
+
+func getRange() ((int, int), (int, int)) {
+	return ((0, 10), (100, 200))
+}
+
+func parseCoordinate(s string) (bool, (int, int)) {
+	if s == "" {
+		return (false, (0, 0))
+	}
+	return (true, (10, 20))
+}
+
+func main() {
+	// Nested tuple destructuring
+	let ((minX, maxX), (minY, maxY)) = getRange()
+
+	// Tuple with mixed types
+	let (success, (x, y)) = parseCoordinate("10,20")
+
+	println("Range X:", minX, "-", maxX)
+	println("Range Y:", minY, "-", maxY)
+	println("Parsed:", success, x, y)
+}

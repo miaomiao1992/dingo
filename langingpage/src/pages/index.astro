@@ -1,0 +1,344 @@
+---
+// Main examples page
+// Reference: ai-docs/05-content-collections.md, ai-docs/07-astro-components.md
+
+import { getCollection } from 'astro:content';
+import ExamplesLayout from '../layouts/ExamplesLayout.astro';
+import FeatureSection from '../components/FeatureSection.astro';
+import { featureOrder, featureTypes } from '../lib/featureMapping';
+
+// Fetch all golden examples
+const allExamples = await getCollection('golden-examples');
+
+// Check if collection is empty
+const isEmpty = allExamples.length === 0;
+
+// Group examples by feature type
+const groupedExamples: Record<string, typeof allExamples> = {};
+
+for (const example of allExamples) {
+  const featureType = example.data.featureType;
+  if (!groupedExamples[featureType]) {
+    groupedExamples[featureType] = [];
+  }
+  groupedExamples[featureType].push(example);
+}
+
+// Filter to only feature types that have examples
+const availableFeatures = featureOrder.filter((type) => groupedExamples[type]?.length > 0);
+---
+
+<ExamplesLayout
+  title="Dingo Code Examples"
+  description="Explore Dingo's powerful features through before/after code examples showing how Dingo transpiles to idiomatic Go."
+>
+  {/* EMPTY STATE: Show when no examples loaded */}
+  {isEmpty && (
+    <section class="empty-state">
+      <div class="empty-state-icon" aria-hidden="true">🦤</div>
+      <h2>No Examples Available</h2>
+      <p>
+        The golden test examples directory was not found. This page displays examples from
+        the main Dingo repository's test suite.
+      </p>
+
+      <div class="empty-state-instructions">
+        <h3>To view examples:</h3>
+        <ol>
+          <li>
+            <strong>Clone the main repository:</strong>
+            <pre><code>git clone https://github.com/MadAppGang/dingo.git</code></pre>
+          </li>
+          <li>
+            <strong>Link the test directory:</strong>
+            <pre><code>ln -s ../dingo/tests ./tests</code></pre>
+          </li>
+          <li>
+            <strong>Rebuild the site:</strong>
+            <pre><code>pnpm build</code></pre>
+          </li>
+        </ol>
+      </div>
+
+      <div class="empty-state-cta">
+        <a href="https://github.com/MadAppGang/dingo" class="btn-primary" target="_blank" rel="noopener noreferrer">
+          View on GitHub
+        </a>
+        <a href="https://github.com/MadAppGang/dingo#readme" class="btn-secondary" target="_blank" rel="noopener noreferrer">
+          Read Documentation
+        </a>
+      </div>
+    </section>
+  )}
+
+  {/* NORMAL STATE: Show examples when available */}
+  {!isEmpty && (
+    <>
+      <div class="intro">
+        <p class="intro-text">
+          Dingo is a meta-language for Go that adds powerful features like Result/Option types,
+          pattern matching, and error propagation while transpiling to clean, idiomatic Go code.
+        </p>
+        <p class="intro-text">
+          Below are real examples from the Dingo compiler test suite, showing how each feature
+          transforms from concise Dingo syntax to equivalent Go code.
+        </p>
+      </div>
+
+      <nav class="features-nav" aria-label="Jump to feature">
+        <h2 class="nav-title">Features</h2>
+        <ul class="nav-list">
+          {availableFeatures.map((featureType) => {
+            const count = groupedExamples[featureType].length;
+            return (
+              <li>
+                <a href={`#feature-${featureType}`} class="nav-link">
+                  {featureTypes[featureType]}
+                  <span class="count">({count})</span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      <div class="examples-container">
+        {availableFeatures.map((featureType) => {
+          const examples = groupedExamples[featureType];
+          const title = featureTypes[featureType];
+
+          return (
+            <FeatureSection
+              featureType={featureType}
+              title={title}
+              examples={examples}
+            />
+          );
+        })}
+      </div>
+    </>
+  )}
+</ExamplesLayout>
+
+<style>
+  .intro {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--color-code-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+  }
+
+  .intro-text {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+    color: var(--color-text);
+  }
+
+  .intro-text:last-child {
+    margin-bottom: 0;
+  }
+
+  .features-nav {
+    margin-bottom: 3rem;
+    padding: 1.5rem;
+    background: var(--color-code-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+  }
+
+  .nav-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+  }
+
+  .nav-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .nav-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.2s;
+    font-weight: 500;
+  }
+
+  .nav-link:hover {
+    background: var(--color-bg);
+  }
+
+  .count {
+    color: var(--color-text);
+    opacity: 0.6;
+    font-size: 0.875rem;
+  }
+
+  .examples-container {
+    margin-top: 3rem;
+  }
+
+  /* Empty state styles */
+  .empty-state {
+    max-width: 800px;
+    margin: 4rem auto;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--color-code-bg);
+    border: 2px dashed var(--color-border);
+    border-radius: 8px;
+  }
+
+  .empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+  }
+
+  .empty-state > p {
+    font-size: 1.1rem;
+    color: var(--color-text);
+    opacity: 0.8;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .empty-state-instructions {
+    text-align: left;
+    background: var(--color-bg);
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 2rem;
+  }
+
+  .empty-state-instructions h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+  }
+
+  .empty-state-instructions ol {
+    margin-left: 1.5rem;
+    line-height: 1.8;
+  }
+
+  .empty-state-instructions li {
+    margin-bottom: 1rem;
+  }
+
+  .empty-state-instructions strong {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .empty-state-instructions pre {
+    background: var(--color-code-bg);
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    overflow-x: auto;
+  }
+
+  .empty-state-instructions code {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--color-text);
+  }
+
+  .empty-state-cta {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  .btn-primary:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    border: 2px solid var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  @media (max-width: 768px) {
+    .intro {
+      padding: 1rem;
+    }
+
+    .intro-text {
+      font-size: 0.9375rem;
+    }
+
+    .features-nav {
+      padding: 1rem;
+    }
+
+    .nav-list {
+      grid-template-columns: 1fr;
+    }
+
+    .nav-title {
+      font-size: 1.125rem;
+    }
+
+    .empty-state {
+      padding: 2rem 1rem;
+      margin: 2rem 1rem;
+    }
+
+    .empty-state h2 {
+      font-size: 1.5rem;
+    }
+
+    .empty-state > p {
+      font-size: 1rem;
+    }
+
+    .empty-state-cta {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+    }
+  }
+</style>

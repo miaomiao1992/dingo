@@ -1,0 +1,79 @@
+---
+// Groups examples by feature type for organized display
+// Reference: ai-docs/07-astro-components.md (component patterns)
+//            ai-docs/05-content-collections.md (CollectionEntry type)
+
+import CodeExample from './CodeExample.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  featureType: string;
+  title: string;
+  examples: CollectionEntry<'golden-examples'>[];
+}
+
+const { featureType, title, examples } = Astro.props;
+
+// Sort examples by order
+const sortedExamples = [...examples].sort((a, b) => a.data.order - b.data.order);
+---
+
+<section class="feature-section" id={`feature-${featureType}`}>
+  <header class="section-header">
+    <h2 class="section-title">{title}</h2>
+    <div class="section-divider"></div>
+  </header>
+
+  <div class="examples-list">
+    {sortedExamples.map((example) => (
+      <CodeExample
+        id={example.data.id}
+        title={example.data.title}
+        dingoCode={example.data.dingoCode}
+        goCode={example.data.goCode}
+        reasoning={example.data.reasoning}
+      />
+    ))}
+  </div>
+</section>
+
+<style>
+  .feature-section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 5rem;
+  }
+
+  .section-header {
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-divider {
+    height: 3px;
+    width: 4rem;
+    background: var(--color-accent);
+    border-radius: 2px;
+  }
+
+  .examples-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .section-title {
+      font-size: 1.5rem;
+    }
+
+    .feature-section {
+      margin-bottom: 3rem;
+    }
+  }
+</style>

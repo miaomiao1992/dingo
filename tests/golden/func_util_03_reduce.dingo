@@ -1,0 +1,33 @@
+package main
+
+// Test: Reduce function on slices
+// Feature: Functional reduce/fold utility
+// Complexity: intermediate
+
+func reduce(arr: []int, initial: int, f: func(int, int) int) int {
+	let result = initial
+	for _, v := range arr {
+		result = f(result, v)
+	}
+	return result
+}
+
+func main() {
+	let numbers = []int{1, 2, 3, 4, 5}
+
+	// Sum using reduce
+	let sum = reduce(numbers, 0, |acc, x| acc + x)
+
+	// Product using reduce
+	let product = reduce(numbers, 1, |acc, x| acc * x)
+
+	// Max using reduce
+	let max = reduce(numbers, numbers[0], |acc, x| {
+		if x > acc {
+			return x
+		}
+		return acc
+	})
+
+	println("Sum:", sum, "Product:", product, "Max:", max)
+}

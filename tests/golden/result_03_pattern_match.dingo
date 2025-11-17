@@ -1,0 +1,32 @@
+package main
+
+import "errors"
+
+// Test: Result type with pattern matching
+// Feature: Result type + pattern matching
+// Complexity: intermediate
+
+enum Result {
+	Ok(float64),
+	Err(error),
+}
+
+func divide(a float64, b float64) Result {
+	if b == 0.0 {
+		return Result_Err(errors.New("division by zero"))
+	}
+	return Result_Ok(a / b)
+}
+
+func handleResult(r Result) string {
+	return match r {
+		Result_Ok(val) => "Success: " + string(int(val)),
+		Result_Err(e) => "Error: " + e.Error(),
+	}
+}
+
+func main() {
+	result := divide(10.0, 2.0)
+	msg := handleResult(result)
+	println(msg)
+}

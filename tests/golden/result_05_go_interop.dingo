@@ -1,0 +1,39 @@
+package main
+
+import (
+	"errors"
+	"strconv"
+)
+
+// Test: Result type interoperating with Go (T, error) functions
+// Feature: Result type + Go interop
+// Complexity: intermediate
+
+enum Result {
+	Ok(int),
+	Err(error),
+}
+
+func convertToInt(s string) Result {
+	// Calling Go stdlib function that returns (int, error)
+	val, err := strconv.Atoi(s)
+	if err != nil {
+		return Result_Err(err)
+	}
+	return Result_Ok(val)
+}
+
+func doubleIfValid(s string) (int, error) {
+	result := convertToInt(s)
+	if result.IsErr() {
+		return 0, *result.err_0
+	}
+	return *result.ok_0 * 2, nil
+}
+
+func main() {
+	val, err := doubleIfValid("42")
+	if err == nil {
+		println("Doubled:", val)
+	}
+}
