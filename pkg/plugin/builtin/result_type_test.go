@@ -1471,7 +1471,7 @@ func TestEdgeCase_InferTypeFromExprEdgeCases(t *testing.T) {
 		{
 			name:     "identifier",
 			expr:     ast.NewIdent("myVar"),
-			expected: "myVar",
+			expected: "interface{}", // Without type information, we return interface{} instead of variable name
 		},
 		{
 			name:     "function call",

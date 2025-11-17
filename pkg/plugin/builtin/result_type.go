@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"strings"
 
 	"github.com/MadAppGang/dingo/pkg/plugin"
@@ -36,6 +37,10 @@ type ResultTypePlugin struct {
 
 	// Declarations to inject at package level
 	pendingDecls []ast.Decl
+
+	// Type information for proper type inference
+	typesInfo *types.Info
+	typesPkg  *types.Package
 }
 
 // NewResultTypePlugin creates a new Result type plugin
@@ -248,8 +253,22 @@ func (p *ResultTypePlugin) transformErrConstructor(call *ast.CallExpr) ast.Expr 
 }
 
 // inferTypeFromExpr infers the type of an expression
-// This is a simplified version - full implementation would use go/types
+//
+// This is a hybrid implementation that:
+// 1. Uses go/types if TypesInfo is available in the context
+// 2. Falls back to structural heuristics for common cases
+// 3. Returns "interface{}" for complex cases that need full type checking
+//
+// TODO(enhancement): Integrate full go/types type checking pipeline
 func (p *ResultTypePlugin) inferTypeFromExpr(expr ast.Expr) string {
+	// Try go/types first if available
+	if p.typesInfo != nil && p.typesInfo.Types != nil {
+		if tv, ok := p.typesInfo.Types[expr]; ok && tv.Type != nil {
+			return tv.Type.String()
+		}
+	}
+
+	// Fallback to structural heuristics
 	switch e := expr.(type) {
 	case *ast.BasicLit:
 		// Infer from literal kind
@@ -263,14 +282,127 @@ func (p *ResultTypePlugin) inferTypeFromExpr(expr ast.Expr) string {
 		case token.CHAR:
 			return "rune"
 		}
+
 	case *ast.Ident:
-		// Use identifier name as type hint
-		// In real implementation, would look up in symbol table
-		return e.Name
-	case *ast.CallExpr:
-		// For function calls, would need return type analysis
+		// Special built-in types
+		switch e.Name {
+		case "nil":
+			return "interface{}"
+		case "true", "false":
+			return "bool"
+		}
+
+		// For variables, we'd need type information
+		// Without go/types, we can't reliably infer the type
+		// TODO: This is the key limitation - returns variable name instead of type
+		// Full fix requires running go/types type checker
+		if p.ctx != nil && p.ctx.Logger != nil {
+			p.ctx.Logger.Debug("Type inference limitation: cannot determine type of identifier '%s' without go/types", e.Name)
+		}
 		return "interface{}"
+
+	case *ast.CompositeLit:
+		// Struct/array/map literals with explicit type
+		if e.Type != nil {
+			return p.exprToTypeString(e.Type)
+		}
+		return "interface{}"
+
+	case *ast.UnaryExpr:
+		// &x → pointer to x's type
+		if e.Op == token.AND {
+			innerType := p.inferTypeFromExpr(e.X)
+			if innerType != "interface{}" {
+				return "*" + innerType
+			}
+		}
+		return "interface{}"
+
+	case *ast.CallExpr:
+		// Function calls would need return type analysis from go/types
+		// Without it, we can't know the return type
+		return "interface{}"
+
+	case *ast.StarExpr:
+		// *x → dereference, need type info
+		return "interface{}"
+
+	case *ast.SelectorExpr:
+		// x.field → need type info for x
+		return "interface{}"
+
+	case *ast.IndexExpr:
+		// arr[i] or map[key] → need type info
+		return "interface{}"
+
+	case *ast.ArrayType:
+		return p.exprToTypeString(e)
+
+	case *ast.StructType:
+		return p.exprToTypeString(e)
+
+	case *ast.FuncType:
+		return p.exprToTypeString(e)
+
+	case *ast.InterfaceType:
+		return p.exprToTypeString(e)
+
+	case *ast.MapType:
+		return p.exprToTypeString(e)
+
+	case *ast.ChanType:
+		return p.exprToTypeString(e)
 	}
+
+	return "interface{}"
+}
+
+// exprToTypeString converts an AST type expression to a string representation
+func (p *ResultTypePlugin) exprToTypeString(expr ast.Expr) string {
+	switch t := expr.(type) {
+	case *ast.Ident:
+		return t.Name
+
+	case *ast.StarExpr:
+		return "*" + p.exprToTypeString(t.X)
+
+	case *ast.ArrayType:
+		if t.Len == nil {
+			return "[]" + p.exprToTypeString(t.Elt)
+		}
+		// For sized arrays, would need to evaluate length expression
+		return "[]" + p.exprToTypeString(t.Elt)
+
+	case *ast.SelectorExpr:
+		pkg := p.exprToTypeString(t.X)
+		return pkg + "." + t.Sel.Name
+
+	case *ast.MapType:
+		key := p.exprToTypeString(t.Key)
+		value := p.exprToTypeString(t.Value)
+		return fmt.Sprintf("map[%s]%s", key, value)
+
+	case *ast.ChanType:
+		elem := p.exprToTypeString(t.Value)
+		switch t.Dir {
+		case ast.SEND:
+			return "chan<- " + elem
+		case ast.RECV:
+			return "<-chan " + elem
+		default:
+			return "chan " + elem
+		}
+
+	case *ast.InterfaceType:
+		return "interface{}"
+
+	case *ast.StructType:
+		return "struct{}"
+
+	case *ast.FuncType:
+		return "func()"
+	}
+
 	return "interface{}"
 }
 
@@ -1164,4 +1296,41 @@ func (p *ResultTypePlugin) GetPendingDeclarations() []ast.Decl {
 // ClearPendingDeclarations clears the pending declarations list
 func (p *ResultTypePlugin) ClearPendingDeclarations() {
 	p.pendingDecls = make([]ast.Decl, 0)
+}
+
+// Transform performs AST transformations on the node
+// This method replaces Ok() and Err() constructor calls with struct literals
+func (p *ResultTypePlugin) Transform(node ast.Node) (ast.Node, error) {
+	if p.ctx == nil {
+		return nil, fmt.Errorf("plugin context not initialized")
+	}
+
+	// Use astutil.Apply to walk and transform the AST
+	transformed := astutil.Apply(node,
+		func(cursor *astutil.Cursor) bool {
+			n := cursor.Node()
+
+			// Check if this is a CallExpr we need to transform
+			if call, ok := n.(*ast.CallExpr); ok {
+				if ident, ok := call.Fun.(*ast.Ident); ok {
+					var replacement ast.Expr
+					switch ident.Name {
+					case "Ok":
+						replacement = p.transformOkConstructor(call)
+					case "Err":
+						replacement = p.transformErrConstructor(call)
+					}
+
+					// Replace the node if transformation occurred
+					if replacement != nil && replacement != call {
+						cursor.Replace(replacement)
+					}
+				}
+			}
+			return true
+		},
+		nil, // Post-order not needed
+	)
+
+	return transformed, nil
 }
