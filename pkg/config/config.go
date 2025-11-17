@@ -74,6 +74,30 @@ type FeatureConfig struct {
 	// - "on": Always check with runtime panic (safe, default)
 	// - "debug": Check only when DINGO_DEBUG env var is set
 	NilSafetyChecks string `toml:"nil_safety_checks"`
+
+	// LambdaSyntax controls which lambda function syntax styles are accepted
+	// Valid values: "rust", "arrow", "both"
+	// - "rust": Only Rust-style |x| expr syntax
+	// - "arrow": Only JavaScript/TypeScript-style (x) => expr syntax
+	// - "both": Accept both styles in the same file (default)
+	LambdaSyntax string `toml:"lambda_syntax"`
+
+	// SafeNavigationUnwrap controls how the ?. operator handles return types
+	// Valid values: "always_option", "smart"
+	// - "always_option": Always returns Option<T>
+	// - "smart": Unwraps to T based on context (default)
+	SafeNavigationUnwrap string `toml:"safe_navigation_unwrap"`
+
+	// NullCoalescingPointers enables ?? operator for Go pointers (*T)
+	// When true: Works with both Option<T> and *T
+	// When false: Works only with Option<T> (stricter type safety)
+	NullCoalescingPointers bool `toml:"null_coalescing_pointers"`
+
+	// OperatorPrecedence controls ternary/null-coalescing precedence checking
+	// Valid values: "standard", "explicit"
+	// - "standard": Follow C/TypeScript precedence rules
+	// - "explicit": Require parentheses for ambiguous mixing
+	OperatorPrecedence string `toml:"operator_precedence"`
 }
 
 // SourceMapConfig controls source map generation
@@ -99,9 +123,13 @@ const (
 func DefaultConfig() *Config {
 	return &Config{
 		Features: FeatureConfig{
-			ErrorPropagationSyntax: SyntaxQuestion, // Default to ? operator
-			ReuseErrVariable:       true,           // Default to reusing "err" for cleaner code
-			NilSafetyChecks:        "on",           // Default to safe mode
+			ErrorPropagationSyntax: SyntaxQuestion,   // Default to ? operator
+			ReuseErrVariable:       true,             // Default to reusing "err" for cleaner code
+			NilSafetyChecks:        "on",             // Default to safe mode
+			LambdaSyntax:           "rust",           // Default to Rust-style |x| expr
+			SafeNavigationUnwrap:   "smart",          // Default to smart unwrapping
+			NullCoalescingPointers: true,             // Default to supporting Go pointers
+			OperatorPrecedence:     "standard",       // Default to standard precedence
 		},
 		SourceMap: SourceMapConfig{
 			Enabled: true,
@@ -179,6 +207,39 @@ func (c *Config) Validate() error {
 		default:
 			return fmt.Errorf("invalid nil_safety_checks: %q (must be 'off', 'on', or 'debug')",
 				c.Features.NilSafetyChecks)
+		}
+	}
+
+	// Validate lambda syntax
+	if c.Features.LambdaSyntax != "" {
+		switch c.Features.LambdaSyntax {
+		case "rust", "arrow", "both":
+			// Valid
+		default:
+			return fmt.Errorf("invalid lambda_syntax: %q (must be 'rust', 'arrow', or 'both')",
+				c.Features.LambdaSyntax)
+		}
+	}
+
+	// Validate safe navigation unwrap mode
+	if c.Features.SafeNavigationUnwrap != "" {
+		switch c.Features.SafeNavigationUnwrap {
+		case "always_option", "smart":
+			// Valid
+		default:
+			return fmt.Errorf("invalid safe_navigation_unwrap: %q (must be 'always_option' or 'smart')",
+				c.Features.SafeNavigationUnwrap)
+		}
+	}
+
+	// Validate operator precedence
+	if c.Features.OperatorPrecedence != "" {
+		switch c.Features.OperatorPrecedence {
+		case "standard", "explicit":
+			// Valid
+		default:
+			return fmt.Errorf("invalid operator_precedence: %q (must be 'standard' or 'explicit')",
+				c.Features.OperatorPrecedence)
 		}
 	}
 

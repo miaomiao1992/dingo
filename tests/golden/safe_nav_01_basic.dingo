@@ -1,0 +1,7 @@
+package main
+
+func main() {
+	// Basic safe navigation (smart unwrap mode)
+	let name = user?.name
+	let city = user?.address?.city
+}

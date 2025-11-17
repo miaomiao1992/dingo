@@ -1,11 +1,11 @@
 package main
 
 func parseInt(s string) (int, error) {
-	__tmp0, __err0 := Atoi(s)
-	// DINGO:GENERATED:START error_propagation
-	if __err0 != nil {
-		return 0, __err0
+	__tmp0, err := Atoi(s)
+	// dingo:s:1
+	if err != nil {
+		return 0, err
 	}
-	// DINGO:GENERATED:END
+	// dingo:e:1
 	return __tmp0
 }

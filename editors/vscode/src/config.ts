@@ -51,20 +51,27 @@ export class ConfigManager {
      * Get the background color
      */
     public getBackgroundColor(): string {
-        return this.config.get<string>('generatedCodeColor', '#3b82f660');
+        return this.config.get<string>('generatedCodeColor', '#3b82f610');
     }
 
     /**
      * Get the border color
      */
     public getBorderColor(): string {
-        return this.config.get<string>('generatedCodeBorderColor', '#3b82f680');
+        return this.config.get<string>('generatedCodeBorderColor', '#3b82f630');
     }
 
     /**
      * Check if marker comments should be hidden
      */
     public shouldHideMarkers(): boolean {
-        return this.config.get<boolean>('hideGeneratedMarkers', false);
+        return this.config.get<boolean>('hideGeneratedMarkers', true);
+    }
+
+    /**
+     * Check if generated variables should be highlighted
+     */
+    public shouldHighlightVariables(): boolean {
+        return this.config.get<boolean>('highlightGeneratedVariables', true);
     }
 }

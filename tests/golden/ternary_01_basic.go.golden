@@ -1,0 +1,17 @@
+package main
+
+func main() {
+	// Basic ternary operator
+	var status = func() interface{} {
+		if age >= 18 {
+			return "adult"
+		}
+		return "minor"
+	}()
+	var max = func() interface{} {
+		if a > b {
+			return a
+		}
+		return b
+	}()
+}

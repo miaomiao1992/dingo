@@ -1,0 +1,7 @@
+package main
+
+func main() {
+	// Basic null coalescing with Option types
+	let name = optName ?? "Unknown"
+	let count = optCount ?? 0
+}

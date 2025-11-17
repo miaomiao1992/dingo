@@ -40,6 +40,14 @@ type Context struct {
 	Registry    *Registry      // Access to other plugins
 	Logger      Logger         // Logging interface
 	CurrentFile ast.Node       // Current file being transformed (can be *dingoast.File)
+	DingoConfig interface{}    // Full Dingo configuration (*config.Config), stored as interface{} to avoid circular import
+}
+
+// GetDingoConfig safely extracts the Dingo configuration from the context.
+// Returns nil if configuration is not available or not the expected type.
+// This helper eliminates duplicated type assertion code across all plugins.
+func (c *Context) GetDingoConfig() interface{} {
+	return c.DingoConfig
 }
 
 // Config holds configuration for all plugins

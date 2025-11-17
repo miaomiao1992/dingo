@@ -5,6 +5,27 @@
 # Default: "question" (expr?)
 error_propagation_syntax = "question"
 
+# Lambda function syntax: "rust" | "arrow" | "both"
+# - rust: Only |x| expr syntax
+# - arrow: Only (x) => expr syntax
+# - both: Accept both styles (default)
+lambda_syntax = "rust"
+
+# Safe navigation unwrap mode: "always_option" | "smart"
+# - always_option: Always returns Option<T>
+# - smart: Unwraps to T based on context (default)
+safe_navigation_unwrap = "smart"
+
+# Null coalescing pointer support: true | false
+# - true: ?? works with both Option<T> and *T (default)
+# - false: ?? works only with Option<T> (stricter)
+null_coalescing_pointers = true
+
+# Operator precedence: "standard" | "explicit"
+# - standard: Follow C/TypeScript precedence (default)
+# - explicit: Require parentheses for ambiguous mixing
+operator_precedence = "standard"
+
 [sourcemaps]
 # Enable source map generation
 enabled = true

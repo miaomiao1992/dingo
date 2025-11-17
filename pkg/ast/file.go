@@ -20,6 +20,7 @@ type DingoNode interface {
 
 // Implement DingoNode for all our custom types
 func (e *ErrorPropagationExpr) IsDingoNode() bool  { return true }
+func (s *SafeNavigationExpr) IsDingoNode() bool    { return true }
 func (n *NullCoalescingExpr) IsDingoNode() bool    { return true }
 func (t *TernaryExpr) IsDingoNode() bool           { return true }
 func (l *LambdaExpr) IsDingoNode() bool            { return true }

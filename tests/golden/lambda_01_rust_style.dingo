@@ -1,0 +1,8 @@
+package main
+
+func main() {
+	// Rust-style lambda syntax
+	let add = |a, b| a + b
+	let double = |x| x * 2
+	let greet = |name| "Hello, " + name
+}

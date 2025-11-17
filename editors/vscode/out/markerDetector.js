@@ -37,8 +37,12 @@ exports.MarkerDetector = void 0;
 const vscode = __importStar(require("vscode"));
 class MarkerDetector {
     constructor() {
-        this.startPattern = /\/\/\s*DINGO:GENERATED:START(?:\s+(\w+))?(?:\s+(.+))?$/;
-        this.endPattern = /\/\/\s*DINGO:GENERATED:END\s*$/;
+        // Pattern matches: // dingo:s:1 or // dingo:start (for backward compatibility)
+        this.startPattern = /\/\/\s*dingo:(?:s:\d+|start)(?:\s+(\w+))?(?:\s+(.+))?$/i;
+        // Pattern matches: // dingo:e:1 or // dingo:end (for backward compatibility)
+        this.endPattern = /\/\/\s*dingo:(?:e:\d+|end)\s*$/i;
+        this.generatedVarPattern = /\b(__err\d+|__tmp\d+)\b/g;
+        this.errVarPattern = /\b(err)\b/g;
     }
     /**
      * Find all DINGO:GENERATED marker ranges in a document
@@ -88,11 +92,11 @@ class MarkerDetector {
         return markers;
     }
     /**
-     * Check if a document contains any DINGO:GENERATED markers
+     * Check if a document contains any dingo markers
      */
     hasMarkers(document) {
         const text = document.getText();
-        return text.includes('DINGO:GENERATED:START');
+        return text.includes('dingo:s:') || text.includes('dingo:start') || text.includes('DINGO:GENERATED:START');
     }
     /**
      * Find marker comment lines (just the START and END lines themselves)
@@ -108,6 +112,34 @@ class MarkerDetector {
             }
         }
         return markerLines;
+    }
+    /**
+     * Find all generated variable occurrences in a document
+     * Returns ranges for variables like __err0, __tmp0, err, etc.
+     * Suppresses these variables throughout the entire file
+     */
+    findGeneratedVariables(document) {
+        const variableRanges = [];
+        for (let i = 0; i < document.lineCount; i++) {
+            const line = document.lineAt(i);
+            const text = line.text;
+            // Highlight __err0, __tmp0, etc. everywhere
+            this.generatedVarPattern.lastIndex = 0;
+            let match;
+            while ((match = this.generatedVarPattern.exec(text)) !== null) {
+                const startPos = new vscode.Position(i, match.index);
+                const endPos = new vscode.Position(i, match.index + match[0].length);
+                variableRanges.push(new vscode.Range(startPos, endPos));
+            }
+            // Highlight "err" everywhere (when reuse_err_variable = true, it's used throughout)
+            this.errVarPattern.lastIndex = 0;
+            while ((match = this.errVarPattern.exec(text)) !== null) {
+                const startPos = new vscode.Position(i, match.index);
+                const endPos = new vscode.Position(i, match.index + match[0].length);
+                variableRanges.push(new vscode.Range(startPos, endPos));
+            }
+        }
+        return variableRanges;
     }
 }
 exports.MarkerDetector = MarkerDetector;

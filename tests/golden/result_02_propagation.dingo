@@ -1,0 +1,44 @@
+package main
+
+import "errors"
+
+enum Result {
+	Ok(string),
+	Err(error),
+}
+
+func fetchUser(id int) Result {
+	if id <= 0 {
+		return Result_Err(errors.New("invalid user ID"))
+	}
+	return Result_Ok("User" + string(rune(id)))
+}
+
+func validateUser(name string) Result {
+	if name == "" {
+		return Result_Err(errors.New("empty user name"))
+	}
+	return Result_Ok(name)
+}
+
+func processUser(id int) Result {
+	user := fetchUser(id)
+	match user {
+		Ok(u) => {
+			validated := validateUser(u)
+			match validated {
+				Ok(v) => return Result_Ok(v),
+				Err(e) => return Result_Err(e)
+			}
+		},
+		Err(e) => return Result_Err(e)
+	}
+}
+
+func main() {
+	result := processUser(42)
+	match result {
+		Ok(user) => println("Success:", user),
+		Err(error) => println("Error:", error)
+	}
+}

@@ -1,0 +1,22 @@
+package main
+
+enum Option {
+	Some(string),
+	None,
+}
+
+func findUser(id int) Option {
+	if id > 0 {
+		return Option_Some("User" + string(rune(id)))
+	}
+	return Option_None()
+}
+
+func main() {
+	result := findUser(42)
+	if result.IsSome() {
+		println("Found:", *result.some_0)
+	} else {
+		println("Not found")
+	}
+}

@@ -45,11 +45,15 @@ func TestGoldenFiles(t *testing.T) {
 			dingoAST, err := parser.ParseFile(fset, dingoFile, dingoSrc, 0)
 			require.NoError(t, err, "Failed to parse Dingo file: %s", dingoFile)
 
-			// Create generator with error propagation plugin
+			// Create generator with all plugins
 			registry := plugin.NewRegistry()
 			errPropPlugin := builtin.NewErrorPropagationPlugin()
 			err = registry.Register(errPropPlugin)
-			require.NoError(t, err, "Failed to register plugin")
+			require.NoError(t, err, "Failed to register error propagation plugin")
+
+			sumTypesPlugin := builtin.NewSumTypesPlugin()
+			err = registry.Register(sumTypesPlugin)
+			require.NoError(t, err, "Failed to register sum types plugin")
 
 			logger := &testLogger{t: t}
 			gen, err := generator.NewWithPlugins(fset, registry, logger)

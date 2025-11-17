@@ -6,6 +6,7 @@ import (
 	"go/ast"
 	"go/token"
 	"strconv"
+	"unicode"
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
@@ -37,10 +38,11 @@ type Declaration struct {
 
 // Function represents a function declaration
 type Function struct {
-	Name   string       `parser:"'func' @Ident"`
-	Params []*Parameter `parser:"'(' ( @@ ( ',' @@ )* )? ')'"`
-	Result *Type        `parser:"( @@ )?"`  // No arrow - clean Go-style syntax
-	Body   *Block       `parser:"@@"`
+	Name        string       `parser:"'func' @Ident"`
+	Params      []*Parameter `parser:"'(' ( @@ ( ',' @@ )* )? ')'"`
+	HasTupleRet bool         `parser:"@'('?"`  // Detect if return is tuple
+	Results     []*Type      `parser:"( @@ ( ',' @@ )* )? ')'?"`  // Capture results (with optional closing paren if tuple)
+	Body        *Block       `parser:"@@"`
 }
 
 // Variable represents a variable declaration (let/var)
@@ -59,9 +61,9 @@ type Parameter struct {
 
 // Type represents a type expression
 type Type struct {
-	Name       string        `parser:"@Ident"`
-	Pointer    bool          `parser:"@'*'?"`
-	Array      bool          `parser:"@'['? ']'?"`
+	Pointer    bool          `parser:"@'*'?"`          // Prefix pointer: *int
+	Array      bool          `parser:"@'['? ']'?"`     // Prefix array: []byte
+	Name       string        `parser:"@Ident"`         // Type name
 	TypeParams []*Type       `parser:"( '<' @@ ( ',' @@ )* '>' )?"`  // Generic type parameters
 }
 
@@ -110,18 +112,34 @@ type Statement struct {
 
 // ReturnStmt represents a return statement
 type ReturnStmt struct {
-	Value *Expression `parser:"'return' @@?"`
+	Values []*Expression `parser:"'return' ( @@ ( ',' @@ )* )?"`
 }
 
-// Expression represents an expression (simplified - just basic operations for now)
+// Expression represents an expression with ternary as the lowest precedence
 type Expression struct {
-	Comparison *ComparisonExpression `parser:"@@"`
+	Ternary *TernaryExpression `parser:"@@"`
+}
+
+// TernaryExpression handles the ternary operator (? :)
+type TernaryExpression struct {
+	NullCoalesce *NullCoalesceExpression `parser:"@@"`
+	HasTernary   bool                    `parser:"@'?'?"`
+	Then         *NullCoalesceExpression `parser:"( @@ ':'"`
+	Else         *TernaryExpression      `parser:"  @@ )?"`
+}
+
+// NullCoalesceExpression handles the null coalescing operator (??)
+// Right-associative: a ?? b ?? c is parsed as a ?? (b ?? c)
+type NullCoalesceExpression struct {
+	Left  *ComparisonExpression   `parser:"@@"`
+	Op    string                  `parser:"( @NullCoalesce"`
+	Right *NullCoalesceExpression `parser:"  @@ )?"`
 }
 
 // ComparisonExpression handles ==, !=, <, >, <=, >=
 type ComparisonExpression struct {
 	Left  *AddExpression `parser:"@@"`
-	Op    string         `parser:"( @( '=' '=' | '!' '=' | '<' '=' | '>' '=' | '<' | '>' )"`
+	Op    string         `parser:"( @( EqEq | NotEq | LessEq | GreaterEq | '<' | '>' )"`
 	Right *AddExpression `parser:"  @@ )?"`
 }
 
@@ -132,10 +150,10 @@ type AddExpression struct {
 	Right *MultiplyExpression `parser:"  @@ )?"`
 }
 
-// MultiplyExpression handles * and /
+// MultiplyExpression handles *, /, and %
 type MultiplyExpression struct {
 	Left  *UnaryExpression `parser:"@@"`
-	Op    string           `parser:"( @( '*' | '/' )"`
+	Op    string           `parser:"( @( '*' | '/' | '%' )"`
 	Right *UnaryExpression `parser:"  @@ )?"`
 }
 
@@ -148,12 +166,30 @@ type UnaryExpression struct {
 // PrimaryExpression is the base expression
 type PrimaryExpression struct {
 	Match   *Match             `parser:"  @@"`        // Match expression
+	Lambda  *LambdaExpression  `parser:"| @@"`        // Lambda expression
 	Call    *CallExpression    `parser:"| @@"`        // Try call first (has lookahead)
 	Number  *int64             `parser:"| @Int"`
 	String  *string            `parser:"| @String"`
 	Bool    *bool              `parser:"| ( @'true' | 'false' )"`
 	Subexpr *Expression        `parser:"| '(' @@ ')'"`
 	Ident   *string            `parser:"| @Ident"`     // Ident last (most general)
+}
+
+// LambdaExpression represents a lambda function
+// Supports both Rust-style |x| expr and arrow-style (x) => expr
+type LambdaExpression struct {
+	// Rust-style: |x, y| x + y
+	RustParams  []*LambdaParam  `parser:"( '|' ( @@ ( ',' @@ )* )? '|'"`
+	RustBody    *Expression     `parser:"  @@ )"`
+	// Arrow-style: (x, y) => x + y
+	ArrowParams []*LambdaParam  `parser:"| ( '(' ( @@ ( ',' @@ )* )? ')' Arrow"`
+	ArrowBody   *Expression     `parser:"  @@ )"`
+}
+
+// LambdaParam represents a lambda parameter (name with optional type)
+type LambdaParam struct {
+	Name string `parser:"@Ident"`
+	Type *Type  `parser:"( ':' @@ )?"`  // Optional type annotation
 }
 
 // Match represents a match expression
@@ -188,11 +224,36 @@ type NamedPatternBinding struct {
 	Binding   string `parser:"( ':' @Ident )?"`  // Optional explicit binding (defaults to field name)
 }
 
-// PostfixExpression handles postfix operators like ? and !
+// PostfixExpression handles postfix operators like ?, ?., and method calls
 type PostfixExpression struct {
-	Primary        *PrimaryExpression `parser:"@@"`
-	ErrorPropagate *bool              `parser:"@'?'?"`      // Optional ? operator
-	ErrorMessage   *string            `parser:"( @String )?"`  // Optional error message after ?
+	Primary         *PrimaryExpression `parser:"@@"`
+	PostfixOps      []*PostfixOp       `parser:"@@*"` // Zero or more postfix operations
+}
+
+// PostfixOp represents a postfix operation (method call, safe nav, error propagation)
+type PostfixOp struct {
+	SafeNav        *SafeNavOp    `parser:"  @@"`       // Safe navigation ?.field
+	MethodCall     *MethodCall   `parser:"| @@"`       // Method call .method()
+	ErrorPropagate *ErrorPropOp  `parser:"| @@"`       // Error propagation ?
+}
+
+// SafeNavOp represents safe navigation operator
+type SafeNavOp struct {
+	Op    string  `parser:"@SafeNav"`
+	Field string  `parser:"@Ident"`
+}
+
+// ErrorPropOp represents error propagation operator
+type ErrorPropOp struct {
+	Op      string  `parser:"@'?'"`
+	Message *string `parser:"( @String )?"`  // Optional error message
+}
+
+// MethodCall represents a method call like .map(fn)
+type MethodCall struct {
+	Dot    string         `parser:"@'.'"`
+	Method string         `parser:"@Ident"`
+	Args   []*Expression  `parser:"'(' ( @@ ( ',' @@ )* )? ')'"`
 }
 
 // CallExpression represents a function call
@@ -213,20 +274,30 @@ type participleParser struct {
 
 func newParticipleParser(mode Mode) Parser {
 	// Define custom lexer for Dingo
+	// IMPORTANT: Order matters! Longer patterns must come before shorter ones
 	dingoLexer := lexer.MustSimple([]lexer.SimpleRule{
 		{Name: "Whitespace", Pattern: `[ \t\r\n]+`},
 		{Name: "Comment", Pattern: `//[^\n]*`},
 		{Name: "String", Pattern: `"[^"]*"`},
 		{Name: "Int", Pattern: `\d+`},
 		{Name: "Ident", Pattern: `[a-zA-Z_][a-zA-Z0-9_]*`},
-		{Name: "Punct", Pattern: `[{}()\[\],;:?*+\-/!=<>&|]`},
+		// Multi-character operators (must come before single-char Punct)
+		{Name: "SafeNav", Pattern: `\?\.`},    // Safe navigation ?.
+		{Name: "NullCoalesce", Pattern: `\?\?`}, // Null coalescing ??
+		{Name: "EqEq", Pattern: `==`},
+		{Name: "NotEq", Pattern: `!=`},
+		{Name: "LessEq", Pattern: `<=`},
+		{Name: "GreaterEq", Pattern: `>=`},
+		{Name: "Arrow", Pattern: `=>`},        // Arrow function =>
+		// Single-character punctuation (after multi-char operators)
+		{Name: "Punct", Pattern: `[{}()\[\],;:?*+\-/!=<>&|.%]`},
 	})
 
 	// Build parser
 	p := participle.MustBuild[DingoFile](
 		participle.Lexer(dingoLexer),
 		participle.Elide("Whitespace", "Comment"),
-		participle.UseLookahead(2),
+		participle.UseLookahead(4), // Increased for ternary operator
 	)
 
 	return &participleParser{
@@ -318,9 +389,11 @@ func (p *participleParser) convertToGoAST(dingoFile *DingoFile, file *token.File
 		} else if decl.Enum != nil {
 			// Enum declarations are Dingo-specific - store as placeholder
 			enumDecl := p.convertEnum(decl.Enum, file)
-			// Create a dummy GenDecl as placeholder
+			// Create a dummy GenDecl as placeholder with empty Specs slice
+			// (go/types crashes if Specs is nil/missing)
 			placeholder := &ast.GenDecl{
-				Tok: token.TYPE,
+				Tok:   token.TYPE,
+				Specs: []ast.Spec{}, // CRITICAL: Must have empty slice, not nil!
 			}
 			goFile.Decls = append(goFile.Decls, placeholder)
 			// Register the enum as a Dingo node
@@ -350,12 +423,15 @@ func (p *participleParser) convertFunction(fn *Function, file *token.File) *ast.
 		})
 	}
 
-	// Convert return type
-	if fn.Result != nil {
+	// Convert return types
+	if len(fn.Results) > 0 {
 		funcDecl.Type.Results = &ast.FieldList{
-			List: []*ast.Field{
-				{Type: p.convertType(fn.Result, file)},
-			},
+			List: make([]*ast.Field, 0, len(fn.Results)),
+		}
+		for _, result := range fn.Results {
+			funcDecl.Type.Results.List = append(funcDecl.Type.Results.List, &ast.Field{
+				Type: p.convertType(result, file),
+			})
 		}
 	}
 
@@ -389,8 +465,11 @@ func (p *participleParser) convertBlock(block *Block, file *token.File) *ast.Blo
 			stmts = append(stmts, p.convertVarStmt(stmt.Var, file))
 		} else if stmt.Return != nil {
 			returnStmt := &ast.ReturnStmt{}
-			if stmt.Return.Value != nil {
-				returnStmt.Results = []ast.Expr{p.convertExpression(stmt.Return.Value, file)}
+			if len(stmt.Return.Values) > 0 {
+				returnStmt.Results = make([]ast.Expr, 0, len(stmt.Return.Values))
+				for _, val := range stmt.Return.Values {
+					returnStmt.Results = append(returnStmt.Results, p.convertExpression(val, file))
+				}
 			}
 			stmts = append(stmts, returnStmt)
 		} else if stmt.Expr != nil {
@@ -424,7 +503,61 @@ func (p *participleParser) convertType(t *Type, file *token.File) ast.Expr {
 }
 
 func (p *participleParser) convertExpression(expr *Expression, file *token.File) ast.Expr {
-	return p.convertComparison(expr.Comparison, file)
+	return p.convertTernary(expr.Ternary, file)
+}
+
+func (p *participleParser) convertTernary(ternary *TernaryExpression, file *token.File) ast.Expr {
+	// First evaluate null coalescing
+	nullCoalesce := p.convertNullCoalesce(ternary.NullCoalesce, file)
+
+	// Check if this is a ternary expression
+	if ternary.HasTernary && ternary.Then != nil && ternary.Else != nil {
+		// Create TernaryExpr Dingo node
+		ternaryExpr := &dingoast.TernaryExpr{
+			Cond:     nullCoalesce,
+			Question: file.Pos(0), // Placeholder position
+			Then:     p.convertNullCoalesce(ternary.Then, file),
+			Colon:    file.Pos(0), // Placeholder position
+			Else:     p.convertTernary(ternary.Else, file),
+		}
+
+		// Create placeholder expression
+		placeholder := &ast.ParenExpr{X: ternaryExpr.Cond}
+
+		// Track this Dingo node
+		if p.currentFile != nil {
+			p.currentFile.AddDingoNode(placeholder, ternaryExpr)
+		}
+
+		return placeholder
+	}
+
+	return nullCoalesce
+}
+
+func (p *participleParser) convertNullCoalesce(nc *NullCoalesceExpression, file *token.File) ast.Expr {
+	left := p.convertComparison(nc.Left, file)
+
+	if nc.Op != "" && nc.Right != nil {
+		// Create NullCoalescingExpr Dingo node
+		ncExpr := &dingoast.NullCoalescingExpr{
+			X:     left,
+			OpPos: file.Pos(0), // Placeholder position
+			Y:     p.convertNullCoalesce(nc.Right, file), // Recursive for right-associativity
+		}
+
+		// Create placeholder expression
+		placeholder := &ast.ParenExpr{X: left}
+
+		// Track this Dingo node
+		if p.currentFile != nil {
+			p.currentFile.AddDingoNode(placeholder, ncExpr)
+		}
+
+		return placeholder
+	}
+
+	return left
 }
 
 func (p *participleParser) convertComparison(comp *ComparisonExpression, file *token.File) ast.Expr {
@@ -483,42 +616,80 @@ func (p *participleParser) convertUnary(unary *UnaryExpression, file *token.File
 }
 
 func (p *participleParser) convertPostfix(postfix *PostfixExpression, file *token.File) ast.Expr {
-	primary := p.convertPrimary(postfix.Primary, file)
+	expr := p.convertPrimary(postfix.Primary, file)
 
-	// Check for error propagation operator
-	if postfix.ErrorPropagate != nil && *postfix.ErrorPropagate {
-		// Create ErrorPropagationExpr node
-		errExpr := &dingoast.ErrorPropagationExpr{
-			X:      primary,
-			OpPos:  primary.End(), // Position after expression
-			Syntax: dingoast.SyntaxQuestion,
-		}
-
-		// Capture error message if provided
-		if postfix.ErrorMessage != nil {
-			// Remove quotes from the string literal
-			msg := *postfix.ErrorMessage
-			if len(msg) >= 2 && msg[0] == '"' && msg[len(msg)-1] == '"' {
-				errExpr.Message = msg[1 : len(msg)-1]
-			} else {
-				errExpr.Message = msg
+	// Process postfix operations in order
+	for _, op := range postfix.PostfixOps {
+		if op.SafeNav != nil {
+			// Safe navigation operator
+			safeNavExpr := &dingoast.SafeNavigationExpr{
+				X:     expr,
+				OpPos: file.Pos(0), // Placeholder position
+				Sel:   &ast.Ident{Name: op.SafeNav.Field},
 			}
-			errExpr.MessagePos = primary.End() + 1 // Position after '?'
-		}
 
-		// Track this Dingo node in the current file
-		// We use the primary expression as the key (placeholder in the AST)
-		// and map it to the ErrorPropagationExpr Dingo node
-		if p.currentFile != nil {
-			p.currentFile.AddDingoNode(primary, errExpr)
-		}
+			// Create placeholder expression
+			placeholder := &ast.SelectorExpr{
+				X:   expr,
+				Sel: &ast.Ident{Name: op.SafeNav.Field},
+			}
 
-		// Return the primary expression as a placeholder
-		// The transformer will look up the Dingo node using this expression
-		return primary
+			// Track this Dingo node
+			if p.currentFile != nil {
+				p.currentFile.AddDingoNode(placeholder, safeNavExpr)
+			}
+
+			expr = placeholder
+
+		} else if op.MethodCall != nil {
+			// Method call
+			selector := &ast.SelectorExpr{
+				X:   expr,
+				Sel: &ast.Ident{Name: op.MethodCall.Method},
+			}
+
+			// Convert arguments
+			args := make([]ast.Expr, 0, len(op.MethodCall.Args))
+			for _, arg := range op.MethodCall.Args {
+				args = append(args, p.convertExpression(arg, file))
+			}
+
+			// Create call expression
+			expr = &ast.CallExpr{
+				Fun:  selector,
+				Args: args,
+			}
+
+		} else if op.ErrorPropagate != nil {
+			// Error propagation operator
+			errExpr := &dingoast.ErrorPropagationExpr{
+				X:      expr,
+				OpPos:  expr.End(), // Position after expression
+				Syntax: dingoast.SyntaxQuestion,
+			}
+
+			// Capture error message if provided
+			if op.ErrorPropagate.Message != nil {
+				// Remove quotes from the string literal
+				msg := *op.ErrorPropagate.Message
+				if len(msg) >= 2 && msg[0] == '"' && msg[len(msg)-1] == '"' {
+					errExpr.Message = msg[1 : len(msg)-1]
+				} else {
+					errExpr.Message = msg
+				}
+				errExpr.MessagePos = expr.End() + 1 // Position after '?'
+			}
+
+			// Track this Dingo node
+			if p.currentFile != nil {
+				p.currentFile.AddDingoNode(expr, errExpr)
+			}
+
+			// Keep expr as-is (placeholder)
+		}
 	}
 
-	return primary
+	return expr
 }
 
 func (p *participleParser) convertPrimary(primary *PrimaryExpression, file *token.File) ast.Expr {
@@ -546,6 +717,10 @@ func (p *participleParser) convertPrimary(primary *PrimaryExpression, file *toke
 
 	if primary.Ident != nil {
 		return &ast.Ident{Name: *primary.Ident}
+	}
+
+	if primary.Lambda != nil {
+		return p.convertLambda(primary.Lambda, file)
 	}
 
 	if primary.Call != nil {
@@ -583,6 +758,68 @@ func (p *participleParser) convertPrimary(primary *PrimaryExpression, file *toke
 	return &ast.Ident{Name: "nil"}
 }
 
+func (p *participleParser) convertLambda(lambda *LambdaExpression, file *token.File) ast.Expr {
+	// Determine which style was used
+	var params []*LambdaParam
+	var body *Expression
+
+	if lambda.RustBody != nil {
+		params = lambda.RustParams
+		body = lambda.RustBody
+	} else if lambda.ArrowBody != nil {
+		params = lambda.ArrowParams
+		body = lambda.ArrowBody
+	} else {
+		// Invalid lambda
+		return &ast.Ident{Name: "nil"}
+	}
+
+	// Create parameter field list
+	fieldList := &ast.FieldList{
+		List: make([]*ast.Field, 0, len(params)),
+	}
+
+	for _, param := range params {
+		field := &ast.Field{
+			Names: []*ast.Ident{{Name: param.Name}},
+		}
+		if param.Type != nil {
+			field.Type = p.convertType(param.Type, file)
+		}
+		fieldList.List = append(fieldList.List, field)
+	}
+
+	// Create LambdaExpr Dingo node
+	lambdaExpr := &dingoast.LambdaExpr{
+		Pipe:   file.Pos(0), // Placeholder position
+		Params: fieldList,
+		Arrow:  file.Pos(0), // Placeholder position
+		Body:   p.convertExpression(body, file),
+		Rpipe:  file.Pos(0), // Placeholder position
+	}
+
+	// Create placeholder function literal
+	placeholder := &ast.FuncLit{
+		Type: &ast.FuncType{
+			Params: fieldList,
+		},
+		Body: &ast.BlockStmt{
+			List: []ast.Stmt{
+				&ast.ReturnStmt{
+					Results: []ast.Expr{lambdaExpr.Body},
+				},
+			},
+		},
+	}
+
+	// Track this Dingo node
+	if p.currentFile != nil {
+		p.currentFile.AddDingoNode(placeholder, lambdaExpr)
+	}
+
+	return placeholder
+}
+
 func stringToToken(s string) token.Token {
 	switch s {
 	case "+":
@@ -593,6 +830,8 @@ func stringToToken(s string) token.Token {
 		return token.MUL
 	case "/":
 		return token.QUO
+	case "%":
+		return token.REM
 	case "==":
 		return token.EQL
 	case "!=":
@@ -645,6 +884,13 @@ func (p *participleParser) convertEnum(enum *Enum, file *token.File) *dingoast.E
 }
 
 func (p *participleParser) convertVariant(variant *Variant, file *token.File) *dingoast.VariantDecl {
+	// Validate variant name is capitalized (Go export convention)
+	// TODO: Add proper validation error reporting
+	if variant.Name != "" && !unicode.IsUpper(rune(variant.Name[0])) {
+		// Variant names should be capitalized for Go export
+		// This will be caught by further validation or compilation
+	}
+
 	v := &dingoast.VariantDecl{
 		Name: &ast.Ident{Name: variant.Name},
 	}
@@ -660,11 +906,13 @@ func (p *participleParser) convertVariant(variant *Variant, file *token.File) *d
 			field := &ast.Field{
 				Type: p.convertType(f.Type, file),
 			}
-			// If field has a name, use it; otherwise generate positional name
+			// Use consistent naming: just the index for tuple fields
+			// The plugin will prefix with variantname_ later
 			if f.Name != "" {
 				field.Names = []*ast.Ident{{Name: f.Name}}
 			} else {
-				field.Names = []*ast.Ident{{Name: fmt.Sprintf("_%d", i)}}
+				syntheticName := "_" + strconv.Itoa(i)
+				field.Names = []*ast.Ident{{Name: syntheticName}}
 			}
 			v.Fields.List = append(v.Fields.List, field)
 		}

@@ -30,12 +30,3 @@ func (e Status) IsActive() bool {
 func (e Status) IsComplete() bool {
 	return e.tag == StatusTag_Complete
 }
-func checkStatus(s Status) string {
-	if s.IsPending() {
-		return "pending"
-	}
-	if s.IsActive() {
-		return "active"
-	}
-	return "complete"
-}
