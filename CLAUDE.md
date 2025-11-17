@@ -193,3 +193,36 @@ See `ai-docs/claude-research.md` and `ai-docs/gemini_research.md` for details:
 - **Progression:** 01=basic, 02-03=intermediate, 04+=advanced
 
 See the full guidelines document for detailed rules, examples, and best practices.
+
+### Golden Test Documentation Structure
+
+**Main Documentation** (`tests/golden/README.md`):
+- Quick start guide for running tests
+- Complete test catalog (46 tests across 11 categories)
+- Naming conventions and file structure
+- Writing new tests workflow
+- **Reasoning Documentation Section** - Explains the "why" behind tests:
+  - Links to Go community proposals and discussions
+  - Design rationale for implementation choices
+  - External references (Rust, Swift, TypeScript, Kotlin)
+  - Code reduction metrics (sum types: 78-79%, error propagation: 65%, etc.)
+  - Go Proposal Reference Map with community voting data
+
+**Individual Reasoning Files** (`.reasoning.md`):
+Each test can have an optional reasoning file (e.g., `sum_types_01_simple_enum.reasoning.md`) that provides:
+- Community context and Go proposals
+- Design decisions and alternatives
+- Implementation highlights
+- Success metrics and future enhancements
+
+**Completed Reasoning Docs:**
+- `sum_types_01_simple_enum.reasoning.md` - Basic enum (79% code reduction, Go Proposal #19412)
+- `sum_types_02_struct_variant.reasoning.md` - Enum with data (78% code reduction)
+- `01_simple_statement.reasoning.md` - Error propagation suite (covers all 8 tests, Go Proposal #71203)
+
+**Key Community References:**
+- Go Proposal #19412 - Sum types (996+ 👍, highest-voted proposal ever)
+- Go Proposal #71203 - Error `?` operator (Active 2025, 200+ comments)
+- Go Proposal #21498 - Lambda functions (750+ 👍)
+
+See `tests/golden/README.md` for the complete reasoning documentation index and metrics.
