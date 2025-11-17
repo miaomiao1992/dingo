@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"go/token"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"github.com/MadAppGang/dingo/pkg/parser"
 	"github.com/MadAppGang/dingo/pkg/plugin"
 	"github.com/MadAppGang/dingo/pkg/plugin/builtin"
+	"github.com/MadAppGang/dingo/pkg/preprocessor"
 	"github.com/MadAppGang/dingo/pkg/ui"
 )
 
@@ -185,15 +187,37 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput) err
 	// Print file header
 	buildUI.PrintFileStart(inputPath, outputPath)
 
-	// Step 1: Parse
-	parseStart := time.Now()
+	// Step 1: Read source
 	src, err := os.ReadFile(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to read file: %w", err)
 	}
 
+	// Step 2: Preprocess
+	prepStart := time.Now()
+	prep := preprocessor.New(src)
+	goSource, sourceMap, err := prep.Process()
+	prepDuration := time.Since(prepStart)
+
+	if err != nil {
+		buildUI.PrintStep(ui.Step{
+			Name:     "Preprocess",
+			Status:   ui.StepError,
+			Duration: prepDuration,
+		})
+		return fmt.Errorf("preprocessing error: %w", err)
+	}
+
+	buildUI.PrintStep(ui.Step{
+		Name:     "Preprocess",
+		Status:   ui.StepSuccess,
+		Duration: prepDuration,
+	})
+
+	// Step 3: Parse preprocessed Go
+	parseStart := time.Now()
 	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, inputPath, src, 0)
+	file, err := parser.ParseFile(fset, inputPath, []byte(goSource), 0)
 	parseDuration := time.Since(parseStart)
 
 	if err != nil {
@@ -263,6 +287,15 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput) err
 		})
 		return fmt.Errorf("failed to write output: %w", err)
 	}
+
+	// Write source map
+	sourceMapPath := outputPath + ".map"
+	sourceMapJSON, _ := json.MarshalIndent(sourceMap, "", "  ")
+	if err := os.WriteFile(sourceMapPath, sourceMapJSON, 0644); err != nil {
+		// Non-fatal: just log warning
+		buildUI.PrintInfo(fmt.Sprintf("Warning: failed to write source map: %v", err))
+	}
+
 	writeDuration := time.Since(writeStart)
 
 	buildUI.PrintStep(ui.Step{
@@ -301,9 +334,17 @@ func runDingoFile(inputPath string, programArgs []string) error {
 		return err
 	}
 
+	// Preprocess
+	prep := preprocessor.New(src)
+	goSource, _, err := prep.Process()
+	if err != nil {
+		buildUI.PrintError(fmt.Sprintf("Preprocessing error: %v", err))
+		return err
+	}
+
 	// Parse
 	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, inputPath, src, 0)
+	file, err := parser.ParseFile(fset, inputPath, []byte(goSource), 0)
 	if err != nil {
 		buildUI.PrintError(fmt.Sprintf("Parse error: %v", err))
 		return err

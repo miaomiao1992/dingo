@@ -36,8 +36,6 @@ func TestGoldenFiles(t *testing.T) {
 				"lambda_",          // Lambda causes nil positioner crash in type checker
 				"sum_types_",       // Type checker crashes on method receivers in generated code
 				"pattern_match_",   // Pattern matching not yet implemented
-				"option_",          // Option type not yet implemented
-				"result_",          // Result type not yet implemented
 				"safe_nav_",        // Safe navigation transformation not yet implemented
 				"null_coalesce_",   // Null coalescing transformation not yet implemented
 				"ternary_",         // Ternary operator not yet implemented (Phase 3)

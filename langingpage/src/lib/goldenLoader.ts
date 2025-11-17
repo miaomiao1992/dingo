@@ -117,7 +117,17 @@ export function goldenLoader(): Loader {
           const featureType = extractFeatureType(baseName);
           const featureDisplayName = featureTypes[featureType] || 'Other';
           const order = extractOrder(baseName);
-          const title = generateTitle(baseName);
+
+          // Extract title from reasoning H1 heading or fallback to generated title
+          let title = generateTitle(baseName);
+          if (reasoning) {
+            const h1Match = reasoning.match(/^#\s+(.+)$/m);
+            if (h1Match) {
+              title = h1Match[1].trim();
+              // Remove "Test Reasoning: " prefix if present
+              title = title.replace(/^Test Reasoning:\s*/i, '');
+            }
+          }
 
           // Create entry
           const entry: GoldenExample = {

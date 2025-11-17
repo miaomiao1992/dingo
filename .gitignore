@@ -44,3 +44,5 @@ editors/vscode/.vscode-test/
 
 # Golden test artifacts
 *.actual
+langingpage/.adev
+langingpage/debug-reports

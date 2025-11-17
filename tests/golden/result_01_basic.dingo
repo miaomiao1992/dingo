@@ -7,7 +7,7 @@ enum Result {
 	Err(error),
 }
 
-func divide(a float64, b float64) Result {
+func divide(a: float64, b: float64) Result {
 	if b == 0.0 {
 		return Result_Err(errors.New("division by zero"))
 	}
@@ -15,8 +15,8 @@ func divide(a float64, b float64) Result {
 }
 
 func main() {
-	result := divide(10.0, 2.0)
+	let result = divide(10.0, 2.0)
 	if result.IsOk() {
-		println("Result:", *result.ok_0)
+		let v = *result.ok_0
 	}
 }

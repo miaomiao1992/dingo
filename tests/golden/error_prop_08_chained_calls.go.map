@@ -1,0 +1,20 @@
+{
+  "mappings": [
+    {
+      "generated_line": 9,
+      "generated_column": 1,
+      "original_line": 9,
+      "original_column": 1,
+      "length": 51,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 11,
+      "generated_column": 1,
+      "original_line": 11,
+      "original_column": 1,
+      "length": 58,
+      "name": "error_prop"
+    }
+  ]
+}

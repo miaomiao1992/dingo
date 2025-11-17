@@ -36,6 +36,7 @@ func divide(a float64, b float64) Result {
 func main() {
 	result := divide(10.0, 2.0)
 	if result.IsOk() {
-		println("Result:", *result.ok_0)
+		v := *result.ok_0
+		_ = v
 	}
 }

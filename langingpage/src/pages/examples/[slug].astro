@@ -1,21 +1,27 @@
 ---
-// Main landing page - server-rendered index showing first example
-// Reference: ai-docs/03-routing.md for server-first approach
+// Dynamic route for individual examples - server-rendered
+// Reference: ai-docs/03-routing.md for Astro routing patterns
 import { getCollection } from 'astro:content';
-import CodeComparison from '../components/CodeComparison.astro';
-import logoImage from '../assets/dingo-logo.png';
+import CodeComparison from '../../components/CodeComparison.astro';
+import logoImage from '../../assets/dingo-logo.png';
 import { Image } from 'astro:assets';
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
 
-// Fetch all golden examples
-const allExamples = await getCollection('golden-examples');
+export async function getStaticPaths() {
+  const examples = await getCollection('golden-examples');
+  return examples.map(example => ({
+    params: { slug: example.data.id },
+    props: { example },
+  }));
+}
 
-// Sort by order
+const { example } = Astro.props;
+const allExamples = await getCollection('golden-examples');
 const sortedExamples = allExamples.sort((a, b) => a.data.order - b.data.order);
 
-// Show first example
-const firstExample = sortedExamples[0];
+// Current slug from URL
+const currentSlug = Astro.params.slug;
 
 // Fetch README from GitHub
 let readmeContent = '';
@@ -28,10 +34,10 @@ try {
   console.error('Error fetching README:', error);
 }
 
-// Process reasoning markdown for first example
+// Process reasoning markdown for current example
 let processedReasoning = '';
-if (firstExample?.data.reasoning) {
-  const rawHtml = await marked(firstExample.data.reasoning);
+if (example.data.reasoning) {
+  const rawHtml = await marked(example.data.reasoning);
   processedReasoning = DOMPurify.sanitize(rawHtml);
 }
 ---
@@ -41,8 +47,8 @@ if (firstExample?.data.reasoning) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dingo - A Meta-Language for Go</title>
-  <meta name="description" content="Dingo is a meta-language for Go with Result types, pattern matching, and error propagation" />
+  <title>{example.data.title} - Dingo Examples</title>
+  <meta name="description" content={`${example.data.title} - ${example.data.featureDisplayName} example in Dingo`} />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </head>
 <body>
@@ -55,16 +61,16 @@ if (firstExample?.data.reasoning) {
       </div>
 
       <nav class="flex-1 px-6 pt-6 pb-6 space-y-2 overflow-auto">
-        {sortedExamples.map((example, index) => (
+        {sortedExamples.map((ex) => (
           <a
-            href={index === 0 ? '/' : `/examples/${example.data.id}`}
+            href={`/examples/${ex.data.id}`}
             class={`w-full text-left px-4 py-3 rounded-lg transition-colors text-sm block ${
-              index === 0
+              currentSlug === ex.data.id
                 ? 'text-blue-600 bg-blue-50'
                 : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            {example.data.title}
+            {ex.data.title}
           </a>
         ))}
       </nav>
@@ -82,25 +88,21 @@ if (firstExample?.data.reasoning) {
     <!-- Main Content -->
     <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
       <div class="flex-1 overflow-auto pt-8">
-        <!-- Single example: first in the list -->
-        {firstExample && (
-          <>
-            <CodeComparison
-              before={firstExample.data.dingoCode}
-              after={firstExample.data.goCode}
-              language="go"
-            />
+        <!-- Single example content -->
+        <CodeComparison
+          before={example.data.dingoCode}
+          after={example.data.goCode}
+          language="go"
+        />
 
-            {processedReasoning && (
-              <div class="px-8 pb-8">
-                <div class="bg-white rounded-lg p-6 shadow-sm">
-                  <div class="prose prose-sm max-w-none">
-                    <div set:html={processedReasoning} />
-                  </div>
-                </div>
+        {processedReasoning && (
+          <div class="px-8 pb-8">
+            <div class="bg-white rounded-lg p-6 shadow-sm">
+              <div class="prose prose-sm max-w-none">
+                <div set:html={processedReasoning} />
               </div>
-            )}
-          </>
+            </div>
+          </div>
         )}
 
         <!-- README Section -->
@@ -118,7 +120,7 @@ if (firstExample?.data.reasoning) {
 </html>
 
 <style is:global>
-  @import '../styles/global.css';
+  @import '../../styles/global.css';
 
   * {
     margin: 0;
