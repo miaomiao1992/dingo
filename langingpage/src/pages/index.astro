@@ -1,12 +1,8 @@
 ---
-// Main landing page - server-rendered index showing first example
-// Reference: ai-docs/03-routing.md for server-first approach
+// Fetch real Dingo examples and pass to React App
+import App from '../components/react/App';
+import '../styles/tailwind-v4.css';
 import { getCollection } from 'astro:content';
-import CodeComparison from '../components/CodeComparison.astro';
-import logoImage from '../assets/dingo-logo.png';
-import { Image } from 'astro:assets';
-import { marked } from 'marked';
-import DOMPurify from 'isomorphic-dompurify';
 
 // Fetch all golden examples
 const allExamples = await getCollection('golden-examples');
@@ -14,26 +10,15 @@ const allExamples = await getCollection('golden-examples');
 // Sort by order
 const sortedExamples = allExamples.sort((a, b) => a.data.order - b.data.order);
 
-// Show first example
-const firstExample = sortedExamples[0];
-
-// Fetch README from GitHub
-let readmeContent = '';
-try {
-  const response = await fetch('https://raw.githubusercontent.com/MadAppGang/dingo/refs/heads/main/README.md');
-  const markdown = await response.text();
-  const rawHtml = await marked(markdown);
-  readmeContent = DOMPurify.sanitize(rawHtml);
-} catch (error) {
-  console.error('Error fetching README:', error);
-}
-
-// Process reasoning markdown for first example
-let processedReasoning = '';
-if (firstExample?.data.reasoning) {
-  const rawHtml = await marked(firstExample.data.reasoning);
-  processedReasoning = DOMPurify.sanitize(rawHtml);
-}
+// Format for React App component (matching the structure it expects)
+const formattedExamples = sortedExamples.map((example, index) => ({
+  id: index + 1,
+  title: example.data.title,
+  language: 'go', // Dingo transpiles to Go
+  description: example.data.reasoning || `## ${example.data.category}\n\nExample showing ${example.data.title.toLowerCase()}.`,
+  before: example.data.dingoCode,
+  after: example.data.goCode,
+}));
 ---
 
 <!DOCTYPE html>
@@ -46,227 +31,7 @@ if (firstExample?.data.reasoning) {
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </head>
 <body>
-  <div class="flex h-screen bg-white">
-    <!-- Sidebar -->
-    <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
-      <div class="px-6 pt-6 h-20 flex items-center gap-3 relative overflow-visible">
-        <Image src={logoImage} alt="Dingo Logo" class="h-24 w-24 object-contain" />
-        <h1 class="text-gray-900">Dingo</h1>
-      </div>
-
-      <nav class="flex-1 px-6 pt-6 pb-6 space-y-2 overflow-auto">
-        {sortedExamples.map((example, index) => (
-          <a
-            href={index === 0 ? '/' : `/examples/${example.data.id}`}
-            class={`w-full text-left px-4 py-3 rounded-lg transition-colors text-sm block ${
-              index === 0
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            {example.data.title}
-          </a>
-        ))}
-      </nav>
-
-      <!-- Description section -->
-      <div class="p-6 border-t border-gray-200 bg-gray-50">
-        <h3 class="text-gray-900 mb-2 text-sm">About This Tool</h3>
-        <p class="text-gray-600 text-xs leading-relaxed">
-          Compare code examples side by side to understand Dingo's transpilation to Go.
-          Each example shows the transformation from Dingo syntax to clean, idiomatic Go code.
-        </p>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
-      <div class="flex-1 overflow-auto pt-8">
-        <!-- Single example: first in the list -->
-        {firstExample && (
-          <>
-            <CodeComparison
-              before={firstExample.data.dingoCode}
-              after={firstExample.data.goCode}
-              language="go"
-            />
-
-            {processedReasoning && (
-              <div class="px-8 pb-8">
-                <div class="bg-white rounded-lg p-6 shadow-sm">
-                  <div class="prose prose-sm max-w-none">
-                    <div set:html={processedReasoning} />
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        <!-- README Section -->
-        <div class="p-8 bg-white">
-          <div class="max-w-4xl mx-auto markdown-content">
-            <div class="prose prose-sm max-w-none text-xs">
-              <div set:html={readmeContent} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Pass real Dingo examples to React App -->
+  <App examples={formattedExamples} client:load />
 </body>
 </html>
-
-<style is:global>
-  @import '../styles/global.css';
-
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Markdown styling to match reference */
-  .markdown-content h1 {
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-  }
-
-  .markdown-content h2 {
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-  }
-
-  .markdown-content h3 {
-    margin-top: 0.75rem;
-    margin-bottom: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  .markdown-content h4 {
-    margin-top: 0.75rem;
-    margin-bottom: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  .markdown-content p {
-    margin-bottom: 0.5rem;
-    color: rgb(55, 65, 81);
-    line-height: 1.625;
-    font-size: 0.75rem;
-  }
-
-  .markdown-content ul {
-    margin-bottom: 0.5rem;
-    margin-left: 1rem;
-    list-style-type: disc;
-    color: rgb(55, 65, 81);
-    font-size: 0.75rem;
-  }
-
-  .markdown-content ol {
-    margin-bottom: 0.5rem;
-    margin-left: 1rem;
-    list-style-type: decimal;
-    color: rgb(55, 65, 81);
-    font-size: 0.75rem;
-  }
-
-  .markdown-content li {
-    margin-bottom: 0.25rem;
-    font-size: 0.75rem;
-  }
-
-  .markdown-content code {
-    background: rgb(243, 244, 246);
-    padding: 0.125rem 0.25rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    color: rgb(31, 41, 55);
-  }
-
-  .markdown-content pre {
-    margin-bottom: 0.5rem;
-    background: rgb(243, 244, 246);
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-    overflow-x: auto;
-    font-size: 0.75rem;
-  }
-
-  .markdown-content pre code {
-    background: transparent;
-    padding: 0;
-  }
-
-  .markdown-content a {
-    color: rgb(37, 99, 235);
-    font-size: 0.75rem;
-  }
-
-  .markdown-content a:hover {
-    text-decoration: underline;
-  }
-
-  .markdown-content blockquote {
-    border-left: 4px solid rgb(209, 213, 219);
-    padding-left: 0.75rem;
-    font-style: italic;
-    color: rgb(107, 114, 128);
-    margin-bottom: 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .markdown-content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.25rem;
-    margin: 0.5rem 0;
-  }
-
-  .markdown-content hr {
-    margin: 1rem 0;
-    border-color: rgb(229, 231, 235);
-  }
-
-  .markdown-content table {
-    margin-bottom: 0.5rem;
-    border-collapse: collapse;
-    width: 100%;
-    font-size: 0.75rem;
-  }
-
-  .markdown-content thead {
-    background: rgb(249, 250, 251);
-  }
-
-  .markdown-content tr {
-    border-bottom: 1px solid rgb(229, 231, 235);
-  }
-
-  .markdown-content th {
-    padding: 0.5rem;
-    text-align: left;
-    font-size: 0.75rem;
-  }
-
-  .markdown-content td {
-    padding: 0.5rem;
-    color: rgb(55, 65, 81);
-    font-size: 0.75rem;
-  }
-</style>

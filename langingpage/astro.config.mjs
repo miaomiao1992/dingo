@@ -3,10 +3,13 @@ import { defineConfig } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 
+import react from '@astrojs/react';
+
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
   site: 'https://dingolang.com',
+
   // No base configuration needed for custom domain at root
 
   markdown: {
@@ -26,4 +29,6 @@ export default defineConfig({
 
     plugins: [tailwindcss()],
   },
+
+  integrations: [react()],
 });
