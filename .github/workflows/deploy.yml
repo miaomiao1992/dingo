@@ -1,0 +1,93 @@
+name: Deploy to GitHub Pages
+
+on:
+  # Trigger on push to main branch
+  push:
+    branches: [ main ]
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+# Required permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Add Node.js setup with caching
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: './langingpage/pnpm-lock.yaml'
+
+      # Add pnpm setup
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      # Add pnpm store caching
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        working-directory: ./langingpage
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install, build, and upload
+        uses: withastro/action@v5
+        with:
+          path: ./langingpage
+          package-manager: pnpm@latest
+          node-version: 22
+
+      - name: Report build size
+        working-directory: ./langingpage
+        run: |
+          echo "## 📦 Build Output Size" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          du -sh dist/ >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Top 10 Largest Files" >> $GITHUB_STEP_SUMMARY
+          du -ah dist/ | sort -rh | head -10 >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Optional: Fail if build exceeds budget
+          DIST_SIZE_MB=$(du -sm dist/ | cut -f1)
+          echo "Total size: ${DIST_SIZE_MB}MB"
+          if [ $DIST_SIZE_MB -gt 10 ]; then
+            echo "❌ Build size (${DIST_SIZE_MB}MB) exceeds budget (10MB)"
+            exit 1
+          else
+            echo "✅ Build size within budget"
+          fi
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

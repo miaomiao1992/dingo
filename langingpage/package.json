@@ -1,0 +1,35 @@
+{
+  "name": "dingolang-landing",
+  "description": "Landing page for Dingo - a meta-language for Go with Result types, pattern matching, and error propagation",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "author": "Dingo Lang Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MadAppGang/dingo.git",
+    "directory": "langingpage"
+  },
+  "homepage": "https://dingolang.com",
+  "bugs": {
+    "url": "https://github.com/MadAppGang/dingo/issues"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "astro": "^5.15.8",
+    "isomorphic-dompurify": "^2.32.0",
+    "marked": "^17.0.0"
+  }
+}

@@ -1,0 +1,32 @@
+package main
+
+// Test: Null coalescing with Option type methods
+// Feature: ?? operator with Option type
+// Complexity: advanced
+
+enum Option {
+	Some(int),
+	None,
+}
+
+func find(arr []int, target int) Option {
+	for i, val := range arr {
+		if val == target {
+			return Option_Some(i)
+		}
+	}
+	return Option_None()
+}
+
+func main() {
+	let numbers = []int{10, 20, 30, 40}
+
+	// Null coalescing with Option
+	let index = find(numbers, 25) ?? -1
+	let value = find(numbers, 30) ?? 0
+
+	// Combined with ternary
+	let msg = (find(numbers, 20) ?? -1) >= 0 ? "found" : "not found"
+
+	println("Index:", index, "Value:", value, "Status:", msg)
+}

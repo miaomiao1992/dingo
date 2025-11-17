@@ -18,6 +18,8 @@ go.work.sum
 
 # AI session files
 ai-docs/sessions/
+.claude/
+.adev/
 
 # Editor files
 .vscode/

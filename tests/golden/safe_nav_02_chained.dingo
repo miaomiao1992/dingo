@@ -1,0 +1,29 @@
+package main
+
+// Test: Chained safe navigation
+// Feature: Safe navigation with multiple levels
+// Complexity: intermediate
+
+type Address struct {
+	city   *string
+	street *string
+}
+
+type User struct {
+	name    string
+	address *Address
+}
+
+func main() {
+	let user = &User{name: "Alice", address: nil}
+
+	// Chained safe navigation
+	let city = user?.address?.city
+	let street = user?.address?.street
+
+	// Safe navigation with method calls
+	let upperCity = user?.address?.city?.toUpper()
+
+	println("City:", city)
+	println("Street:", street)
+}

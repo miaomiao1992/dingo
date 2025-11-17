@@ -1,0 +1,35 @@
+package main
+
+import "errors"
+
+// Test: Nested pattern matching
+// Feature: Match with nested enum patterns
+// Complexity: advanced
+
+enum Result {
+	Ok(Value),
+	Err(error),
+}
+
+enum Value {
+	Int(int),
+	String(string),
+}
+
+func processResult(r Result) string {
+	return match r {
+		Result_Ok(Value_Int(n)) => "Got integer: " + string(n),
+		Result_Ok(Value_String(s)) => "Got string: " + s,
+		Result_Err(e) => "Error: " + e.Error(),
+	}
+}
+
+func main() {
+	result1 := Result_Ok(Value_Int(42))
+	result2 := Result_Ok(Value_String("hello"))
+	result3 := Result_Err(errors.New("failed"))
+
+	println(processResult(result1))
+	println(processResult(result2))
+	println(processResult(result3))
+}

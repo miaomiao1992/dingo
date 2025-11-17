@@ -1,0 +1,37 @@
+package main
+
+// Test: Option type with chaining (map, and_then)
+// Feature: Option type with method chaining
+// Complexity: advanced
+
+enum Option {
+	Some(int),
+	None,
+}
+
+func getValue(id int) Option {
+	if id > 0 {
+		return Option_Some(id)
+	}
+	return Option_None()
+}
+
+func processValue(opt Option) Option {
+	return opt
+		.map(|x| x * 2)
+		.and_then(|x| {
+			if x > 10 {
+				return Option_Some(x)
+			}
+			return Option_None()
+		})
+}
+
+func main() {
+	result := processValue(getValue(10))
+	if result.IsSome() {
+		println("Result:", *result.some_0)
+	} else {
+		println("None")
+	}
+}

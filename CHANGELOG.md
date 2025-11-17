@@ -290,12 +290,13 @@ All notable changes to the Dingo compiler will be documented in this file.
   - Multi-pass transformation architecture
   - Test coverage: statement context, expression context, error wrapping, chaining
 
-- `tests/golden/reasoning-README.md` (2,500 lines)
+- `tests/golden/README.md` - Added reasoning documentation section
   - Master index of all reasoning documentation
   - Go proposal reference map with community voting data
   - External resource links (official Go, Rust, Swift, TypeScript, Kotlin)
   - Metrics summary (code reduction, proposal engagement)
   - Contributing guidelines for new reasoning docs
+  - Merged from reasoning-README.md into main README for better organization
 
 **Community Research:**
 - Documented Go Proposal #19412 (996+ 👍) - Sum types (highest-voted proposal)

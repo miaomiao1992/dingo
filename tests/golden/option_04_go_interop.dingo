@@ -1,0 +1,34 @@
+package main
+
+// Test: Option type interoperating with Go nil pointers
+// Feature: Option type + Go interop
+// Complexity: intermediate
+
+enum Option {
+	Some(string),
+	None,
+}
+
+func findInMap(m map[string]string, key string) Option {
+	val, exists := m[key]
+	if exists {
+		return Option_Some(val)
+	}
+	return Option_None()
+}
+
+func getOrDefault(opt Option, defaultVal string) string {
+	if opt.IsSome() {
+		return *opt.some_0
+	}
+	return defaultVal
+}
+
+func main() {
+	data := map[string]string{"name": "Alice"}
+	name := findInMap(data, "name")
+	age := findInMap(data, "age")
+
+	println("Name:", getOrDefault(name, "Unknown"))
+	println("Age:", getOrDefault(age, "N/A"))
+}

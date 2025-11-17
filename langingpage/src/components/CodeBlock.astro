@@ -1,0 +1,93 @@
+---
+// Syntax-highlighted code block component
+// Reference: ai-docs/recipes/syntax-highlighting.md, ai-docs/07-astro-components.md
+
+import { Code } from 'astro:components';
+
+interface Props {
+  code: string;
+  language: 'go' | 'typescript' | 'javascript';
+  title?: string;
+  label?: string;
+}
+
+const { code, language, title, label } = Astro.props;
+
+// Use TypeScript for Dingo code (similar syntax)
+const lang = language === 'typescript' ? 'ts' : language;
+---
+
+<div class="code-block">
+  {(title || label) && (
+    <div class="code-header">
+      {title && <div class="code-title">{title}</div>}
+      {label && <div class="code-label">{label}</div>}
+    </div>
+  )}
+  <div class="code-content">
+    <Code code={code} lang={lang} />
+  </div>
+</div>
+
+<style>
+  .code-block {
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--color-code-bg);
+  }
+
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-code-bg);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .code-title {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .code-label {
+    color: var(--color-text);
+    opacity: 0.7;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  .code-content {
+    overflow-x: auto;
+  }
+
+  .code-content :global(pre) {
+    margin: 0;
+    padding: 1rem;
+    background: transparent !important;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-family: var(--font-mono);
+  }
+
+  .code-content :global(code) {
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 768px) {
+    .code-content :global(pre) {
+      font-size: 0.8125rem;
+      padding: 0.75rem;
+    }
+
+    .code-header {
+      padding: 0.625rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+  }
+</style>
