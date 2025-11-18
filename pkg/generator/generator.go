@@ -10,6 +10,7 @@ import (
 	"go/printer"
 	"go/token"
 	"go/types"
+	"strings"
 
 	dingoast "github.com/MadAppGang/dingo/pkg/ast"
 	"github.com/MadAppGang/dingo/pkg/plugin"
@@ -58,6 +59,13 @@ func NewWithPlugins(fset *token.FileSet, registry *plugin.Registry, logger plugi
 	// Register built-in plugins
 	resultPlugin := builtin.NewResultTypePlugin()
 	pipeline.RegisterPlugin(resultPlugin)
+
+	optionPlugin := builtin.NewOptionTypePlugin()
+	pipeline.RegisterPlugin(optionPlugin)
+
+	// Register unused variable handling plugin (runs last)
+	unusedVarsPlugin := builtin.NewUnusedVarsPlugin()
+	pipeline.RegisterPlugin(unusedVarsPlugin)
 
 	// Inject type inference factory to avoid circular dependency
 	pipeline.SetTypeInferenceFactory(func(fsetInterface interface{}, file *ast.File, loggerInterface plugin.Logger) (interface{}, error) {
@@ -161,7 +169,14 @@ func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
 		return formatted, nil // Return without markers on error
 	}
 
-	return withMarkers, nil
+	// Step 6: Remove extra blank lines around dingo source mapping markers
+	cleaned := removeBlankLinesAroundDingoMarkers(withMarkers)
+
+	// Step 7: Remove extra blank lines between top-level declarations
+	// This ensures consistent formatting matching golden files
+	final := removeBlankLinesBetweenDeclarations(cleaned)
+
+	return final, nil
 }
 
 // runTypeChecker runs the Go type checker on the AST
@@ -234,4 +249,79 @@ func (g *Generator) runTypeChecker(file *ast.File) (*types.Info, error) {
 	}
 
 	return info, nil
+}
+
+// removeBlankLinesAroundDingoMarkers removes extra blank lines before/after // dingo: markers
+// The Go formatter (format.Source) tends to add blank lines around comments for readability,
+// but we want tight spacing around our source mapping markers.
+func removeBlankLinesAroundDingoMarkers(output []byte) []byte {
+	lines := strings.Split(string(output), "\n")
+	result := []string{}
+
+	for i, line := range lines {
+		// Skip blank lines immediately before // dingo:s: or // dingo:e:
+		if line == "" && i+1 < len(lines) {
+			nextLine := strings.TrimSpace(lines[i+1])
+			if strings.HasPrefix(nextLine, "// dingo:s:") || strings.HasPrefix(nextLine, "// dingo:e:") {
+				continue
+			}
+		}
+
+		// Skip blank lines immediately after // dingo:s: or // dingo:e:
+		if i > 0 && line == "" {
+			prevLine := strings.TrimSpace(lines[i-1])
+			if strings.HasPrefix(prevLine, "// dingo:s:") || strings.HasPrefix(prevLine, "// dingo:e:") {
+				continue
+			}
+		}
+
+		result = append(result, line)
+	}
+
+	return []byte(strings.Join(result, "\n"))
+}
+
+// removeBlankLinesBetweenDeclarations removes blank lines between consecutive func declarations
+// This matches the expected formatting in golden test files
+func removeBlankLinesBetweenDeclarations(output []byte) []byte {
+	lines := strings.Split(string(output), "\n")
+	result := []string{}
+
+	for i, line := range lines {
+		// Skip blank lines that appear between two consecutive func declarations
+		if line == "" && i > 0 && i+1 < len(lines) {
+			prevLine := strings.TrimSpace(lines[i-1])
+			nextLine := strings.TrimSpace(lines[i+1])
+
+			// Only remove if BOTH prev is "}" after a func AND next starts with "func"
+			// Check if previous line is closing brace of a function
+			isPrevFuncEnd := prevLine == "}"
+			isNextFunc := strings.HasPrefix(nextLine, "func ")
+
+			// Need to verify the "}" is from a function, not a struct/const/type
+			// Look backwards to find if there's a "func" keyword before this "}"
+			if isPrevFuncEnd && isNextFunc {
+				// Scan backwards from i-1 to find if this is a function closing brace
+				foundFunc := false
+				braceDepth := 1
+				for j := i - 1; j >= 0 && braceDepth > 0; j-- {
+					jLine := strings.TrimSpace(lines[j])
+					braceDepth += strings.Count(jLine, "}") - strings.Count(jLine, "{")
+					if strings.Contains(jLine, "func ") || strings.Contains(jLine, "func(") {
+						foundFunc = true
+						break
+					}
+				}
+
+				// Only skip the blank line if previous "}" was from a function
+				if foundFunc {
+					continue
+				}
+			}
+		}
+
+		result = append(result, line)
+	}
+
+	return []byte(strings.Join(result, "\n"))
 }

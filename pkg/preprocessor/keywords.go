@@ -6,7 +6,11 @@ import (
 
 // Package-level compiled regex (Issue 2: Regex Performance)
 var (
-	letPattern = regexp.MustCompile(`\blet\s+`)
+	// Match: let identifier(s) = expression
+	// Handles both single: let x = 5
+	// And multiple: let x, y, z = func()
+	// Captures all identifiers (including commas and spaces)
+	letPattern = regexp.MustCompile(`\blet\s+([\w\s,]+?)\s*=`)
 )
 
 // KeywordProcessor converts Dingo keywords to Go keywords
@@ -23,10 +27,10 @@ func (k *KeywordProcessor) Name() string {
 }
 
 // Process transforms Dingo keywords to Go keywords
-// Converts: let → var
+// Converts: let x = value → x := value
 func (k *KeywordProcessor) Process(source []byte) ([]byte, []Mapping, error) {
-	// Replace `let ` with `var ` (with space to avoid matching `letter`)
-	result := letPattern.ReplaceAll(source, []byte("var "))
+	// Replace `let x = ` with `x := `
+	result := letPattern.ReplaceAll(source, []byte("$1 :="))
 
 	return result, nil, nil
 }

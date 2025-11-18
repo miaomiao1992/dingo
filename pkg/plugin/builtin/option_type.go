@@ -53,6 +53,11 @@ func (p *OptionTypePlugin) Name() string {
 	return "option_type"
 }
 
+// SetContext sets the plugin context (ContextAware interface)
+func (p *OptionTypePlugin) SetContext(ctx *plugin.Context) {
+	p.ctx = ctx
+}
+
 // SetTypeInference sets the type inference service
 func (p *OptionTypePlugin) SetTypeInference(service *TypeInferenceService) {
 	p.typeInference = service

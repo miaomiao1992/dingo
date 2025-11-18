@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func readUserConfig(username string) ([]byte, error) {
-	var path = "/home/" + username + "/config.json"
+	path := "/home/" + username + "/config.json"
 	__tmp0, __err0 := ReadFile(path)
 	// dingo:s:1
 	if __err0 != nil {
@@ -13,4 +13,3 @@ func readUserConfig(username string) ([]byte, error) {
 	var data = __tmp0
 	return data, nil
 }
-

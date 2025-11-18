@@ -435,6 +435,86 @@ Details: ai-docs/sessions/20251118-143022/implementation-summary.md
 - ❌ Parse detailed logs
 - ❌ Store large data in context
 
+### Agent Self-Awareness Rules (Anti-Recursion)
+
+**CRITICAL FOR ALL AGENTS:**
+
+#### Rule 1: Know Thyself
+
+Every agent MUST be aware of its own type:
+- If you are `golang-developer`, you cannot delegate to `golang-developer`
+- If you are `astro-developer`, you cannot delegate to `astro-developer`
+- If you are `code-reviewer`, you cannot delegate to `code-reviewer`
+- If you are `golang-tester`, you cannot delegate to `golang-tester`
+- If you are `golang-architect`, you cannot delegate to `golang-architect`
+- If you are `astro-reviewer`, you cannot delegate to `astro-reviewer`
+
+**Why:** You ARE the specialized agent. Delegating to yourself causes recursion and failures.
+
+#### Rule 2: Delegation Decision Tree
+
+```
+Before using Task tool, ask:
+│
+├─ What is my agent type?
+│  └─ I am: [agent-name]
+│
+├─ What agent type does this task need?
+│  ├─ Same as me → ❌ DO NOT delegate. Implement directly.
+│  └─ Different → ✅ CAN delegate to that different agent
+│
+└─ Why do I want to delegate?
+   ├─ "To save context" → ❌ WRONG REASON. Just do the work.
+   ├─ "Instructions say to" → ❌ Those are for CALLERS, not you.
+   └─ "Need different expertise" → ✅ OK if it's a different agent type.
+```
+
+#### Rule 3: Proxy Mode Is Not Self-Delegation
+
+**Proxy Mode Means:**
+- Using `claudish` to consult external models (Grok, Gemini, Codex)
+- Getting suggestions/implementations from those models
+- Implementing their suggestions yourself
+
+**Proxy Mode Does NOT Mean:**
+- Using Task tool to invoke yourself
+- Creating another instance of your own agent
+- Delegating work you should do directly
+
+#### Rule 4: Instructions Are Context-Dependent
+
+When agents read their prompts and see:
+- "Use the Task tool to invoke the golang-developer agent"
+- "Delegate to astro-developer for implementation"
+
+**Understand:** These instructions are for MAIN CHAT and EXTERNAL MODELS to use when calling the agent.
+
+**NOT** for the agent to use to call itself.
+
+The agent is the **destination** of those calls, not the **source**.
+
+#### Rule 5: When In Doubt, Implement
+
+If an agent is uncertain whether to delegate:
+1. Check if delegating to own agent type → If yes, DON'T
+2. Check if it has the expertise to implement → If yes, DO IT
+3. Check if trying to save context → NOT A VALID REASON
+
+**Default action for agents: Implement directly.**
+
+#### Examples
+
+**✅ CORRECT Delegation (Different Agent Types):**
+- `golang-developer` delegates to `golang-tester` (different agent ✅)
+- `astro-developer` delegates to `astro-reviewer` (different agent ✅)
+- `golang-developer` delegates to `Explore` (different agent ✅)
+- `golang-architect` delegates to `golang-developer` (different agent ✅)
+
+**❌ WRONG Delegation (Recursion - Same Agent Type):**
+- `golang-developer` delegates to `golang-developer` (same agent ❌)
+- `astro-developer` delegates to `astro-developer` (same agent ❌)
+- `code-reviewer` delegates to `code-reviewer` (same agent ❌)
+
 ### When to Delegate vs. Handle Directly
 
 #### ✅ DELEGATE to Agent When:

@@ -41,6 +41,7 @@ func main() {
 	data := map[string]string{"name": "Alice"}
 	name := findInMap(data, "name")
 	age := findInMap(data, "age")
+
 	println("Name:", getOrDefault(name, "Unknown"))
 	println("Age:", getOrDefault(age, "N/A"))
 }

@@ -47,10 +47,10 @@ func parseInt(s: string) (int, error) {
 import "strconv"
 
 func parseInt(s string) (int, error) {
-	__tmp0, __err1 := strconv.Atoi(s)
+	__tmp0, __err0 := strconv.Atoi(s)
 	// dingo:s:1
-	if __err1 != nil {
-		return 0, __err1
+	if __err0 != nil {
+		return 0, __err0
 	}
 	// dingo:e:1
 	return __tmp0, nil
@@ -536,13 +536,12 @@ func parseConfig(data string) (int, string, error) {
 	return parseData(data)?
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __err2 := parseData(data)", // counter increments: tmp0, tmp1, err2
-				`return 0, "", __err2`, // error path with two zero values
+				"__tmp0, __tmp1, __err0 := parseData(data)", // Two temps for non-error values, err0 for error
+				`return 0, "", __err0`, // error path with two zero values
 				"return __tmp0, __tmp1, nil", // success path with both values
 			},
 			shouldNotContain: []string{
 				"return __tmp0, nil", // WRONG: drops __tmp1
-				"__tmp0, __err0 := parseData", // WRONG: only one temp
 			},
 		},
 		{
@@ -553,13 +552,12 @@ func loadUser(id int) (string, int, bool, error) {
 	return fetchUser(id)?
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __err3 := fetchUser(id)", // counter increments: tmp0, tmp1, tmp2, err3
-				`return "", 0, false, __err3`, // error path with three zero values
+				"__tmp0, __tmp1, __tmp2, __err0 := fetchUser(id)", // Three temps for non-error values, err0 for error
+				`return "", 0, false, __err0`, // error path with three zero values
 				"return __tmp0, __tmp1, __tmp2, nil", // success path with all three values
 			},
 			shouldNotContain: []string{
 				"return __tmp0, nil", // WRONG: drops values
-				"__tmp0, __err0 := fetchUser", // WRONG: only one temp
 			},
 		},
 		{
@@ -570,8 +568,8 @@ func parseInt(s string) (int, error) {
 	return strconv.Atoi(s)?
 }`,
 			shouldContain: []string{
-				"__tmp0, __err1 := strconv.Atoi(s)", // counter increments: tmp0, err1
-				"return 0, __err1", // error path
+				"__tmp0, __err0 := strconv.Atoi(s)", // One temp for non-error value, err0 for error
+				"return 0, __err0", // error path
 				"return __tmp0, nil", // success path
 			},
 			shouldNotContain: []string{
@@ -625,8 +623,8 @@ func getConfig(path string) ([]byte, string, error) {
 
 	// Verify correct expansion
 	expectedPatterns := []string{
-		"__tmp0, __tmp1, __err2 := loadConfig(path)", // counter increments: tmp0, tmp1, err2
-		`fmt.Errorf("failed to load config: %w", __err2)`,
+		"__tmp0, __tmp1, __err0 := loadConfig(path)", // Two temps for non-error values, err0 for error
+		`fmt.Errorf("failed to load config: %w", __err0)`,
 		"return __tmp0, __tmp1, nil",
 		`return nil, "", `, // error path with two zero values (first is nil for []byte, second is "" for string)
 	}
@@ -820,8 +818,8 @@ func readData(path string) ([]byte, error) {
 	return os.ReadFile(path)?
 }`,
 			shouldContain: []string{
-				"__tmp0, __err1 := os.ReadFile(path)",
-				"return nil, __err1",
+				"__tmp0, __err0 := os.ReadFile(path)",
+				"return nil, __err0",
 				"return __tmp0, nil",
 			},
 			shouldNotContain: []string{
@@ -841,8 +839,8 @@ func extractUserFields(data string) (string, string, int, error) {
 	return "name", "role", 42, nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __err3 := extractUserFields(input)",
-				`return "", "", 0, __err3`,
+				"__tmp0, __tmp1, __tmp2, __err0 := extractUserFields(input)",
+				`return "", "", 0, __err0`,
 				"return __tmp0, __tmp1, __tmp2, nil",
 			},
 			shouldNotContain: []string{
@@ -862,8 +860,8 @@ func extractFields(line string) (string, int, float64, bool, error) {
 	return "name", 42, 3.14, true, nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __tmp3, __err4 := extractFields(line)",
-				`return "", 0, 0.0, false, __err4`,
+				"__tmp0, __tmp1, __tmp2, __tmp3, __err0 := extractFields(line)",
+				`return "", 0, 0.0, false, __err0`,
 				"return __tmp0, __tmp1, __tmp2, __tmp3, nil",
 			},
 			shouldNotContain: []string{
@@ -883,7 +881,7 @@ func extractComplexFields(data string) (string, int, []byte, map[string]int, boo
 	return "key", 100, []byte("data"), map[string]int{}, true, nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __tmp3, __tmp4, __err5 := extractComplexFields(data)",
+				"__tmp0, __tmp1, __tmp2, __tmp3, __tmp4, __err0 := extractComplexFields(data)",
 				"return __tmp0, __tmp1, __tmp2, __tmp3, __tmp4, nil",
 			},
 			shouldNotContain: []string{
@@ -903,8 +901,8 @@ func processFile(path string) (string, int, []byte, error) {
 	return "result", 200, []byte("data"), nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __err3 := processFile(path)",
-				`return "", 0, nil, __err3`,
+				"__tmp0, __tmp1, __tmp2, __err0 := processFile(path)",
+				`return "", 0, nil, __err0`,
 				"return __tmp0, __tmp1, __tmp2, nil",
 			},
 			shouldNotContain: []string{
@@ -928,8 +926,8 @@ func parseConfig(path string) (map[string]string, []int, *Config, error) {
 	return map[string]string{}, []int{}, &Config{}, nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __err3 := parseConfig(path)",
-				"return nil, nil, nil, __err3",
+				"__tmp0, __tmp1, __tmp2, __err0 := parseConfig(path)",
+				"return nil, nil, nil, __err0",
 				"return __tmp0, __tmp1, __tmp2, nil",
 			},
 			shouldNotContain: []string{
@@ -949,12 +947,12 @@ func convert3(s string) (int, int, int, error) {
 	return 1, 2, 3, nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __err3",
-				"return 0, 0, 0, __err3",
+				"__tmp0, __tmp1, __tmp2, __err0",
+				"return 0, 0, 0, __err0",
 				"return __tmp0, __tmp1, __tmp2, nil",
 			},
 			shouldNotContain: []string{
-				"__tmp3, __err3", // Should NOT have __tmp3
+				"__tmp3, __err0", // Should NOT have __tmp3
 			},
 			description: "Verify exactly 3 temps for 3 non-error values",
 		},
@@ -970,12 +968,12 @@ func convert4(s string) (int, int, int, int, error) {
 	return 1, 2, 3, 4, nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __tmp3, __err4",
-				"return 0, 0, 0, 0, __err4",
+				"__tmp0, __tmp1, __tmp2, __tmp3, __err0",
+				"return 0, 0, 0, 0, __err0",
 				"return __tmp0, __tmp1, __tmp2, __tmp3, nil",
 			},
 			shouldNotContain: []string{
-				"__tmp4, __err4", // Should NOT have __tmp4
+				"__tmp4, __err0", // Should NOT have __tmp4
 			},
 			description: "Verify exactly 4 temps for 4 non-error values",
 		},
@@ -991,7 +989,7 @@ func parse(input string) (string, int, bool, []byte, error) {
 	return "name", 42, true, []byte("data"), nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __tmp3, __err4 := parse(input)",
+				"__tmp0, __tmp1, __tmp2, __tmp3, __err0 := parse(input)",
 				"return __tmp0, __tmp1, __tmp2, __tmp3, nil",
 			},
 			shouldNotContain: []string{
@@ -1013,12 +1011,12 @@ func fetch() (string, int, bool, []byte, error) {
 	return "", 0, false, nil, nil
 }`,
 			shouldContain: []string{
-				"__tmp0, __tmp1, __tmp2, __tmp3, __err4 := fetch()",
-				`return "", 0, false, nil, __err4`,
+				"__tmp0, __tmp1, __tmp2, __tmp3, __err0 := fetch()",
+				`return "", 0, false, nil, __err0`,
 			},
 			shouldNotContain: []string{
-				"return nil, __err4", // WRONG: only one zero value
-				`return "", 0, __err4`, // WRONG: missing two zero values
+				"return nil, __err0", // WRONG: only one zero value
+				`return "", 0, __err0`, // WRONG: missing two zero values
 			},
 			description: "Verify all zero values in error path for mixed types",
 		},

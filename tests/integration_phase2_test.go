@@ -55,7 +55,7 @@ func main() {
 
 		// Build with dingo CLI
 		goFile := strings.TrimSuffix(dingoFile, ".dingo") + ".go"
-		cmd := exec.Command("go", "run", "../../cmd/dingo", "build", dingoFile)
+		cmd := exec.Command("go", "run", filepath.Join("..", "cmd", "dingo"), "build", dingoFile)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			t.Logf("Build output: %s", output)
@@ -103,7 +103,7 @@ func main() {
 
 		// Build with dingo CLI
 		goFile := strings.TrimSuffix(dingoFile, ".dingo") + ".go"
-		cmd := exec.Command("go", "run", "../../cmd/dingo", "build", dingoFile)
+		cmd := exec.Command("go", "run", filepath.Join("..", "cmd", "dingo"), "build", dingoFile)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			t.Logf("Build output: %s", output)

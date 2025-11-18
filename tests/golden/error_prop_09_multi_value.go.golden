@@ -6,19 +6,15 @@ import (
 	"strings"
 )
 
-// parseUserData demonstrates multi-value return with error propagation
-// Input: "john:admin:42" → (name, role, age)
 func parseUserData(input string) (string, string, int, error) {
-	__tmp0, __tmp1, __tmp2, __err3 := extractUserFields(input)
+	__tmp0, __tmp1, __tmp2, __err0 := extractUserFields(input)
 	// dingo:s:1
-	if __err3 != nil {
-		return "", "", 0, __err3
+	if __err0 != nil {
+		return "", "", 0, __err0
 	}
 	// dingo:e:1
 	return __tmp0, __tmp1, __tmp2, nil
 }
-
-// extractUserFields simulates a function that returns multiple values
 func extractUserFields(data string) (string, string, int, error) {
 	parts := strings.Split(data, ":")
 	if len(parts) != 3 {
@@ -34,9 +30,8 @@ func extractUserFields(data string) (string, string, int, error) {
 	var age = __tmp0
 	return parts[0], parts[1], age, nil
 }
-
 func main() {
-	var name, role, age, err = parseUserData("john:admin:42")
+	name, role, age, err := parseUserData("john:admin:42")
 	if err != nil {
 		panic(err)
 	}

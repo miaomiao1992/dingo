@@ -313,7 +313,6 @@ func (e *ErrorPropProcessor) extractExpressionAndMessage(line string) (string, s
 // expandAssignment expands: let x = expr? → full error handling
 // Creates mappings for all 7 generated lines back to the original source line
 func (e *ErrorPropProcessor) expandAssignment(matches []string, expr string, errMsg string, originalLine int, startOutputLine int) (string, []Mapping, error) {
-	keyword := matches[1]  // "let" or "var"
 	varName := matches[2]  // variable name
 	exprClean := strings.TrimSpace(strings.TrimSuffix(expr, "?"))
 
@@ -411,7 +410,7 @@ func (e *ErrorPropProcessor) expandAssignment(matches []string, expr string, err
 
 	// Line 7: var varName = __tmpN
 	buf.WriteString(indent)
-	buf.WriteString(fmt.Sprintf("%s %s = %s", keyword, varName, tmpVar))
+	buf.WriteString(fmt.Sprintf("var %s = %s", varName, tmpVar))
 	mappings = append(mappings, Mapping{
 		OriginalLine:    originalLine,
 		OriginalColumn:  qPos + 1, // 1-based column position of ?
@@ -450,10 +449,13 @@ func (e *ErrorPropProcessor) expandReturn(matches []string, expr string, errMsg 
 	}
 
 	// Generate temporary variable names for all non-error values
+	// For multi-value returns, use sequential counters: __tmp0, __tmp1, __tmp2, ...
+	// CRITICAL FIX: Use base counter for error variable, then increment once for all vars
+	baseCounter := e.tryCounter
 	tmpVars := []string{}
 	for i := 0; i < numNonErrorReturns; i++ {
-		tmpVars = append(tmpVars, fmt.Sprintf("__tmp%d", e.tryCounter))
-		e.tryCounter++
+		tmpVars = append(tmpVars, fmt.Sprintf("__tmp%d", baseCounter))
+		baseCounter++
 	}
 	errVar := fmt.Sprintf("__err%d", e.tryCounter)
 	e.tryCounter++

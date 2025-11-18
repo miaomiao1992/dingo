@@ -17,6 +17,9 @@ var (
 
 	// Matches struct variant: Variant { field1: type1, field2: type2 }
 	structVariantPattern = regexp.MustCompile(`^\s*(\w+)\s*\{\s*([^}]*)\s*\}\s*,?\s*$`)
+
+	// Matches tuple variant: Variant(type1, type2, ...)
+	tupleVariantPattern = regexp.MustCompile(`^\s*(\w+)\s*\(([^)]*)\)\s*,?\s*$`)
 )
 
 // EnumProcessor transforms enum declarations into Go sum types
@@ -141,9 +144,20 @@ func (e *EnumProcessor) findEnumDeclarations(source []byte) []enumDecl {
 		// Extract body (between braces)
 		body := src[braceStart+1 : braceEnd]
 
+		// Skip trailing whitespace after the enum closing brace
+		enumEnd := braceEnd + 1
+		for enumEnd < len(src) && (src[enumEnd] == '\n' || src[enumEnd] == ' ' || src[enumEnd] == '\t') {
+			// Only skip ONE newline (preserve spacing between declarations)
+			if src[enumEnd] == '\n' {
+				enumEnd++
+				break
+			}
+			enumEnd++
+		}
+
 		decls = append(decls, enumDecl{
 			start: idx,
-			end:   braceEnd + 1,
+			end:   enumEnd,
 			name:  enumName,
 			body:  body,
 		})
@@ -226,6 +240,23 @@ func (e *EnumProcessor) parseVariants(body string) ([]Variant, error) {
 			continue
 		}
 
+		// Try to match tuple variant
+		if matches := tupleVariantPattern.FindStringSubmatch(line); matches != nil {
+			variantName := matches[1]
+			typesStr := matches[2]
+
+			fields, err := e.parseTupleFields(typesStr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse tuple for variant %s: %w", variantName, err)
+			}
+
+			variants = append(variants, Variant{
+				Name:   variantName,
+				Fields: fields,
+			})
+			continue
+		}
+
 		// Try to match unit variant
 		if matches := unitVariantPattern.FindStringSubmatch(line); matches != nil {
 			variantName := matches[1]
@@ -271,6 +302,38 @@ func (e *EnumProcessor) parseFields(fieldsStr string) ([]Field, error) {
 			Name: fieldName,
 			Type: fieldType,
 		})
+	}
+
+	return fields, nil
+}
+
+// parseTupleFields parses tuple types in a variant
+// Input: "float64, error" or "string"
+// Output: Fields with auto-generated names (0, 1, 2, ...)
+func (e *EnumProcessor) parseTupleFields(typesStr string) ([]Field, error) {
+	fields := []Field{}
+
+	// Split by comma
+	parts := strings.Split(typesStr, ",")
+
+	for i, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		// Auto-generate field name as index
+		fieldName := fmt.Sprintf("%d", i)
+		fieldType := part
+
+		fields = append(fields, Field{
+			Name: fieldName,
+			Type: fieldType,
+		})
+	}
+
+	if len(fields) == 0 {
+		return nil, fmt.Errorf("no types found in tuple")
 	}
 
 	return fields, nil
@@ -323,9 +386,17 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 			assignments := []string{}
 
 			for _, field := range variant.Fields {
-				params = append(params, fmt.Sprintf("%s %s", field.Name, field.Type))
+				// For tuple variants (numeric field names like "0", "1"), use "arg" prefix
+				// For struct variants (named fields), use the field name directly
+				paramName := field.Name
+				if len(field.Name) > 0 && field.Name[0] >= '0' && field.Name[0] <= '9' {
+					// Tuple field - numeric name like "0", "1"
+					paramName = "arg" + field.Name
+				}
+
+				params = append(params, fmt.Sprintf("%s %s", paramName, field.Type))
 				fieldName := strings.ToLower(variant.Name) + "_" + field.Name
-				assignments = append(assignments, fmt.Sprintf("%s: &%s", fieldName, field.Name))
+				assignments = append(assignments, fmt.Sprintf("%s: &%s", fieldName, paramName))
 			}
 
 			buf.WriteString(fmt.Sprintf("func %s_%s(%s) %s {\n",
@@ -337,10 +408,14 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 	}
 
 	// 5. Generate Is* methods
-	for _, variant := range variants {
+	for i, variant := range variants {
 		buf.WriteString(fmt.Sprintf("func (e %s) Is%s() bool {\n", enumName, variant.Name))
 		buf.WriteString(fmt.Sprintf("\treturn e.tag == %sTag_%s\n", enumName, variant.Name))
-		buf.WriteString("}\n")
+		buf.WriteString("}")
+		// Add newline after each method except the last
+		if i < len(variants)-1 {
+			buf.WriteString("\n")
+		}
 	}
 
 	return buf.String()
