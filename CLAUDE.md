@@ -39,11 +39,17 @@ A meta-language for Go (like TypeScript for JavaScript) that:
 
 ### Architecture (Two Components)
 
-1. **Transpiler** (`dingo build`)
-   - Parses `.dingo` → AST
-   - Transforms to Go AST
-   - Generates `.go` + `.sourcemap` files
-   - Tools: `participle`/Tree-sitter, `go/ast`, `go/printer`
+1. **Transpiler** (`dingo build`) - Two-Stage Approach
+   - **Stage 1: Preprocessor** - Text-based transformation (Dingo syntax → valid Go)
+     - TypeAnnotProcessor: `param: Type` → `param Type`
+     - ErrorPropProcessor: `x?` → error handling code
+     - EnumProcessor: `enum Name {}` → Go tagged unions
+     - KeywordProcessor: Other Dingo keywords
+   - **Stage 2: AST Processing** - Parse and transform
+     - Uses native `go/parser` to parse preprocessed Go code
+     - Plugin pipeline transforms AST (Result types, etc.)
+     - Generates `.go` + `.sourcemap` files
+   - Tools: Regex-based preprocessors, `go/parser`, `go/ast`, `go/printer`
 
 2. **Language Server** (`dingo-lsp`)
    - Wraps gopls as proxy
@@ -61,15 +67,15 @@ Completed comprehensive research on:
 - Language server proxy architecture
 - Source mapping strategies
 
-**Next: Phase 1 - Core Transpiler** (Starting Now)
+**Current: Phase 2.16 - Parser Fix & Result Integration** ✅ Complete
 
-Goals:
-1. Define minimal Dingo syntax
-2. Build parser (using `participle`)
-3. Implement AST → Go transformation
-4. Generate source maps
-5. Create CLI tool
-6. Achieve end-to-end: `.dingo` → `.go` → execution
+Implemented:
+1. Two-stage transpilation: Preprocessor + go/parser
+2. Enum preprocessor for sum types
+3. Plugin pipeline for AST transformations
+4. Result<T,E> type with Ok()/Err() constructors
+5. Comprehensive test suite (48/48 passing)
+6. End-to-end: `.dingo` → preprocessor → `.go` → compile
 
 ### Key Research Findings
 
@@ -77,10 +83,12 @@ See `ai-docs/claude-research.md` and `ai-docs/gemini_research.md` for details:
 
 - **Proven precedents**: Borgo (Go transpiler), templ (gopls proxy), TypeScript (architecture)
 - **Critical technology**: Source maps for bidirectional position mapping
-- **Recommended tools**:
-  - Parser: `alecthomas/participle` → Tree-sitter
-  - AST: `go/ast`, `golang.org/x/tools/go/ast/astutil`
-  - LSP: `go.lsp.dev/protocol`
+- **Actual Implementation** (as of Phase 2.16):
+  - **Preprocessor**: Regex-based text transformations (Dingo → valid Go)
+  - **Parser**: Native `go/parser` (standard library)
+  - **AST**: `go/ast`, `golang.org/x/tools/go/ast/astutil`
+  - **Plugins**: Interface-based AST transformation pipeline
+  - **LSP**: `go.lsp.dev/protocol` (future)
 - **Timeline**: 12-15 months to v1.0
 
 ### Design Principles
@@ -172,18 +180,40 @@ See `ai-docs/claude-research.md` and `ai-docs/gemini_research.md` for details:
   - Root (`/Users/jack/mag/dingo/`) → golang-* agents
   - Langingpage (`/Users/jack/mag/dingo/langingpage/`) → astro-* agents
 
-### Phase 1 Implementation Checklist
+### Implementation Architecture (Actual)
+
+**Two-Stage Transpilation Pipeline**:
 
 ```
-[ ] Define Dingo syntax spec (EBNF or struct tags)
-[ ] Set up Go module structure
-[ ] Implement parser with participle
-[ ] Build AST → Go AST transformer
-[ ] Implement source map generation
-[ ] Create CLI tool (cmd/dingo)
-[ ] Write golden file tests
-[ ] Achieve: dingo build file.dingo → file.go → go run file.go
+.dingo file
+    ↓
+┌─────────────────────────────────────┐
+│ Stage 1: Preprocessor (Text-based) │
+├─────────────────────────────────────┤
+│ • TypeAnnotProcessor                │  param: Type → param Type
+│ • ErrorPropProcessor                │  x? → if err != nil...
+│ • EnumProcessor                     │  enum Name {} → structs
+│ • KeywordProcessor                  │  Other Dingo keywords
+└─────────────────────────────────────┘
+    ↓ (Valid Go syntax)
+┌─────────────────────────────────────┐
+│ Stage 2: AST Processing             │
+├─────────────────────────────────────┤
+│ • go/parser (native)                │  Parse to AST
+│ • Plugin Pipeline:                  │
+│   - Discovery phase                 │  Find Ok/Err calls
+│   - Transform phase                 │  Rewrite AST nodes
+│   - Inject phase                    │  Add type declarations
+└─────────────────────────────────────┘
+    ↓
+.go file + .sourcemap
 ```
+
+**Why This Approach?**
+- Preprocessors transform Dingo syntax (not valid Go) to valid Go
+- Then go/parser handles all parsing (no custom parser needed)
+- Plugins transform AST for features that need Go semantics
+- Simpler, leverages Go's own parser, easier to maintain
 
 ## Important References
 
@@ -196,33 +226,51 @@ See `ai-docs/claude-research.md` and `ai-docs/gemini_research.md` for details:
 - **templ** (github.com/a-h/templ) - gopls proxy architecture reference
 - **TypeScript** - Meta-language architecture gold standard
 
-### Essential Go Tools
-- `go/ast`, `go/parser`, `go/printer` - Standard library AST
-- `golang.org/x/tools/go/ast/astutil` - AST manipulation
-- `go.lsp.dev/protocol` - LSP implementation
-- `alecthomas/participle` - Parser generator (recommended for prototyping)
+### Essential Go Tools (Actually Used)
+- `go/parser` - Native Go parser for preprocessed code
+- `go/ast`, `go/printer` - Standard library AST manipulation
+- `golang.org/x/tools/go/ast/astutil` - Advanced AST utilities
+- `regexp` - Preprocessor pattern matching
+- `go.lsp.dev/protocol` - LSP implementation (future)
 
-## Current Priorities
+## Current Status (Phase 2.16 Complete)
 
-1. **Finalize syntax**: Define minimal Dingo syntax for Phase 1
-2. **Project setup**: Initialize Go modules, directory structure, CI
-3. **Parser prototype**: Get basic `.dingo` parsing working
-4. **Simple transpiler**: Result type → (T, error) transformation
-5. **End-to-end test**: Write → transpile → compile → run
+✅ **Completed**:
+1. Two-stage architecture (preprocessor + go/parser)
+2. Enum syntax support (`enum Name { Variant }`)
+3. Plugin pipeline (Discovery → Transform → Inject)
+4. Result<T,E> foundation with Ok()/Err()
+5. Comprehensive test suite (48/48 passing)
 
-## Questions to Resolve
+🎯 **Next (Phase 3)**:
+1. Fix A4: Literal handling (temp variables for `&42`)
+2. Fix A5: Enhanced type inference (go/types integration)
+3. Option<T> type implementation
+4. Pattern matching support
 
-- [ ] Final decision: `participle` vs Tree-sitter for initial parser?
-- [ ] Syntax: Rust-like, Go-like, or hybrid?
+## Architecture Decisions (Resolved)
+
+✅ **Parser Approach**: Two-stage (Preprocessor + go/parser)
+  - Preprocessors handle Dingo-specific syntax via regex
+  - Native go/parser handles standard Go parsing
+  - Avoids need for custom parser generators
+
+✅ **Syntax Style**: Rust-like with Go compatibility
+  - `enum Name { Variant }` for sum types
+  - `Result<T,E>`, `Option<T>` generic types
+  - `?` operator for error propagation
+
+⏳ **To Resolve**:
 - [ ] Source map format: JSON, binary, or custom?
 - [ ] Monorepo vs separate repos for transpiler/LSP?
 - [ ] License choice?
 
 ---
 
-**Last Updated**: 2025-11-17
-**Current Phase**: Phase 2.7 Complete (Functional Utilities)
-**Next Milestone**: Phase 3 - Result/Option Integration
+**Last Updated**: 2025-11-18
+**Current Phase**: Phase 2.16 Complete (Parser Fix & Result Integration)
+**Next Milestone**: Phase 3 - Fix A4/A5 + Option<T> Type
+**Commit**: 285e8a2 (pushed to origin/main)
 
 ### Additional Project Information
 

@@ -75,7 +75,7 @@ Want pattern matching? Enable it. Want sum types? Already working. Think you can
 
 ## Quick Start
 
-**Note:** Dingo is in active development. Phase 2.7 complete with sum types, pattern matching, error propagation, and functional utilities working.
+**Note:** Dingo is in active development. Phase 2.16 complete with sum types, enum preprocessor, Result<T,E> foundation, and plugin pipeline working.
 
 ### Installation
 
@@ -1026,19 +1026,37 @@ The functional style makes the data flow obvious: filter → enrich → validate
 
 Two-part system, just like TypeScript:
 
-### The Transpiler (`dingo build`)
+### The Transpiler (`dingo build`) - Two-Stage Architecture
 
-Takes your `.dingo` files. Parses them. Transforms them to Go AST. Spits out `.go` files and source maps.
+**Stage 1: Preprocessor** (Text-based transformations)
+- Converts Dingo-specific syntax to valid Go using regex-based pattern matching
+- `TypeAnnotProcessor`: Transforms `param: Type` → `param Type`
+- `ErrorPropProcessor`: Expands `x?` → proper error handling code
+- `EnumProcessor`: Converts `enum Name { Variant }` → Go tagged union structs
+- `KeywordProcessor`: Handles other Dingo keywords
+- Output: Valid Go code (no Dingo syntax remains)
+
+**Stage 2: AST Processing** (Structural transformations)
+- Uses native `go/parser` to parse the preprocessed Go code
+- Plugin pipeline (Discovery → Transform → Inject) modifies the AST
+- Result type plugin transforms `Ok()/Err()` constructors
+- Generates clean `.go` files and source maps using `go/printer`
+
+**Why this approach?**
+- Preprocessors handle syntax that go/parser can't understand (`enum`, `:`, etc.)
+- Then go/parser does the heavy lifting (no custom parser needed!)
+- Plugins add semantic transformations on valid Go AST
+- Simple, maintainable, leverages Go's own tooling
 
 The generated Go code looks like what you'd write by hand. Not some machine-generated nightmare.
 
-### The Language Server (`dingo-lsp`)
+### The Language Server (`dingo-lsp`) - Coming Soon
 
-Wraps gopls (Go's language server). Intercepts LSP requests. Translates positions using source maps. Forwards to gopls.
+Will wrap gopls (Go's language server). Intercepts LSP requests. Translates positions using source maps. Forwards to gopls.
 
-You get autocomplete, go-to-definition, diagnostics, refactoring — everything gopls does. In VS Code, Neovim, whatever you use.
+You'll get autocomplete, go-to-definition, diagnostics, refactoring — everything gopls does. In VS Code, Neovim, whatever you use.
 
-Your editor thinks it's editing Go. Your terminal thinks it's compiling Go. Only you know you're actually writing Dingo.
+Your editor will think it's editing Go. Your terminal will think it's compiling Go. Only you will know you're actually writing Dingo.
 
 ---
 
@@ -1328,15 +1346,24 @@ Before you write code, open an issue first. Let's chat about the approach. Saves
 
 ```
 dingo/
-├── cmd/               # CLI tools (dingo build, dingo-lsp)
-├── internal/          # The actual transpiler
-│   ├── parser/        # Dingo → AST
-│   ├── typechecker/   # Make sure your types make sense
-│   ├── transpiler/    # AST → Go code
-│   └── lsp/           # Language server magic
-├── features/          # Feature proposals (read INDEX.md)
-├── docs/              # Documentation
-└── examples/          # Example code
+├── cmd/dingo/                # CLI tool (dingo build, run, version)
+├── pkg/
+│   ├── preprocessor/         # Stage 1: Text transformations (Dingo → valid Go)
+│   │   ├── preprocessor.go   # Pipeline coordinator
+│   │   ├── typeannotation.go # param: Type → param Type
+│   │   ├── errorprop.go      # x? → error handling
+│   │   ├── enum.go           # enum → Go tagged unions
+│   │   └── keyword.go        # Other Dingo keywords
+│   ├── plugin/               # Stage 2: AST transformations
+│   │   ├── plugin.go         # 3-phase pipeline (Discovery/Transform/Inject)
+│   │   └── builtin/
+│   │       └── result_type.go # Result<T,E> plugin
+│   ├── generator/            # Code generation (go/printer)
+│   └── config/               # Configuration
+├── tests/golden/             # Golden file tests
+├── features/                 # Feature proposals (read INDEX.md)
+├── docs/                     # Documentation
+└── examples/                 # Example code
 ```
 
 **Important files:**
@@ -1355,7 +1382,8 @@ dingo/
 ### Core Completed
 
 - **Transpiler Pipeline**
-  - Dingo → Go AST transformation
+  - Stage 1: Preprocessor (regex-based text transforms)
+  - Stage 2: go/parser + plugin pipeline (AST transforms)
   - Clean, idiomatic code generation
   - go/printer formatting
 
@@ -1439,7 +1467,8 @@ dingo/
 | **Phase 2.5** | Complete | Sum Types + Pattern Matching | 52/52 tests passing |
 | **Phase 2.6** | Complete | Result/Option Foundation | 3/8 golden tests |
 | **Phase 2.7** | Complete | Functional Utilities | 8/8 tests passing |
-| **Phase 3** | Next | Result/Option Integration | Planned |
+| **Phase 2.16** | Complete | Parser Fix + Result Integration | 48/48 preprocessor tests |
+| **Phase 3** | Next | Fix A4/A5 + Option<T> | Planned |
 | **Phase 4** | Future | Language Server | 8-10 weeks |
 | **Phase 5** | Future | v1.0 Polish | 4-6 weeks |
 
