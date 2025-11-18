@@ -2,6 +2,81 @@
 
 This file contains instructions for Claude AI agents working on the Dingo landing page project.
 
+## ⚠️ CRITICAL: Token Budget Enforcement (READ FIRST)
+
+**EVERY action must pass this pre-check:**
+
+### Token Budget Limits (HARD LIMITS)
+
+| Operation | Limit | Violation Remedy |
+|-----------|-------|------------------|
+| File reads per message | 2 files OR 200 lines total | Delegate to astro-developer |
+| Component reads | 2 components max | Delegate to astro-developer |
+| Bash output | 50 lines | Use `head -50` OR delegate |
+| Agent response summary | 5 sentences max | Agent MUST compress |
+
+**IF ANY LIMIT EXCEEDED → MUST delegate to agent instead**
+
+### Forbidden Patterns in Main Chat
+
+**❌ NEVER DO THESE:**
+
+1. **Reading Multiple Components**
+   - ❌ Read 3+ component files
+   - ✅ Delegate to astro-developer → Read summary
+
+2. **Implementing Components**
+   - ❌ Write/edit multiple components directly
+   - ✅ Delegate to astro-developer → Read summary
+
+3. **Visual QA**
+   - ❌ Take multiple screenshots, analyze in main chat
+   - ✅ Delegate to astro-reviewer → Read summary
+
+4. **Searching Codebase**
+   - ❌ Multiple Grep calls for components
+   - ✅ Delegate to astro-developer → Read summary
+
+### Delegation Templates for Astro
+
+#### Template: Component Implementation
+```
+Task tool → astro-developer:
+
+Implement: [Component description]
+
+Your Tasks:
+1. Create/modify components
+2. Write summary to: ai-docs/sessions/[session]/output/summary.txt
+
+Return to Main Chat (MAX 5 sentences):
+Status: Success/Partial/Failed
+Components: [count] modified
+Details: ai-docs/sessions/[session]/output/summary.txt
+
+DO NOT return full component code in response.
+```
+
+#### Template: Visual Review
+```
+Task tool → astro-reviewer:
+
+Review: [What to review visually]
+
+Your Tasks:
+1. Take screenshots, analyze visually
+2. Check against ai-docs best practices
+3. Write report to: ai-docs/sessions/[session]/output/review.md
+
+Return to Main Chat (MAX 5 sentences):
+Status: APPROVED / NEEDS_FIXES
+Critical: [count] | Medium: [count]
+Top Issue: [one-liner]
+Details: ai-docs/sessions/[session]/output/review.md
+
+DO NOT return full review or screenshots in response.
+```
+
 ## Project Overview
 
 This is the **landing page** for the Dingo project, built with **Astro** - a modern web framework optimized for content-driven websites.
