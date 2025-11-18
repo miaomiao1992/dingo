@@ -698,20 +698,27 @@ Main Chat:
 
 ### Tool: Quick Delegation Templates
 
+**CRITICAL**: All agents MUST return concise summaries (max 5 sentences).
+
 #### Template 1: Investigation
 
 ```
-Task tool → golang-developer:
+Task tool → golang-developer (or Explore):
 
 Investigate: [What to understand]
 
-Output File: ai-docs/analysis/[topic]-analysis.md
+Your Tasks:
+1. Search codebase thoroughly
+2. Analyze findings
+3. Write detailed report to: ai-docs/analysis/[topic]-analysis.md
 
-Return Summary Format:
-- What: [One-line description]
-- Where: [Key file locations]
-- How: [Brief mechanism description]
-- Details: [file-path]
+Return to Main Chat (MAX 5 sentences):
+What: [One-line description]
+Where: [Key file locations]
+How: [Brief mechanism]
+Details: ai-docs/analysis/[topic]-analysis.md
+
+DO NOT return full code or analysis in response.
 ```
 
 #### Template 2: Implementation
@@ -720,34 +727,64 @@ Return Summary Format:
 Task tool → golang-developer:
 
 Implement: [Feature description]
-Plan: [path-to-plan-file]
 
-Output Files:
-- Code: (writes to codebase)
-- Summary: ai-docs/sessions/[session]/02-implementation/summary.md
+Input: [path-to-requirements or empty if inline]
 
-Return Summary Format:
-- Status: Success/Partial/Failed
-- Files: [count] files modified
-- Tests: [pass/fail status]
-- Details: [file-path]
+Your Tasks:
+1. Implement feature
+2. Write changes to codebase
+3. Write summary to: ai-docs/sessions/[session]/output/impl-summary.txt
+
+Return to Main Chat (MAX 5 sentences):
+Status: Success/Partial/Failed
+Files: [count] files modified
+Tests: [pass/fail if run]
+Details: ai-docs/sessions/[session]/output/impl-summary.txt
+
+DO NOT return code or detailed changes in response.
 ```
 
-#### Template 3: Review
+#### Template 3: Testing
+
+```
+Task tool → golang-tester:
+
+Test: [What to test]
+
+Your Tasks:
+1. Run test suite (full or specific)
+2. Identify failures
+3. Write summary to: ai-docs/sessions/[session]/output/test-summary.txt
+
+Return to Main Chat (MAX 4 sentences):
+Status: All Pass / Some Fail / Error
+Pass rate: [N/M (percentage)]
+New failures: [count or "none"]
+Details: ai-docs/sessions/[session]/output/test-summary.txt
+
+DO NOT return full test output in response.
+```
+
+#### Template 4: Code Review
 
 ```
 Task tool → code-reviewer:
 
 Review: [what to review]
-Changes: [path-to-changes-file]
+Context: [optional context or file path]
 
-Output File: ai-docs/sessions/[session]/03-review/review.md
+Your Tasks:
+1. Review code thoroughly
+2. Categorize issues (CRITICAL/MEDIUM/MINOR)
+3. Write full report to: ai-docs/sessions/[session]/output/review.md
 
-Return Summary Format:
-- Status: APPROVED / NEEDS_FIXES
-- Critical: [count] | Medium: [count]
-- Top Issue: [one-liner]
-- Details: [file-path]
+Return to Main Chat (MAX 5 sentences):
+Status: APPROVED / NEEDS_FIXES
+Critical: [count] | Medium: [count] | Minor: [count]
+Top Issue: [one-liner]
+Details: ai-docs/sessions/[session]/output/review.md
+
+DO NOT return full review in response.
 ```
 
 ### Summary: Delegation Strategy Benefits
