@@ -16,7 +16,9 @@ import (
 var (
 	assignPattern = regexp.MustCompile(`^\s*(let|var)\s+(\w+)\s*=\s*(.+)$`)
 	returnPattern = regexp.MustCompile(`^\s*return\s+(.+)$`)
-	msgPattern    = regexp.MustCompile(`^(.*\?)\s*"((?:[^"\\]|\\.)*)"`)
+	// CRITICAL FIX: Use non-greedy (.*?\?) to match minimal content before ?
+	// This ensures we match the FIRST ? before a quote, not the LAST one
+	msgPattern = regexp.MustCompile(`^(.*?\?)\s*"((?:[^"\\]|\\.)*)"`)
 )
 
 // ImportTracker manages automatic import detection
@@ -325,7 +327,11 @@ func (e *ErrorPropProcessor) expandAssignment(matches []string, expr string, err
 	e.tryCounter++
 
 	// Calculate exact position of ? operator for accurate source mapping
-	qPos := strings.Index(expr, "?")
+	// Use matches[0] which is the full matched line
+	fullLineText := matches[0]
+	// CRITICAL FIX: Use LastIndex to find the actual ? operator, not a ? in the expression
+	// Example: ReadFile(path)? has ? at the end, not in "path"
+	qPos := strings.LastIndex(fullLineText, "?")
 	if qPos == -1 {
 		qPos = 0 // fallback if ? not found
 	}
@@ -337,7 +343,36 @@ func (e *ErrorPropProcessor) expandAssignment(matches []string, expr string, err
 
 	// Line 1: __tmpN, __errN := expr
 	buf.WriteString(indent)
-	buf.WriteString(fmt.Sprintf("%s, %s := %s\n", tmpVar, errVar, exprClean))
+	generatedLine := fmt.Sprintf("%s, %s := %s\n", tmpVar, errVar, exprClean)
+	buf.WriteString(generatedLine)
+
+	// CRITICAL FIX: Add mapping for the expression itself (e.g., ReadFile(path))
+	// Find position of expression in original line
+	// Strip the '?' from expr BEFORE searching to avoid off-by-one error
+	// exprClean still has '?' at this point (extracted earlier), so remove it for searching
+	exprWithoutQ := strings.TrimSuffix(exprClean, "?")
+	exprPosInOriginal := strings.Index(fullLineText, exprWithoutQ)
+	if exprPosInOriginal >= 0 {
+		// Position in generated line: after "__tmpN, __errN := "
+		prefixLen := len(tmpVar) + len(", ") + len(errVar) + len(" := ")
+		genCol := len(indent) + prefixLen + 1 // +1 for 1-based indexing
+
+		// Position in original line
+		// FIX: exprPosInOriginal already includes indent (it's position within originalText)
+		// Don't double-count by adding len(indent) again!
+		origCol := exprPosInOriginal + 1 // +1 for 1-based indexing only
+
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  origCol,
+			GeneratedLine:   startOutputLine,
+			GeneratedColumn: genCol,
+			Length:          len(exprWithoutQ),
+			Name:            "expr_mapping",
+		})
+	}
+
+	// Mapping for the error handling expansion (the "?" operator)
 	mappings = append(mappings, Mapping{
 		OriginalLine:    originalLine,
 		OriginalColumn:  qPos + 1, // 1-based column position of ?
@@ -462,7 +497,11 @@ func (e *ErrorPropProcessor) expandReturn(matches []string, expr string, errMsg 
 	e.tryCounter++
 
 	// Calculate exact position of ? operator for accurate source mapping
-	qPos := strings.Index(expr, "?")
+	// Use matches[0] which is the full matched line
+	fullLineText := matches[0]
+	// CRITICAL FIX: Use LastIndex to find the actual ? operator, not a ? in the expression
+	// Example: ReadFile(path)? has ? at the end, not in "path"
+	qPos := strings.LastIndex(fullLineText, "?")
 	if qPos == -1 {
 		qPos = 0 // fallback if ? not found
 	}
@@ -475,7 +514,36 @@ func (e *ErrorPropProcessor) expandReturn(matches []string, expr string, errMsg 
 	// Line 1: __tmp0, __tmp1, ..., __errN := expr
 	buf.WriteString(indent)
 	allVars := append(tmpVars, errVar)
-	buf.WriteString(fmt.Sprintf("%s := %s\n", strings.Join(allVars, ", "), exprClean))
+	generatedLine := fmt.Sprintf("%s := %s\n", strings.Join(allVars, ", "), exprClean)
+	buf.WriteString(generatedLine)
+
+	// CRITICAL FIX: Add mapping for the expression itself (e.g., ReadFile(path))
+	// Find position of expression in original line
+	// Strip the '?' from expr BEFORE searching to avoid off-by-one error
+	// exprClean still has '?' at this point (extracted earlier), so remove it for searching
+	exprWithoutQ := strings.TrimSuffix(exprClean, "?")
+	exprPosInOriginal := strings.Index(fullLineText, exprWithoutQ)
+	if exprPosInOriginal >= 0 {
+		// Position in generated line: after "__tmp0, __tmp1, ..., __errN := "
+		varsPrefix := strings.Join(allVars, ", ") + " := "
+		genCol := len(indent) + len(varsPrefix) + 1 // +1 for 1-based indexing
+
+		// Position in original line
+		// FIX: exprPosInOriginal already includes indent (it's position within originalText)
+		// Don't double-count by adding len(indent) again!
+		origCol := exprPosInOriginal + 1 // +1 for 1-based indexing only
+
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  origCol,
+			GeneratedLine:   startOutputLine,
+			GeneratedColumn: genCol,
+			Length:          len(exprWithoutQ),
+			Name:            "expr_mapping",
+		})
+	}
+
+	// Mapping for the error handling expansion (the "?" operator)
 	mappings = append(mappings, Mapping{
 		OriginalLine:    originalLine,
 		OriginalColumn:  qPos + 1, // 1-based column position of ?

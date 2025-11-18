@@ -292,30 +292,34 @@ func readConfig(path string) ([]byte, error) {
 		t.Fatalf("preprocessing failed: %v", err)
 	}
 
-	// The error propagation on line 4 should generate 7 output lines
-	// All 7 lines should map back to original line 4
+	// The error propagation on line 4 should generate 8 mappings:
+	// - 1 expr_mapping for the expression (os.ReadFile(path))
+	// - 7 error_prop mappings for the error handling expansion
+	// All mappings point back to original line 4
 	// HOWEVER: With import injection, lines are shifted down by 3 (package + blank + import)
 
 	// Expected mappings (line 4 in input → lines 7-13 in output after import block):
-	// Line 7: __tmp0, __err0 := os.ReadFile(path)
-	// Line 8: // dingo:s:1
-	// Line 9: if __err0 != nil {
-	// Line 10:     return nil, __err0
-	// Line 11: }
-	// Line 12: // dingo:e:1
-	// Line 13: var data = __tmp0
+	// Mapping 0 (expr_mapping): Line 7 - __tmp0, __err0 := os.ReadFile(path)
+	// Mapping 1 (error_prop):   Line 7 - __tmp0, __err0 := os.ReadFile(path)
+	// Mapping 2 (error_prop):   Line 8 - // dingo:s:1
+	// Mapping 3 (error_prop):   Line 9 - if __err0 != nil {
+	// Mapping 4 (error_prop):   Line 10 - return nil, __err0
+	// Mapping 5 (error_prop):   Line 11 - }
+	// Mapping 6 (error_prop):   Line 12 - // dingo:e:1
+	// Mapping 7 (error_prop):   Line 13 - var data = __tmp0
 
 	expectedMappings := []struct {
 		originalLine  int
 		generatedLine int
 	}{
-		{4, 7},  // __tmp0, __err0 := os.ReadFile(path)
-		{4, 8},  // // dingo:s:1
-		{4, 9},  // if __err0 != nil {
-		{4, 10}, // return nil, __err0
-		{4, 11}, // }
-		{4, 12}, // // dingo:e:1
-		{4, 13}, // var data = __tmp0
+		{4, 7},  // expr_mapping: os.ReadFile(path)
+		{4, 7},  // error_prop: __tmp0, __err0 := os.ReadFile(path)
+		{4, 8},  // error_prop: // dingo:s:1
+		{4, 9},  // error_prop: if __err0 != nil {
+		{4, 10}, // error_prop: return nil, __err0
+		{4, 11}, // error_prop: }
+		{4, 12}, // error_prop: // dingo:e:1
+		{4, 13}, // error_prop: var data = __tmp0
 	}
 
 	if len(sourceMap.Mappings) != len(expectedMappings) {
@@ -357,39 +361,61 @@ func process(path string) ([]byte, error) {
 		t.Fatalf("preprocessing failed: %v", err)
 	}
 
-	// Line 4 expands to 7 lines (shifted by import block: 7-13)
-	// Line 5 expands to 7 lines (shifted by import block: 14-20)
-	// Total: 14 mappings
+	// Line 4 expands to 8 mappings (1 expr + 7 error_prop)
+	// Line 5 expands to 8 mappings (1 expr + 7 error_prop)
+	// Total: 16 mappings
 
-	if len(sourceMap.Mappings) != 14 {
-		t.Errorf("expected 14 mappings (7+7), got %d", len(sourceMap.Mappings))
+	if len(sourceMap.Mappings) != 16 {
+		t.Errorf("expected 16 mappings (8+8: 2 expr + 14 error_prop), got %d", len(sourceMap.Mappings))
 		for i, m := range sourceMap.Mappings {
 			t.Logf("Mapping %d: orig=%d gen=%d", i, m.OriginalLine, m.GeneratedLine)
 		}
 		return
 	}
 
-	// First expansion: line 4 → lines 7-13 (with import offset of 3)
+	// First expansion: line 4 → 8 mappings (1 expr_mapping + 7 error_prop)
+	// Generated lines: 7-13 (with import offset of 3)
 	const importOffset = 3 // package main + blank + import "os" + blank
-	for i := 0; i < 7; i++ {
+
+	// Mapping 0: expr_mapping for line 4 (points to line 7)
+	if sourceMap.Mappings[0].OriginalLine != 4 {
+		t.Errorf("mapping 0: expected original line 4, got %d", sourceMap.Mappings[0].OriginalLine)
+	}
+	if sourceMap.Mappings[0].GeneratedLine != 7 {
+		t.Errorf("mapping 0: expected generated line 7, got %d", sourceMap.Mappings[0].GeneratedLine)
+	}
+
+	// Mappings 1-7: error_prop for line 4 (generated lines 7-13)
+	for i := 1; i < 8; i++ {
 		mapping := sourceMap.Mappings[i]
 		if mapping.OriginalLine != 4 {
 			t.Errorf("mapping %d: expected original line 4, got %d", i, mapping.OriginalLine)
 		}
-		expectedGenLine := 4 + importOffset + i
+		expectedGenLine := 7 + (i - 1)
 		if mapping.GeneratedLine != expectedGenLine {
 			t.Errorf("mapping %d: expected generated line %d, got %d",
 				i, expectedGenLine, mapping.GeneratedLine)
 		}
 	}
 
-	// Second expansion: line 5 → lines 14-20 (with import offset)
-	for i := 7; i < 14; i++ {
+	// Second expansion: line 5 → 8 mappings (1 expr_mapping + 7 error_prop)
+	// Generated lines: 14-20
+
+	// Mapping 8: expr_mapping for line 5 (points to line 14)
+	if sourceMap.Mappings[8].OriginalLine != 5 {
+		t.Errorf("mapping 8: expected original line 5, got %d", sourceMap.Mappings[8].OriginalLine)
+	}
+	if sourceMap.Mappings[8].GeneratedLine != 14 {
+		t.Errorf("mapping 8: expected generated line 14, got %d", sourceMap.Mappings[8].GeneratedLine)
+	}
+
+	// Mappings 9-15: error_prop for line 5 (generated lines 14-20)
+	for i := 9; i < 16; i++ {
 		mapping := sourceMap.Mappings[i]
 		if mapping.OriginalLine != 5 {
 			t.Errorf("mapping %d: expected original line 5, got %d", i, mapping.OriginalLine)
 		}
-		expectedGenLine := 11 + importOffset + (i - 7)
+		expectedGenLine := 14 + (i - 9)
 		if mapping.GeneratedLine != expectedGenLine {
 			t.Errorf("mapping %d: expected generated line %d, got %d",
 				i, expectedGenLine, mapping.GeneratedLine)
@@ -510,9 +536,9 @@ func example(path string) ([]byte, error) {
 		}
 	}
 
-	// Should have 7 mappings (one expansion)
-	if len(sourceMap.Mappings) != 7 {
-		t.Errorf("expected 7 mappings, got %d", len(sourceMap.Mappings))
+	// Should have 8 mappings (1 expr_mapping + 7 error_prop)
+	if len(sourceMap.Mappings) != 8 {
+		t.Errorf("expected 8 mappings (1 expr + 7 error_prop), got %d", len(sourceMap.Mappings))
 		for i, m := range sourceMap.Mappings {
 			t.Logf("Mapping %d: orig=%d gen=%d", i, m.OriginalLine, m.GeneratedLine)
 		}
@@ -718,8 +744,8 @@ func load(path string) ([]byte, error) {
 		}
 	}
 
-	// Additional verification: Error propagation should produce 7 mappings
-	// all pointing to original line 8, generated lines starting after import block
+	// Additional verification: Error propagation should produce 8 mappings
+	// (1 expr_mapping + 7 error_prop) all pointing to original line 8
 	errorPropMappings := 0
 	for _, mapping := range sourceMap.Mappings {
 		if mapping.OriginalLine == 8 {
@@ -727,8 +753,8 @@ func load(path string) ([]byte, error) {
 		}
 	}
 
-	if errorPropMappings != 7 {
-		t.Errorf("Expected 7 mappings for error propagation (line 8), got %d", errorPropMappings)
+	if errorPropMappings != 8 {
+		t.Errorf("Expected 8 mappings for error propagation (1 expr + 7 error_prop), got %d", errorPropMappings)
 		for i, m := range sourceMap.Mappings {
 			t.Logf("Mapping %d: orig=%d gen=%d", i, m.OriginalLine, m.GeneratedLine)
 		}

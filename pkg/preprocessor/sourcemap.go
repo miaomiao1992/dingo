@@ -49,41 +49,144 @@ func (sm *SourceMap) AddMapping(m Mapping) {
 // MapToOriginal maps a preprocessed position to the original Dingo position
 // Returns the mapped position or the input position if no mapping found
 func (sm *SourceMap) MapToOriginal(line, col int) (int, int) {
-	// CRITICAL FIX C7: Use column information for disambiguation
-	// When multiple mappings exist for same generated line, choose closest column
-	var bestMatch *Mapping
+	return sm.MapToOriginalWithDebug(line, col, false)
+}
 
+// MapToOriginalWithDebug maps a preprocessed position to original Dingo position
+// with optional debug logging to help troubleshoot mapping issues
+func (sm *SourceMap) MapToOriginalWithDebug(line, col int, debug bool) (int, int) {
+	var bestMatch *Mapping = nil
+	var minDistanceOnLine int = -1
+
+	if debug {
+		fmt.Printf("DEBUG: MapToOriginal(line=%d, col=%d)\n", line, col)
+		fmt.Printf("DEBUG: Total mappings: %d\n", len(sm.Mappings))
+	}
+
+	// First pass: Look for exact match within mapping range
 	for i := range sm.Mappings {
 		m := &sm.Mappings[i]
 		if m.GeneratedLine == line {
-			// Check if position is within this mapping's range
+			if debug {
+				fmt.Printf("DEBUG: Found mapping on line %d: %s (gen_col=%d, length=%d, orig_col=%d)\n",
+					m.GeneratedLine, m.Name, m.GeneratedColumn, m.Length, m.OriginalColumn)
+			}
+
+			// Case 1: Exact match within this mapping's range. This is the highest priority.
 			if col >= m.GeneratedColumn && col < m.GeneratedColumn+m.Length {
-				// Exact match within range
 				offset := col - m.GeneratedColumn
+				if debug {
+					fmt.Printf("DEBUG: EXACT MATCH found in %s, offset=%d\n", m.Name, offset)
+					fmt.Printf("DEBUG: Result: orig_line=%d, orig_col=%d\n",
+						m.OriginalLine, m.OriginalColumn+offset)
+				}
 				return m.OriginalLine, m.OriginalColumn + offset
 			}
 
-			// Track closest mapping for fallback
-			if bestMatch == nil {
+			// Case 2: Update bestMatchOnLine if this mapping is closer to 'col' on the same line.
+			currentDistance := abs(m.GeneratedColumn - col)
+			if bestMatch == nil || currentDistance < minDistanceOnLine {
 				bestMatch = m
-			} else {
-				// Closer column match wins
-				currDist := abs(m.GeneratedColumn - col)
-				bestDist := abs(bestMatch.GeneratedColumn - col)
-				if currDist < bestDist {
-					bestMatch = m
+				minDistanceOnLine = currentDistance
+				if debug {
+					fmt.Printf("DEBUG: New bestMatch: %s (distance=%d)\n", m.Name, currentDistance)
 				}
 			}
 		}
 	}
 
+	// Second pass: If no exact match, find the best mapping with improved heuristics
 	if bestMatch != nil {
-		// Calculate offset within mapping
+		if debug {
+			fmt.Printf("DEBUG: No exact match. Best found: %s (distance=%d)\n", bestMatch.Name, minDistanceOnLine)
+		}
+
+		// PRIORITY 1: Prefer expr_mapping over error_prop when distances are reasonable
+		// This ensures that errors in expressions (like ReadFile) map to the expression, not the ? operator
+		if bestMatch.Name == "error_prop" && minDistanceOnLine > 3 {
+			if debug {
+				fmt.Printf("DEBUG: Searching for better expr_mapping candidate\n")
+			}
+			// Look for a better expr_mapping candidate
+			for _, m := range sm.Mappings {
+				if m.GeneratedLine == line && m.Name == "expr_mapping" {
+					// Check if this expr_mapping is a better candidate
+					exprDistance := abs(m.GeneratedColumn - col)
+
+					if debug {
+						fmt.Printf("DEBUG: Checking expr_mapping: gen_col=%d, length=%d, expr_dist=%d\n",
+							m.GeneratedColumn, m.Length, exprDistance)
+					}
+
+					// Prefer expr_mapping if:
+					// 1. It's closer to target column, OR
+					// 2. The target column falls within the expression's reasonable range
+					if exprDistance < minDistanceOnLine ||
+					   (col >= m.GeneratedColumn && col <= m.GeneratedColumn+m.Length+10) {
+						// Found a better expr_mapping match
+						offset := col - m.GeneratedColumn
+						// Ensure offset is reasonable (don't go too far outside of expression)
+						if offset >= 0 && offset < m.Length+5 {
+							if debug {
+								fmt.Printf("DEBUG: BETTER MATCH: using expr_mapping, offset=%d\n", offset)
+								fmt.Printf("DEBUG: Result: orig_line=%d, orig_col=%d\n",
+									m.OriginalLine, m.OriginalColumn+offset)
+							}
+							return m.OriginalLine, m.OriginalColumn + offset
+						}
+					}
+				}
+			}
+			if debug {
+				fmt.Printf("DEBUG: No better expr_mapping found\n")
+			}
+		}
+
+		// PRIORITY 2: Special handling for 'error_prop' mapping
+		if bestMatch.Name == "error_prop" {
+			if debug {
+				fmt.Printf("DEBUG: Using error_prop mapping (points to ? operator)\n")
+				fmt.Printf("DEBUG: Result: orig_line=%d, orig_col=%d\n",
+					bestMatch.OriginalLine, bestMatch.OriginalColumn)
+			}
+			// For error_prop, we want to map to the ? operator position specifically
+			// This is appropriate for compilation errors that relate to the error handling itself
+			return bestMatch.OriginalLine, bestMatch.OriginalColumn
+		}
+
+		// PRIORITY 3: Standard mapping with offset calculation for other cases
 		offset := col - bestMatch.GeneratedColumn
-		return bestMatch.OriginalLine, bestMatch.OriginalColumn + offset
+
+		if debug {
+			fmt.Printf("DEBUG: Standard mapping: offset=%d, length=%d\n", offset, bestMatch.Length)
+		}
+
+		// Apply offset only if it's reasonable
+		if offset >= 0 && offset < bestMatch.Length+10 {
+			// Additional validation: don't create massive offsets that would map far outside of original content
+			if offset < 50 { // Reasonable limit to prevent runaway offsets
+				if debug {
+					fmt.Printf("DEBUG: Applied offset, result: orig_line=%d, orig_col=%d\n",
+						bestMatch.OriginalLine, bestMatch.OriginalColumn+offset)
+				}
+				return bestMatch.OriginalLine, bestMatch.OriginalColumn + offset
+			}
+		}
+
+		// Fallback: return the start of the best mapping
+		if debug {
+			fmt.Printf("DEBUG: Fallback: using start of best mapping\n")
+			fmt.Printf("DEBUG: Result: orig_line=%d, orig_col=%d\n",
+				bestMatch.OriginalLine, bestMatch.OriginalColumn)
+		}
+		return bestMatch.OriginalLine, bestMatch.OriginalColumn
 	}
 
-	// No mapping found, return as-is
+	if debug {
+		fmt.Printf("DEBUG: No relevant mapping found, returning identity mapping\n")
+		fmt.Printf("DEBUG: Result: orig_line=%d, orig_col=%d\n", line, col)
+	}
+	// Final fallback: If no relevant mapping was found, return the identity mapping
 	return line, col
 }
 
