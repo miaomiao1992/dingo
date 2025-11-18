@@ -7,6 +7,10 @@ import (
 	"go/token"
 )
 
+// MaxErrors is the maximum number of errors to accumulate
+// CRITICAL FIX #2: Prevents OOM on large files with many type inference failures
+const MaxErrors = 100
+
 // Registry manages plugins
 type Registry struct{}
 
@@ -111,12 +115,14 @@ type Stats struct {
 
 // Context holds pipeline context
 type Context struct {
-	FileSet     *token.FileSet
-	TypeInfo    interface{}
-	Config      *Config
-	Registry    *Registry
-	Logger      Logger
-	CurrentFile interface{}
+	FileSet        *token.FileSet
+	TypeInfo       interface{}
+	Config         *Config
+	Registry       *Registry
+	Logger         Logger
+	CurrentFile    interface{}
+	TempVarCounter int     // Counter for generating unique temporary variable names
+	errors         []error // Accumulated compile errors
 }
 
 // Config for code generation
@@ -140,10 +146,10 @@ func NewNoOpLogger() Logger {
 	return &NoOpLogger{}
 }
 
-func (n *NoOpLogger) Info(msg string)                            {}
-func (n *NoOpLogger) Error(msg string)                           {}
-func (n *NoOpLogger) Debug(format string, args ...interface{})   {}
-func (n *NoOpLogger) Warn(format string, args ...interface{})    {}
+func (n *NoOpLogger) Info(msg string)                          {}
+func (n *NoOpLogger) Error(msg string)                         {}
+func (n *NoOpLogger) Debug(format string, args ...interface{}) {}
+func (n *NoOpLogger) Warn(format string, args ...interface{})  {}
 
 // Plugin interface
 type Plugin interface {
@@ -168,4 +174,53 @@ type DeclarationProvider interface {
 	Plugin
 	GetPendingDeclarations() []ast.Decl
 	ClearPendingDeclarations()
+}
+
+// ReportError reports a compile error to the context
+// Errors are accumulated and can be retrieved later
+//
+// CRITICAL FIX #2: Limits error accumulation to prevent OOM
+func (ctx *Context) ReportError(message string, location token.Pos) {
+	if ctx.errors == nil {
+		ctx.errors = make([]error, 0)
+	}
+
+	// CRITICAL FIX #2: Check error limit to prevent OOM
+	if len(ctx.errors) >= MaxErrors {
+		// Add sentinel error only once
+		if len(ctx.errors) == MaxErrors {
+			ctx.errors = append(ctx.errors,
+				fmt.Errorf("too many errors (>%d), stopping error collection", MaxErrors))
+		}
+		return
+	}
+
+	ctx.errors = append(ctx.errors, fmt.Errorf("%s (at position %d)", message, location))
+}
+
+// GetErrors returns all accumulated compile errors
+func (ctx *Context) GetErrors() []error {
+	if ctx.errors == nil {
+		return []error{}
+	}
+	return ctx.errors
+}
+
+// ClearErrors clears all accumulated errors
+func (ctx *Context) ClearErrors() {
+	ctx.errors = nil
+}
+
+// HasErrors returns true if any errors have been reported
+func (ctx *Context) HasErrors() bool {
+	return len(ctx.errors) > 0
+}
+
+// NextTempVar generates a unique temporary variable name
+// Used for IIFE pattern when wrapping non-addressable expressions
+// Example: __tmp0, __tmp1, __tmp2, ...
+func (ctx *Context) NextTempVar() string {
+	name := fmt.Sprintf("__tmp%d", ctx.TempVarCounter)
+	ctx.TempVarCounter++
+	return name
 }

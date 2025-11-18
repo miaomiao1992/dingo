@@ -22,11 +22,15 @@ import (
 // 1. Parse type names to detect pattern (Result_*, Option_*)
 // 2. Extract type parameters from sanitized names
 // 3. Provide context-based inference for constructors (Ok, Err, None)
-// 4. Cache results for performance
+// 4. Use go/types for accurate type information when available
+// 5. Cache results for performance
 type TypeInferenceService struct {
 	fset   *token.FileSet
 	file   *ast.File
 	logger plugin.Logger
+
+	// go/types integration for accurate type inference
+	typesInfo *types.Info
 
 	// Cache for type analysis results
 	resultTypeCache map[string]*ResultTypeInfo
@@ -38,15 +42,18 @@ type TypeInferenceService struct {
 
 // ResultTypeInfo contains parsed Result type information
 type ResultTypeInfo struct {
-	TypeName string      // e.g., "Result_int_error"
-	OkType   types.Type  // T type parameter
-	ErrType  types.Type  // E type parameter
+	TypeName     string     // e.g., "Result_int_error"
+	OkType       types.Type // T type parameter
+	ErrType      types.Type // E type parameter
+	OkTypeString string     // Original type string (e.g., "map[string]int")
+	ErrTypeString string    // Original error type string (e.g., "error")
 }
 
 // OptionTypeInfo contains parsed Option type information
 type OptionTypeInfo struct {
-	TypeName  string     // e.g., "Option_int"
-	ValueType types.Type // T type parameter
+	TypeName       string     // e.g., "Option_int"
+	ValueType      types.Type // T type parameter
+	ValueTypeString string    // Original type string (e.g., "map[string]int")
 }
 
 // TypeRegistry manages synthetic types created by Dingo
@@ -74,10 +81,18 @@ func NewTypeInferenceService(fset *token.FileSet, file *ast.File, logger plugin.
 		fset:            fset,
 		file:            file,
 		logger:          logger,
+		typesInfo:       nil, // Set later via SetTypesInfo()
 		resultTypeCache: make(map[string]*ResultTypeInfo),
 		optionTypeCache: make(map[string]*OptionTypeInfo),
 		registry:        NewTypeRegistry(),
 	}, nil
+}
+
+// SetTypesInfo sets the go/types information for accurate type inference
+// This should be called after running the type checker
+func (s *TypeInferenceService) SetTypesInfo(info *types.Info) {
+	s.typesInfo = info
+	s.logger.Debug("Type inference service updated with go/types information")
 }
 
 // IsResultType checks if a type name represents a Result type
@@ -103,100 +118,54 @@ func (s *TypeInferenceService) IsOptionType(typeName string) bool {
 // GetResultTypeParams extracts type parameters from Result type name
 //
 // Examples:
-//   Result_int_error → (int, error, true)
-//   Result_ptr_User_CustomError → (*User, CustomError, true)
-//   Result_slice_byte_error → ([]byte, error, true)
-//   NotAResult → (nil, nil, false)
 //
-// Algorithm:
-// 1. Strip "Result_" prefix
-// 2. Split by "_" to get tokens
-// 3. Parse tokens to reconstruct T and E types
-// 4. Handle pointer (ptr_), slice (slice_), map prefixes
+//	Result_int_error → (int, error, true)
+//	Result_ptr_User_CustomError → (*User, CustomError, true)
+//	Result_slice_byte_error → ([]byte, error, true)
+//	NotAResult → (nil, nil, false)
+//
+// CRITICAL FIX #1: Only uses cached values - does NOT reverse-parse from type name
+// Reverse parsing breaks for complex types like Result<map[string]int, error>
+// because sanitization is lossy (e.g., "[" → "_", "]" → "_")
 func (s *TypeInferenceService) GetResultTypeParams(typeName string) (T, E types.Type, ok bool) {
 	if !s.IsResultType(typeName) {
 		return nil, nil, false
 	}
 
-	// Check cache first
+	// Check cache - this is the ONLY source of truth
 	if cached, found := s.resultTypeCache[typeName]; found {
 		return cached.OkType, cached.ErrType, true
 	}
 
-	// Parse type name: Result_{T}_{E}
-	parts := strings.TrimPrefix(typeName, "Result_")
-	tokens := strings.Split(parts, "_")
-
-	if len(tokens) < 2 {
-		s.logger.Warn("Invalid Result type name: %s (expected at least 2 tokens)", typeName)
-		return nil, nil, false
-	}
-
-	// Parse T and E types
-	// Strategy: Find the split point between T and E
-	// E is typically a simple error type, so we work backwards
-
-	// Simple heuristic: Last token is likely the error type
-	// More complex: Handle composite types
-
-	eType, eTokens := s.parseTypeFromTokensBackward(tokens)
-	tTokens := tokens[:len(tokens)-eTokens]
-	tType, _ := s.parseTypeFromTokensForward(tTokens)
-
-	// Cache the result
-	info := &ResultTypeInfo{
-		TypeName: typeName,
-		OkType:   tType,
-		ErrType:  eType,
-	}
-	s.resultTypeCache[typeName] = info
-	s.registry.resultTypes[typeName] = info
-
-	s.logger.Debug("Parsed Result type: %s → T=%v, E=%v", typeName, tType, eType)
-
-	return tType, eType, true
+	// CRITICAL FIX #1: Don't reverse-parse - fail if not cached
+	// Reverse parsing breaks for complex types like map[string]int
+	s.logger.Warn("Result type %s not in cache - cannot infer types (reverse parsing disabled)", typeName)
+	return nil, nil, false
 }
 
 // GetOptionTypeParam extracts the type parameter from Option type name
 //
 // Examples:
-//   Option_int → (int, true)
-//   Option_ptr_User → (*User, true)
-//   Option_slice_byte → ([]byte, true)
-//   NotAnOption → (nil, false)
+//
+//	Option_int → (int, true)
+//	Option_ptr_User → (*User, true)
+//	Option_slice_byte → ([]byte, true)
+//	NotAnOption → (nil, false)
+//
+// CRITICAL FIX #1: Only uses cached values - does NOT reverse-parse from type name
 func (s *TypeInferenceService) GetOptionTypeParam(typeName string) (T types.Type, ok bool) {
 	if !s.IsOptionType(typeName) {
 		return nil, false
 	}
 
-	// Check cache first
+	// Check cache - this is the ONLY source of truth
 	if cached, found := s.optionTypeCache[typeName]; found {
 		return cached.ValueType, true
 	}
 
-	// Parse type name: Option_{T}
-	parts := strings.TrimPrefix(typeName, "Option_")
-	tokens := strings.Split(parts, "_")
-
-	if len(tokens) < 1 {
-		s.logger.Warn("Invalid Option type name: %s", typeName)
-		return nil, false
-	}
-
-	// Parse T type
-	tType, _ := s.parseTypeFromTokensForward(tokens)
-
-	// Cache the result
-	info := &OptionTypeInfo{
-		TypeName:  typeName,
-		ValueType: tType,
-	}
-	s.optionTypeCache[typeName] = info
-	s.registry.optionTypes[typeName] = info
-
-	s.logger.Debug("Parsed Option type: %s → T=%v", typeName, tType)
-
-	return tType, true
+	// CRITICAL FIX #1: Don't reverse-parse - fail if not cached
+	s.logger.Warn("Option type %s not in cache - cannot infer types (reverse parsing disabled)", typeName)
+	return nil, false
 }
 
 // parseTypeFromTokensBackward parses a type from tokens working backward
@@ -321,6 +290,260 @@ func (s *TypeInferenceService) makeBasicType(typeName string) types.Type {
 	}
 }
 
+// InferType infers the type of an AST expression using go/types
+//
+// This is the primary type inference method that leverages go/types.Info
+// when available. It falls back to structural analysis for simple cases.
+//
+// Returns:
+//   - The inferred types.Type, or nil if inference fails
+//   - A boolean indicating whether inference succeeded
+//
+// Example usage:
+//
+//	typ, ok := service.InferType(expr)
+//	if ok {
+//	    typeName := service.TypeToString(typ)
+//	}
+func (s *TypeInferenceService) InferType(expr ast.Expr) (types.Type, bool) {
+	if expr == nil {
+		s.logger.Debug("InferType: nil expression")
+		return nil, false
+	}
+
+	// Strategy 1: Use go/types if available (most accurate)
+	if s.typesInfo != nil && s.typesInfo.Types != nil {
+		if tv, ok := s.typesInfo.Types[expr]; ok && tv.Type != nil {
+			s.logger.Debug("InferType: go/types resolved %T to %s", expr, tv.Type)
+			return tv.Type, true
+		}
+		s.logger.Debug("InferType: go/types has no information for %T", expr)
+	}
+
+	// Strategy 2: Structural inference for basic literals (fallback)
+	switch e := expr.(type) {
+	case *ast.BasicLit:
+		return s.inferBasicLitType(e), true
+
+	case *ast.Ident:
+		// Check for built-in constants
+		if typ := s.inferBuiltinIdent(e); typ != nil {
+			return typ, true
+		}
+		// For variables, we need go/types - can't infer without it
+		s.logger.Debug("InferType: identifier %q requires go/types for accurate inference", e.Name)
+		return nil, false
+
+	case *ast.UnaryExpr:
+		if e.Op == token.AND {
+			// &expr - pointer to expr's type
+			if innerType, ok := s.InferType(e.X); ok {
+				return types.NewPointer(innerType), true
+			}
+		}
+		return nil, false
+
+	case *ast.CompositeLit:
+		// Composite literal with explicit type
+		if e.Type != nil {
+			// This requires parsing the type expression to types.Type
+			// For now, return nil - proper implementation needs type reconstruction
+			s.logger.Debug("InferType: composite literal type requires AST->types.Type conversion")
+			return nil, false
+		}
+		return nil, false
+
+	case *ast.CallExpr:
+		// Function call - need go/types to determine return type
+		s.logger.Debug("InferType: function call requires go/types for return type")
+		return nil, false
+
+	default:
+		s.logger.Debug("InferType: unsupported expression type %T", expr)
+		return nil, false
+	}
+}
+
+// inferBasicLitType infers the type of a basic literal
+func (s *TypeInferenceService) inferBasicLitType(lit *ast.BasicLit) types.Type {
+	switch lit.Kind {
+	case token.INT:
+		return types.Typ[types.UntypedInt]
+	case token.FLOAT:
+		return types.Typ[types.UntypedFloat]
+	case token.STRING:
+		return types.Typ[types.UntypedString]
+	case token.CHAR:
+		return types.Typ[types.UntypedRune]
+	default:
+		return types.Typ[types.Invalid]
+	}
+}
+
+// inferBuiltinIdent infers the type of built-in identifiers
+func (s *TypeInferenceService) inferBuiltinIdent(ident *ast.Ident) types.Type {
+	switch ident.Name {
+	case "nil":
+		return types.Typ[types.UntypedNil]
+	case "true", "false":
+		return types.Typ[types.UntypedBool]
+	default:
+		return nil
+	}
+}
+
+// TypeToString converts a types.Type to its Go source representation
+//
+// This method converts types.Type objects back to Go source code strings.
+// It handles all standard Go types and produces idiomatic output.
+//
+// Examples:
+//
+//	types.Typ[types.Int] → "int"
+//	types.NewPointer(types.Typ[types.String]) → "*string"
+//	types.NewSlice(types.Typ[types.Byte]) → "[]byte"
+//
+// This is essential for generating correct type names in code generation.
+func (s *TypeInferenceService) TypeToString(typ types.Type) string {
+	if typ == nil {
+		return "interface{}"
+	}
+
+	switch t := typ.(type) {
+	case *types.Basic:
+		// Handle untyped constants by converting to typed equivalents
+		switch t.Kind() {
+		case types.UntypedBool:
+			return "bool"
+		case types.UntypedInt:
+			return "int"
+		case types.UntypedRune:
+			return "rune"
+		case types.UntypedFloat:
+			return "float64"
+		case types.UntypedComplex:
+			return "complex128"
+		case types.UntypedString:
+			return "string"
+		case types.UntypedNil:
+			return "interface{}" // nil has no specific type
+		default:
+			return t.String()
+		}
+
+	case *types.Pointer:
+		return "*" + s.TypeToString(t.Elem())
+
+	case *types.Slice:
+		return "[]" + s.TypeToString(t.Elem())
+
+	case *types.Array:
+		return fmt.Sprintf("[%d]%s", t.Len(), s.TypeToString(t.Elem()))
+
+	case *types.Map:
+		return fmt.Sprintf("map[%s]%s", s.TypeToString(t.Key()), s.TypeToString(t.Elem()))
+
+	case *types.Chan:
+		switch t.Dir() {
+		case types.SendRecv:
+			return "chan " + s.TypeToString(t.Elem())
+		case types.SendOnly:
+			return "chan<- " + s.TypeToString(t.Elem())
+		case types.RecvOnly:
+			return "<-chan " + s.TypeToString(t.Elem())
+		}
+
+	case *types.Named:
+		// Named type (struct, interface, or type alias)
+		obj := t.Obj()
+		if obj != nil {
+			// Check if the type is from a package
+			if pkg := obj.Pkg(); pkg != nil && pkg.Name() != "" {
+				// Qualified name: pkg.Type
+				return pkg.Name() + "." + obj.Name()
+			}
+			// Local type or built-in
+			return obj.Name()
+		}
+		return t.String()
+
+	case *types.Struct:
+		// Anonymous struct
+		return "struct{}"
+
+	case *types.Interface:
+		// Interface type
+		if t.NumMethods() == 0 && t.NumEmbeddeds() == 0 {
+			return "interface{}"
+		}
+		// For non-empty interfaces, use the full type string
+		return t.String()
+
+	case *types.Signature:
+		// Function type
+		return s.signatureToString(t)
+
+	case *types.Tuple:
+		// Tuple (multiple return values)
+		if t.Len() == 0 {
+			return ""
+		}
+		parts := make([]string, t.Len())
+		for i := 0; i < t.Len(); i++ {
+			parts[i] = s.TypeToString(t.At(i).Type())
+		}
+		if t.Len() == 1 {
+			return parts[0]
+		}
+		return "(" + strings.Join(parts, ", ") + ")"
+
+	default:
+		// Fallback to string representation
+		return typ.String()
+	}
+
+	return "interface{}"
+}
+
+// signatureToString converts a function signature to a string
+func (s *TypeInferenceService) signatureToString(sig *types.Signature) string {
+	// Build parameter list
+	params := s.tupleToParamString(sig.Params())
+
+	// Build result list
+	results := ""
+	if sig.Results() != nil && sig.Results().Len() > 0 {
+		if sig.Results().Len() == 1 {
+			results = " " + s.TypeToString(sig.Results().At(0).Type())
+		} else {
+			results = " " + s.tupleToParamString(sig.Results())
+		}
+	}
+
+	return "func(" + params + ")" + results
+}
+
+// tupleToParamString converts a parameter tuple to a string
+func (s *TypeInferenceService) tupleToParamString(tuple *types.Tuple) string {
+	if tuple == nil || tuple.Len() == 0 {
+		return ""
+	}
+
+	parts := make([]string, tuple.Len())
+	for i := 0; i < tuple.Len(); i++ {
+		v := tuple.At(i)
+		typeStr := s.TypeToString(v.Type())
+
+		// Include parameter name if available
+		if v.Name() != "" {
+			parts[i] = v.Name() + " " + typeStr
+		} else {
+			parts[i] = typeStr
+		}
+	}
+	return strings.Join(parts, ", ")
+}
+
 // InferTypeFromContext attempts to infer type from surrounding context
 //
 // Checks:
@@ -328,6 +551,8 @@ func (s *TypeInferenceService) makeBasicType(typeName string) types.Type {
 // 2. Function return types
 // 3. Variable declarations with explicit types
 // 4. Function call arguments with typed parameters
+//
+// This is a legacy method - prefer InferType() for new code.
 func (s *TypeInferenceService) InferTypeFromContext(node ast.Node) (types.Type, bool) {
 	// This is a placeholder for context-based type inference
 	// Full implementation would use go/types.Info and walk the AST
@@ -340,28 +565,68 @@ func (s *TypeInferenceService) InferTypeFromContext(node ast.Node) (types.Type, 
 }
 
 // RegisterResultType registers a Result type in the type registry
-func (s *TypeInferenceService) RegisterResultType(typeName string, okType, errType types.Type) {
+//
+// CRITICAL FIX #1: Now requires original type strings for validation
+func (s *TypeInferenceService) RegisterResultType(typeName string, okType, errType types.Type, okTypeStr, errTypeStr string) {
 	info := &ResultTypeInfo{
-		TypeName: typeName,
-		OkType:   okType,
-		ErrType:  errType,
+		TypeName:      typeName,
+		OkType:        okType,
+		ErrType:       errType,
+		OkTypeString:  okTypeStr,
+		ErrTypeString: errTypeStr,
 	}
 	s.resultTypeCache[typeName] = info
 	s.registry.resultTypes[typeName] = info
 
-	s.logger.Debug("Registered Result type: %s (T=%v, E=%v)", typeName, okType, errType)
+	s.logger.Debug("Registered Result type: %s (T=%s, E=%s)", typeName, okTypeStr, errTypeStr)
+
+	// CRITICAL FIX #1: Validate round-trip consistency
+	// Ensure type name is actually derived from these type strings
+	expectedTypeName := fmt.Sprintf("Result_%s_%s",
+		s.sanitizeTypeName(okTypeStr),
+		s.sanitizeTypeName(errTypeStr))
+	if typeName != expectedTypeName {
+		s.logger.Warn("Type name mismatch: expected %s, got %s (sanitization may be lossy)", expectedTypeName, typeName)
+	}
+}
+
+// sanitizeTypeName is a helper for validation
+func (s *TypeInferenceService) sanitizeTypeName(typeName string) string {
+	str := typeName
+	if str == "interface{}" {
+		return "any"
+	}
+	str = strings.ReplaceAll(str, "*", "ptr_")
+	str = strings.ReplaceAll(str, "[]", "slice_")
+	str = strings.ReplaceAll(str, "[", "_")
+	str = strings.ReplaceAll(str, "]", "_")
+	str = strings.ReplaceAll(str, ".", "_")
+	str = strings.ReplaceAll(str, "{", "")
+	str = strings.ReplaceAll(str, "}", "")
+	str = strings.ReplaceAll(str, " ", "")
+	str = strings.Trim(str, "_")
+	return str
 }
 
 // RegisterOptionType registers an Option type in the type registry
-func (s *TypeInferenceService) RegisterOptionType(typeName string, valueType types.Type) {
+//
+// CRITICAL FIX #1: Now requires original type string for validation
+func (s *TypeInferenceService) RegisterOptionType(typeName string, valueType types.Type, valueTypeStr string) {
 	info := &OptionTypeInfo{
-		TypeName:  typeName,
-		ValueType: valueType,
+		TypeName:        typeName,
+		ValueType:       valueType,
+		ValueTypeString: valueTypeStr,
 	}
 	s.optionTypeCache[typeName] = info
 	s.registry.optionTypes[typeName] = info
 
-	s.logger.Debug("Registered Option type: %s (T=%v)", typeName, valueType)
+	s.logger.Debug("Registered Option type: %s (T=%s)", typeName, valueTypeStr)
+
+	// CRITICAL FIX #1: Validate round-trip consistency
+	expectedTypeName := fmt.Sprintf("Option_%s", s.sanitizeTypeName(valueTypeStr))
+	if typeName != expectedTypeName {
+		s.logger.Warn("Type name mismatch: expected %s, got %s (sanitization may be lossy)", expectedTypeName, typeName)
+	}
 }
 
 // GetRegistry returns the type registry for external access

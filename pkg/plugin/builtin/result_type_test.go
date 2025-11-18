@@ -224,10 +224,10 @@ func TestTypeDeclaration_MultipleResultTypesInSameFile(t *testing.T) {
 
 	// Should have ResultTag (emitted once) plus 3 Result types with their methods
 	expectedTypes := map[string]bool{
-		"ResultTag":                 false,
-		"Result_int_error":          false,
-		"Result_string_error":       false,
-		"Result_bool_CustomError":   false,
+		"ResultTag":               false,
+		"Result_int_error":        false,
+		"Result_string_error":     false,
+		"Result_bool_CustomError": false,
 	}
 
 	for _, decl := range decls {
@@ -459,10 +459,17 @@ func TestConstructor_OkWithIdentifier(t *testing.T) {
 		t.Fatalf("Process failed: %v", err)
 	}
 
-	// Should infer type from identifier name (simplified type inference)
+	// CRITICAL FIX #3: Type inference now fails for identifiers without go/types
+	// Should report error and not generate declarations
+	errors := p.ctx.GetErrors()
+	if len(errors) == 0 {
+		t.Error("expected error to be reported for Ok with identifier (no go/types)")
+	}
+
+	// No declarations should be generated when type inference fails
 	decls := p.GetPendingDeclarations()
-	if len(decls) == 0 {
-		t.Error("expected declarations for Ok constructor with identifier")
+	if len(decls) > 0 {
+		t.Error("should not generate declarations when type inference fails")
 	}
 }
 
@@ -488,25 +495,17 @@ func TestConstructor_OkWithFunctionCall(t *testing.T) {
 		t.Fatalf("Process failed: %v", err)
 	}
 
-	// Should default to interface{} for function calls
-	decls := p.GetPendingDeclarations()
-	foundType := false
-
-	for _, decl := range decls {
-		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.TYPE {
-			for _, spec := range genDecl.Specs {
-				if typeSpec, ok := spec.(*ast.TypeSpec); ok {
-					// interface{} sanitizes to "interface"
-					if typeSpec.Name.Name == "Result_interface{}_error" {
-						foundType = true
-					}
-				}
-			}
-		}
+	// CRITICAL FIX #3: Function calls now fail type inference without go/types
+	// Should report error and not generate declarations
+	errors := p.ctx.GetErrors()
+	if len(errors) == 0 {
+		t.Error("expected error to be reported for Ok with function call (no go/types)")
 	}
 
-	if !foundType {
-		t.Error("Ok with function call should infer Result_interface{}_error type")
+	// No declarations should be generated when type inference fails
+	decls := p.GetPendingDeclarations()
+	if len(decls) > 0 {
+		t.Error("should not generate declarations when type inference fails")
 	}
 }
 
@@ -1471,23 +1470,24 @@ func TestEdgeCase_InferTypeFromExprEdgeCases(t *testing.T) {
 		{
 			name:     "identifier",
 			expr:     ast.NewIdent("myVar"),
-			expected: "interface{}", // Without type information, we return interface{} instead of variable name
+			expected: "", // CRITICAL FIX #3: inferTypeFromExpr now returns empty string on error
 		},
 		{
 			name:     "function call",
 			expr:     &ast.CallExpr{Fun: ast.NewIdent("getValue")},
-			expected: "interface{}",
+			expected: "", // CRITICAL FIX #3: inferTypeFromExpr now returns empty string on error
 		},
 		{
 			name:     "nil expression",
 			expr:     &ast.CompositeLit{},
-			expected: "interface{}",
+			expected: "", // CRITICAL FIX #3: inferTypeFromExpr now returns empty string on error
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := p.inferTypeFromExpr(tt.expr)
+			// CRITICAL FIX #3: inferTypeFromExpr now returns (string, error)
+			got, _ := p.inferTypeFromExpr(tt.expr)
 			if got != tt.expected {
 				t.Errorf("inferTypeFromExpr() = %q, want %q", got, tt.expected)
 			}

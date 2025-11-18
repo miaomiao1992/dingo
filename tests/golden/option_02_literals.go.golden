@@ -1,0 +1,170 @@
+package main
+
+import "fmt"
+
+// OptionTag represents the tag for Option type variants
+type OptionTag uint8
+
+const (
+	OptionTag_Some OptionTag = iota
+	OptionTag_None
+)
+
+// Option_int represents Option<int> type
+type Option_int struct {
+	tag    OptionTag
+	some_0 *int
+}
+
+func (o Option_int) IsSome() bool {
+	return o.tag == OptionTag_Some
+}
+
+func (o Option_int) IsNone() bool {
+	return o.tag == OptionTag_None
+}
+
+func (o Option_int) Unwrap() int {
+	if o.tag != OptionTag_Some {
+		panic("called Unwrap on None")
+	}
+	return *o.some_0
+}
+
+func (o Option_int) UnwrapOr(defaultValue int) int {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return defaultValue
+}
+
+// Option_string represents Option<string> type
+type Option_string struct {
+	tag    OptionTag
+	some_0 *string
+}
+
+func (o Option_string) IsSome() bool {
+	return o.tag == OptionTag_Some
+}
+
+func (o Option_string) IsNone() bool {
+	return o.tag == OptionTag_None
+}
+
+func (o Option_string) Unwrap() string {
+	if o.tag != OptionTag_Some {
+		panic("called Unwrap on None")
+	}
+	return *o.some_0
+}
+
+func (o Option_string) UnwrapOr(defaultValue string) string {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return defaultValue
+}
+
+// Option_float64 represents Option<float64> type
+type Option_float64 struct {
+	tag    OptionTag
+	some_0 *float64
+}
+
+func (o Option_float64) IsSome() bool {
+	return o.tag == OptionTag_Some
+}
+
+func (o Option_float64) IsNone() bool {
+	return o.tag == OptionTag_None
+}
+
+func (o Option_float64) Unwrap() float64 {
+	if o.tag != OptionTag_Some {
+		panic("called Unwrap on None")
+	}
+	return *o.some_0
+}
+
+func (o Option_float64) UnwrapOr(defaultValue float64) float64 {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return defaultValue
+}
+
+// Option_bool represents Option<bool> type
+type Option_bool struct {
+	tag    OptionTag
+	some_0 *bool
+}
+
+func (o Option_bool) IsSome() bool {
+	return o.tag == OptionTag_Some
+}
+
+func (o Option_bool) IsNone() bool {
+	return o.tag == OptionTag_None
+}
+
+func (o Option_bool) Unwrap() bool {
+	if o.tag != OptionTag_Some {
+		panic("called Unwrap on None")
+	}
+	return *o.some_0
+}
+
+func (o Option_bool) UnwrapOr(defaultValue bool) bool {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return defaultValue
+}
+
+func main() {
+	// Fix A4: Some() with literal values (non-addressable)
+	// The transpiler should wrap literals in IIFE to make them addressable
+
+	intOpt := Option_int{tag: OptionTag_Some, some_0: func() *int {
+		__tmp0 := 42
+		return &__tmp0
+	}()}
+	strOpt := Option_string{tag: OptionTag_Some, some_0: func() *string {
+		__tmp1 := "hello"
+		return &__tmp1
+	}()}
+	floatOpt := Option_float64{tag: OptionTag_Some, some_0: func() *float64 {
+		__tmp2 := 3.14
+		return &__tmp2
+	}()}
+	boolOpt := Option_bool{tag: OptionTag_Some, some_0: func() *bool {
+		__tmp3 := true
+		return &__tmp3
+	}()}
+
+	// Some() with variables (addressable - no IIFE needed)
+	x := 100
+	varOpt := Option_int{tag: OptionTag_Some, some_0: &x}
+
+	// Print results
+	if intOpt.IsSome() {
+		fmt.Printf("intOpt: %d\n", intOpt.Unwrap())
+	}
+
+	if strOpt.IsSome() {
+		fmt.Printf("strOpt: %s\n", strOpt.Unwrap())
+	}
+
+	if floatOpt.IsSome() {
+		fmt.Printf("floatOpt: %.2f\n", floatOpt.Unwrap())
+	}
+
+	if boolOpt.IsSome() {
+		fmt.Printf("boolOpt: %t\n", boolOpt.Unwrap())
+	}
+
+	if varOpt.IsSome() {
+		fmt.Printf("varOpt: %d\n", varOpt.Unwrap())
+	}
+}

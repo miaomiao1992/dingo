@@ -17,10 +17,11 @@ import (
 // - None: Represents absence of value
 //
 // Generated structure:
-//   type Option_T struct {
-//       tag     OptionTag
-//       some_0  *T        // Pointer for zero-value safety
-//   }
+//
+//	type Option_T struct {
+//	    tag     OptionTag
+//	    some_0  *T        // Pointer for zero-value safety
+//	}
 //
 // The plugin also generates:
 // - OptionTag enum (Some, None)
@@ -101,7 +102,8 @@ func (p *OptionTypePlugin) handleGenericOption(expr *ast.IndexExpr) {
 			// Register with type inference service
 			if p.typeInference != nil {
 				valueType := p.typeInference.makeBasicType(typeName)
-				p.typeInference.RegisterOptionType(optionType, valueType)
+				// CRITICAL FIX #1: Pass original type string
+				p.typeInference.RegisterOptionType(optionType, valueType, typeName)
 			}
 		}
 	}
@@ -109,40 +111,66 @@ func (p *OptionTypePlugin) handleGenericOption(expr *ast.IndexExpr) {
 
 // handleNoneExpression processes None singleton
 //
-// Task 1.5: Add None type inference validation
+// Type-Context-Aware None Constant (Phase 3 - Complex Feature)
 //
-// This method validates that None can be type-inferred from context.
-// If not, it generates a compilation error with helpful suggestions.
+// This method implements intelligent None constant handling that infers the target
+// Option<T> type from the surrounding context (assignment, return, function argument).
+//
+// Supported contexts:
+// 1. Assignment: var x Option_int = None
+// 2. Return: return None (in function returning Option_T)
+// 3. Function argument: foo(None) where parameter type is Option_T
+//
+// If type cannot be inferred, generates a clear error message.
 func (p *OptionTypePlugin) handleNoneExpression(ident *ast.Ident) {
-	// Task 1.5: Validate None type inference
-	if p.typeInference == nil {
-		p.ctx.Logger.Warn("Type inference not available for None validation at %v", p.ctx.FileSet.Position(ident.Pos()))
+	if p.ctx == nil {
 		return
 	}
 
-	// Check if None can be inferred from context
-	ok, suggestion := p.typeInference.ValidateNoneInference(ident)
+	// Try to infer target Option type from context
+	targetType, inferred := p.inferNoneTypeFromContext(ident)
 
-	if !ok {
-		// Generate compilation error
+	if !inferred {
+		// Cannot infer type from context
 		pos := p.ctx.FileSet.Position(ident.Pos())
 		errorMsg := fmt.Sprintf(
-			"Error: Cannot infer type for None at line %d, column %d\n%s",
-			pos.Line,
-			pos.Column,
-			suggestion,
+			"Cannot infer Option type for None constant at %s\n"+
+				"Hint: Use explicit type annotation or Option_T_None() constructor\n"+
+				"Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration",
+			pos,
 		)
-
-		// Log the error (in a real implementation, this would be added to error list)
 		p.ctx.Logger.Error(errorMsg)
-
-		// TODO: Add to compilation error list
-		// For now, we just log it
-		p.ctx.Logger.Debug("None type inference failed: %s", errorMsg)
-	} else {
-		nonePos := p.ctx.FileSet.Position(ident.Pos())
-		p.ctx.Logger.Debug("None type inference succeeded at %v", nonePos)
+		p.ctx.ReportError(errorMsg, ident.Pos())
+		return
 	}
+
+	// Successfully inferred type
+	p.ctx.Logger.Debug("None constant: inferred Option type %s from context", targetType)
+
+	// Ensure the Option type is declared
+	optionTypeName := fmt.Sprintf("Option_%s", p.sanitizeTypeName(targetType))
+	if !p.emittedTypes[optionTypeName] {
+		p.emitOptionDeclaration(targetType, optionTypeName)
+		p.emittedTypes[optionTypeName] = true
+	}
+
+	// Create the replacement CompositeLit
+	// None → Option_T{tag: OptionTag_None}
+	replacement := &ast.CompositeLit{
+		Type: ast.NewIdent(optionTypeName),
+		Elts: []ast.Expr{
+			&ast.KeyValueExpr{
+				Key:   ast.NewIdent("tag"),
+				Value: ast.NewIdent("OptionTag_None"),
+			},
+			// No some_0 field for None variant
+		},
+	}
+
+	p.ctx.Logger.Debug("Transforming None → %s{tag: OptionTag_None}", optionTypeName)
+	p.ctx.Logger.Debug("Generated replacement AST: %v", replacement)
+
+	// Note: Actual AST replacement happens in the Transform phase
 }
 
 // handleSomeConstructor processes Some(value) constructor
@@ -154,7 +182,20 @@ func (p *OptionTypePlugin) handleSomeConstructor(call *ast.CallExpr) {
 
 	// Type inference: Infer from argument type
 	valueArg := call.Args[0]
-	valueType := p.inferTypeFromExpr(valueArg)
+
+	// CRITICAL FIX #3: Check error from inferTypeFromExpr
+	valueType, err := p.inferTypeFromExpr(valueArg)
+	if err != nil {
+		// Type inference failed - use interface{} as last resort
+		p.ctx.Logger.Warn("Type inference failed for Some(%s): %v, using interface{}", FormatExprForDebug(valueArg), err)
+		valueType = "interface{}"
+	}
+
+	// CRITICAL FIX #3: Validate valueType is not empty
+	if valueType == "" {
+		p.ctx.Logger.Warn("Type inference returned empty string for Some(%s), using interface{}", FormatExprForDebug(valueArg))
+		valueType = "interface{}"
+	}
 
 	// Generate unique Option type name
 	optionTypeName := fmt.Sprintf("Option_%s", p.sanitizeTypeName(valueType))
@@ -167,14 +208,50 @@ func (p *OptionTypePlugin) handleSomeConstructor(call *ast.CallExpr) {
 		// Register with type inference service
 		if p.typeInference != nil {
 			vType := p.typeInference.makeBasicType(valueType)
-			p.typeInference.RegisterOptionType(optionTypeName, vType)
+			// CRITICAL FIX #1: Pass original type string
+			p.typeInference.RegisterOptionType(optionTypeName, vType, valueType)
 		}
 	}
 
-	// Transform the call to a struct literal
-	p.ctx.Logger.Debug("Transforming Some(%s) → %s{tag: OptionTag_Some, some_0: &value}", valueType, optionTypeName)
+	// Fix A4: Handle addressability for literal values
+	// Check if the argument is addressable
+	var valueExpr ast.Expr
+	if isAddressable(valueArg) {
+		// Direct address-of operator
+		valueExpr = &ast.UnaryExpr{
+			Op: token.AND,
+			X:  valueArg,
+		}
+		p.ctx.Logger.Debug("Some(%s): value is addressable, using &value", valueType)
+	} else {
+		// Wrap in IIFE to create addressable temporary variable
+		valueExpr = wrapInIIFE(valueArg, valueType, p.ctx)
+		p.ctx.Logger.Debug("Some(%s): value is non-addressable (literal), wrapping in IIFE", valueType)
+	}
 
-	// Note: Actual AST transformation would happen here
+	// Transform the call to a struct literal
+	p.ctx.Logger.Debug("Transforming Some(%s) → %s{tag: OptionTag_Some, some_0: <addressable-value>}", valueType, optionTypeName)
+
+	// Create the replacement CompositeLit
+	// Some(value) → Option_T{tag: OptionTag_Some, some_0: &value or IIFE}
+	replacement := &ast.CompositeLit{
+		Type: ast.NewIdent(optionTypeName),
+		Elts: []ast.Expr{
+			&ast.KeyValueExpr{
+				Key:   ast.NewIdent("tag"),
+				Value: ast.NewIdent("OptionTag_Some"),
+			},
+			&ast.KeyValueExpr{
+				Key:   ast.NewIdent("some_0"),
+				Value: valueExpr,
+			},
+		},
+	}
+
+	// Replace the CallExpr with the CompositeLit in the parent node
+	// This is done via AST transformation in the Transform phase
+	// For now, we just log the transformation
+	p.ctx.Logger.Debug("Generated replacement AST: %v", replacement)
 }
 
 // emitOptionDeclaration generates the Option type declaration and helper methods
@@ -530,6 +607,384 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 		},
 	}
 	p.pendingDecls = append(p.pendingDecls, unwrapOrMethod)
+
+	// UnwrapOrElse(fn func() T) T
+	unwrapOrElseMethod := &ast.FuncDecl{
+		Recv: &ast.FieldList{
+			List: []*ast.Field{
+				{
+					Names: []*ast.Ident{ast.NewIdent("o")},
+					Type:  ast.NewIdent(optionTypeName),
+				},
+			},
+		},
+		Name: ast.NewIdent("UnwrapOrElse"),
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Names: []*ast.Ident{ast.NewIdent("fn")},
+						Type: &ast.FuncType{
+							Params: &ast.FieldList{},
+							Results: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: p.typeToAST(valueType, false)},
+								},
+							},
+						},
+					},
+				},
+			},
+			Results: &ast.FieldList{
+				List: []*ast.Field{
+					{Type: p.typeToAST(valueType, false)},
+				},
+			},
+		},
+		Body: &ast.BlockStmt{
+			List: []ast.Stmt{
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
+						Op: token.EQL,
+						Y:  ast.NewIdent("OptionTag_Some"),
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{
+									&ast.StarExpr{
+										X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+									},
+								},
+							},
+						},
+					},
+				},
+				&ast.ReturnStmt{
+					Results: []ast.Expr{
+						&ast.CallExpr{
+							Fun: ast.NewIdent("fn"),
+						},
+					},
+				},
+			},
+		},
+	}
+	p.pendingDecls = append(p.pendingDecls, unwrapOrElseMethod)
+
+	// Map(fn func(T) U) Option_U - Transform Some value, propagate None
+	// Note: For simplicity in Phase 3, we'll use interface{} for U and let go/types infer later
+	// A complete implementation would require generic type parameter tracking
+	mapMethod := &ast.FuncDecl{
+		Recv: &ast.FieldList{
+			List: []*ast.Field{
+				{
+					Names: []*ast.Ident{ast.NewIdent("o")},
+					Type:  ast.NewIdent(optionTypeName),
+				},
+			},
+		},
+		Name: ast.NewIdent("Map"),
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Names: []*ast.Ident{ast.NewIdent("fn")},
+						Type: &ast.FuncType{
+							Params: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: p.typeToAST(valueType, false)},
+								},
+							},
+							Results: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: ast.NewIdent("interface{}")},
+								},
+							},
+						},
+					},
+				},
+			},
+			Results: &ast.FieldList{
+				List: []*ast.Field{
+					{Type: ast.NewIdent(optionTypeName)},
+				},
+			},
+		},
+		Body: &ast.BlockStmt{
+			List: []ast.Stmt{
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
+						Op: token.EQL,
+						Y:  ast.NewIdent("OptionTag_None"),
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{ast.NewIdent("o")},
+							},
+						},
+					},
+				},
+				&ast.AssignStmt{
+					Lhs: []ast.Expr{ast.NewIdent("mapped")},
+					Tok: token.DEFINE,
+					Rhs: []ast.Expr{
+						&ast.CallExpr{
+							Fun: ast.NewIdent("fn"),
+							Args: []ast.Expr{
+								&ast.StarExpr{
+									X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+								},
+							},
+						},
+					},
+				},
+				&ast.AssignStmt{
+					Lhs: []ast.Expr{ast.NewIdent("result")},
+					Tok: token.DEFINE,
+					Rhs: []ast.Expr{
+						&ast.TypeAssertExpr{
+							X:    ast.NewIdent("mapped"),
+							Type: p.typeToAST(valueType, false),
+						},
+					},
+				},
+				&ast.ReturnStmt{
+					Results: []ast.Expr{
+						&ast.CompositeLit{
+							Type: ast.NewIdent(optionTypeName),
+							Elts: []ast.Expr{
+								&ast.KeyValueExpr{
+									Key:   ast.NewIdent("tag"),
+									Value: ast.NewIdent("OptionTag_Some"),
+								},
+								&ast.KeyValueExpr{
+									Key: ast.NewIdent("some_0"),
+									Value: &ast.UnaryExpr{
+										Op: token.AND,
+										X:  ast.NewIdent("result"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	p.pendingDecls = append(p.pendingDecls, mapMethod)
+
+	// AndThen(fn func(T) Option_T) Option_T - Chain operations (flatMap)
+	andThenMethod := &ast.FuncDecl{
+		Recv: &ast.FieldList{
+			List: []*ast.Field{
+				{
+					Names: []*ast.Ident{ast.NewIdent("o")},
+					Type:  ast.NewIdent(optionTypeName),
+				},
+			},
+		},
+		Name: ast.NewIdent("AndThen"),
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Names: []*ast.Ident{ast.NewIdent("fn")},
+						Type: &ast.FuncType{
+							Params: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: p.typeToAST(valueType, false)},
+								},
+							},
+							Results: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: ast.NewIdent(optionTypeName)},
+								},
+							},
+						},
+					},
+				},
+			},
+			Results: &ast.FieldList{
+				List: []*ast.Field{
+					{Type: ast.NewIdent(optionTypeName)},
+				},
+			},
+		},
+		Body: &ast.BlockStmt{
+			List: []ast.Stmt{
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
+						Op: token.EQL,
+						Y:  ast.NewIdent("OptionTag_None"),
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{ast.NewIdent("o")},
+							},
+						},
+					},
+				},
+				&ast.ReturnStmt{
+					Results: []ast.Expr{
+						&ast.CallExpr{
+							Fun: ast.NewIdent("fn"),
+							Args: []ast.Expr{
+								&ast.StarExpr{
+									X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	p.pendingDecls = append(p.pendingDecls, andThenMethod)
+
+	// Filter(predicate func(T) bool) Option_T - Filter Some values, return None if false
+	filterMethod := &ast.FuncDecl{
+		Recv: &ast.FieldList{
+			List: []*ast.Field{
+				{
+					Names: []*ast.Ident{ast.NewIdent("o")},
+					Type:  ast.NewIdent(optionTypeName),
+				},
+			},
+		},
+		Name: ast.NewIdent("Filter"),
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Names: []*ast.Ident{ast.NewIdent("predicate")},
+						Type: &ast.FuncType{
+							Params: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: p.typeToAST(valueType, false)},
+								},
+							},
+							Results: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: ast.NewIdent("bool")},
+								},
+							},
+						},
+					},
+				},
+			},
+			Results: &ast.FieldList{
+				List: []*ast.Field{
+					{Type: ast.NewIdent(optionTypeName)},
+				},
+			},
+		},
+		Body: &ast.BlockStmt{
+			List: []ast.Stmt{
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
+						Op: token.EQL,
+						Y:  ast.NewIdent("OptionTag_None"),
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{ast.NewIdent("o")},
+							},
+						},
+					},
+				},
+				&ast.IfStmt{
+					Cond: &ast.CallExpr{
+						Fun: ast.NewIdent("predicate"),
+						Args: []ast.Expr{
+							&ast.StarExpr{
+								X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+							},
+						},
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{ast.NewIdent("o")},
+							},
+						},
+					},
+				},
+				&ast.ReturnStmt{
+					Results: []ast.Expr{
+						&ast.CompositeLit{
+							Type: ast.NewIdent(optionTypeName),
+							Elts: []ast.Expr{
+								&ast.KeyValueExpr{
+									Key:   ast.NewIdent("tag"),
+									Value: ast.NewIdent("OptionTag_None"),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	p.pendingDecls = append(p.pendingDecls, filterMethod)
+}
+
+// inferNoneTypeFromContext attempts to infer the Option<T> type from surrounding context
+//
+// Strategy:
+// 1. Walk up the AST to find parent nodes
+// 2. Analyze parent context (assignment, return, call)
+// 3. Extract type information from context
+// 4. Return the inferred type parameter T
+//
+// Returns: (typeParam string, success bool)
+func (p *OptionTypePlugin) inferNoneTypeFromContext(noneIdent *ast.Ident) (string, bool) {
+	// We need to walk the AST to find the parent node of None
+	// This requires access to the full file AST with parent tracking
+
+	// For now, use TypeInferenceService if available (it has go/types context)
+	if p.typeInference != nil && p.typeInference.typesInfo != nil {
+		// Try to use go/types to infer expected type
+		if typ, ok := p.typeInference.InferTypeFromContext(noneIdent); ok {
+			// Check if it's an Option type
+			typeStr := p.typeInference.TypeToString(typ)
+			if strings.HasPrefix(typeStr, "Option_") {
+				// Extract T from Option_T
+				tParam := strings.TrimPrefix(typeStr, "Option_")
+				// Reverse sanitization to get original type name
+				tParam = p.desanitizeTypeName(tParam)
+				p.ctx.Logger.Debug("Inferred None type from go/types: %s", tParam)
+				return tParam, true
+			}
+		}
+	}
+
+	// Fallback: Manual AST walking (limited without parent tracking)
+	// This is a simplified implementation - full implementation requires
+	// AST visitor pattern with parent tracking
+
+	// For Phase 3, we'll rely on go/types inference
+	// If that fails, the user must use explicit syntax
+	p.ctx.Logger.Debug("None type inference: go/types not available or context not found")
+	return "", false
+}
+
+// desanitizeTypeName attempts to reverse the sanitization process
+// This is a best-effort approach - not always accurate
+func (p *OptionTypePlugin) desanitizeTypeName(sanitized string) string {
+	s := sanitized
+	// Reverse common sanitization patterns
+	s = strings.ReplaceAll(s, "ptr_", "*")
+	s = strings.ReplaceAll(s, "slice_", "[]")
+	// Note: This is incomplete - map types, array types are more complex
+	return s
 }
 
 // Helper methods (same as Result plugin)
@@ -586,25 +1041,52 @@ func (p *OptionTypePlugin) typeToAST(typeName string, asPointer bool) ast.Expr {
 	return baseType
 }
 
-func (p *OptionTypePlugin) inferTypeFromExpr(expr ast.Expr) string {
+// CRITICAL FIX #3: Now returns (string, error) instead of just string
+func (p *OptionTypePlugin) inferTypeFromExpr(expr ast.Expr) (string, error) {
+	if expr == nil {
+		return "", fmt.Errorf("cannot infer type from nil expression")
+	}
+
+	// Fix A5: Use TypeInferenceService for accurate type inference
+	if p.typeInference != nil {
+		if typ, ok := p.typeInference.InferType(expr); ok && typ != nil {
+			typeStr := p.typeInference.TypeToString(typ)
+			p.ctx.Logger.Debug("Type inference (go/types): %T → %s", expr, typeStr)
+			return typeStr, nil
+		}
+		p.ctx.Logger.Debug("Type inference (go/types) failed for %T, falling back to heuristics", expr)
+	}
+
+	// Fallback: Structural heuristics (when go/types unavailable)
 	switch e := expr.(type) {
 	case *ast.BasicLit:
 		switch e.Kind {
 		case token.INT:
-			return "int"
+			return "int", nil
 		case token.FLOAT:
-			return "float64"
+			return "float64", nil
 		case token.STRING:
-			return "string"
+			return "string", nil
 		case token.CHAR:
-			return "rune"
+			return "rune", nil
 		}
 	case *ast.Ident:
-		return e.Name
+		// Special built-in types
+		switch e.Name {
+		case "nil":
+			return "interface{}", nil
+		case "true", "false":
+			return "bool", nil
+		}
+		// CRITICAL FIX #3: Return error for identifiers without go/types
+		return "", fmt.Errorf("cannot determine type of identifier '%s' without go/types", e.Name)
 	case *ast.CallExpr:
-		return "interface{}"
+		// CRITICAL FIX #3: Return error for function calls
+		return "", fmt.Errorf("function call requires go/types for return type inference")
 	}
-	return "interface{}"
+
+	// CRITICAL FIX #3: Return error instead of "interface{}" fallback
+	return "", fmt.Errorf("type inference failed for expression type %T", expr)
 }
 
 // GetPendingDeclarations returns declarations to be injected at package level

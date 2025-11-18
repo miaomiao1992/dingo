@@ -19,11 +19,12 @@ import (
 // - Err(E): Error case containing an error of type E
 //
 // Generated structure:
-//   type Result_T_E struct {
-//       tag    ResultTag
-//       ok_0   *T        // Pointer for zero-value safety
-//       err_0  *E        // Pointer for nil-ability
-//   }
+//
+//	type Result_T_E struct {
+//	    tag    ResultTag
+//	    ok_0   *T        // Pointer for zero-value safety
+//	    err_0  *E        // Pointer for nil-ability
+//	}
 //
 // The plugin also generates:
 // - ResultTag enum (Ok, Err)
@@ -38,9 +39,8 @@ type ResultTypePlugin struct {
 	// Declarations to inject at package level
 	pendingDecls []ast.Decl
 
-	// Type information for proper type inference
-	typesInfo *types.Info
-	typesPkg  *types.Package
+	// Type inference service for accurate type resolution (Fix A5)
+	typeInference *TypeInferenceService
 }
 
 // NewResultTypePlugin creates a new Result type plugin
@@ -59,6 +59,25 @@ func (p *ResultTypePlugin) Name() string {
 // SetContext sets the plugin context (ContextAware interface)
 func (p *ResultTypePlugin) SetContext(ctx *plugin.Context) {
 	p.ctx = ctx
+
+	// Initialize type inference service with go/types integration (Fix A5)
+	if ctx != nil && ctx.FileSet != nil {
+		// Create type inference service
+		service, err := NewTypeInferenceService(ctx.FileSet, nil, ctx.Logger)
+		if err != nil {
+			ctx.Logger.Warn("Failed to create type inference service: %v", err)
+		} else {
+			p.typeInference = service
+
+			// Inject go/types.Info if available in context
+			if ctx.TypeInfo != nil {
+				if typesInfo, ok := ctx.TypeInfo.(*types.Info); ok {
+					service.SetTypesInfo(typesInfo)
+					ctx.Logger.Debug("Result plugin: go/types integration enabled (Fix A5)")
+				}
+			}
+		}
+	}
 }
 
 // Process processes AST nodes to find and transform Result types
@@ -154,6 +173,10 @@ func (p *ResultTypePlugin) handleConstructorCall(call *ast.CallExpr) {
 }
 
 // transformOkConstructor transforms Ok(value) → Result_T_E{tag: ResultTag_Ok, ok_0: &value}
+//
+// Fix A5: Uses TypeInferenceService for accurate type resolution
+// Fix A4: Wraps non-addressable expressions (literals) in IIFE
+//
 // Returns the replacement node, or the original call if transformation fails
 func (p *ResultTypePlugin) transformOkConstructor(call *ast.CallExpr) ast.Expr {
 	if len(call.Args) != 1 {
@@ -161,10 +184,29 @@ func (p *ResultTypePlugin) transformOkConstructor(call *ast.CallExpr) ast.Expr {
 		return call // Return unchanged
 	}
 
-	// Type inference: For now, use simple heuristics
-	// In a full implementation, this would use TypeInferenceService
 	valueArg := call.Args[0]
-	okType := p.inferTypeFromExpr(valueArg)
+
+	// CRITICAL FIX #3: Check error from inferTypeFromExpr
+	okType, err := p.inferTypeFromExpr(valueArg)
+	if err != nil {
+		// Type inference failed completely
+		errMsg := fmt.Sprintf("Type inference failed for Ok(%s): %v", FormatExprForDebug(valueArg), err)
+		p.ctx.Logger.Error(errMsg)
+		p.ctx.ReportError(
+			fmt.Sprintf("Cannot infer type for Ok() argument: %v", err),
+			call.Pos(),
+		)
+		return call // Return unchanged to avoid invalid code generation
+	}
+
+	// CRITICAL FIX #3: Validate okType is not empty
+	if okType == "" {
+		errMsg := fmt.Sprintf("Type inference returned empty string for Ok(%s)", FormatExprForDebug(valueArg))
+		p.ctx.Logger.Error(errMsg)
+		p.ctx.ReportError("Type inference incomplete for Ok() argument", call.Pos())
+		return call
+	}
+
 	errType := "error" // Default error type
 
 	// Generate unique Result type name
@@ -178,11 +220,26 @@ func (p *ResultTypePlugin) transformOkConstructor(call *ast.CallExpr) ast.Expr {
 		p.emittedTypes[resultTypeName] = true
 	}
 
-	// Log transformation
-	p.ctx.Logger.Debug("Transforming Ok(%s) → %s{tag: ResultTag_Ok, ok_0: &value}", okType, resultTypeName)
+	// Log transformation with type inference details
+	p.ctx.Logger.Debug("Fix A5: Inferred type for Ok(%s) → %s", FormatExprForDebug(valueArg), okType)
+
+	// Fix A4: Handle addressability - wrap literals in IIFE if needed
+	var okValue ast.Expr
+	if isAddressable(valueArg) {
+		// Direct address-of for addressable expressions
+		okValue = &ast.UnaryExpr{
+			Op: token.AND,
+			X:  valueArg,
+		}
+		p.ctx.Logger.Debug("Fix A4: Expression is addressable, using &expr")
+	} else {
+		// Non-addressable (literal, function call, etc.) - wrap in IIFE
+		okValue = wrapInIIFE(valueArg, okType, p.ctx)
+		p.ctx.Logger.Debug("Fix A4: Expression is non-addressable, wrapping in IIFE (temp var: __tmp%d)", p.ctx.TempVarCounter-1)
+	}
 
 	// Create the replacement CompositeLit
-	// Ok(value) → Result_T_E{tag: ResultTag_Ok, ok_0: &value}
+	// Ok(value) → Result_T_E{tag: ResultTag_Ok, ok_0: &value or IIFE}
 	replacement := &ast.CompositeLit{
 		Type: ast.NewIdent(resultTypeName),
 		Elts: []ast.Expr{
@@ -191,11 +248,8 @@ func (p *ResultTypePlugin) transformOkConstructor(call *ast.CallExpr) ast.Expr {
 				Value: ast.NewIdent("ResultTag_Ok"),
 			},
 			&ast.KeyValueExpr{
-				Key: ast.NewIdent("ok_0"),
-				Value: &ast.UnaryExpr{
-					Op: token.AND,
-					X:  valueArg, // Use original argument expression
-				},
+				Key:   ast.NewIdent("ok_0"),
+				Value: okValue,
 			},
 		},
 	}
@@ -204,6 +258,10 @@ func (p *ResultTypePlugin) transformOkConstructor(call *ast.CallExpr) ast.Expr {
 }
 
 // transformErrConstructor transforms Err(error) → Result_T_E{tag: ResultTag_Err, err_0: &error}
+//
+// Fix A5: Uses TypeInferenceService for accurate type resolution
+// Fix A4: Wraps non-addressable expressions (literals) in IIFE
+//
 // Returns the replacement node, or the original call if transformation fails
 func (p *ResultTypePlugin) transformErrConstructor(call *ast.CallExpr) ast.Expr {
 	if len(call.Args) != 1 {
@@ -211,14 +269,26 @@ func (p *ResultTypePlugin) transformErrConstructor(call *ast.CallExpr) ast.Expr 
 		return call // Return unchanged
 	}
 
-	// Type inference: For Err, we need context to determine T
-	// For now, we'll use placeholder type that can be refined later
 	errorArg := call.Args[0]
-	errType := p.inferTypeFromExpr(errorArg)
+
+	// CRITICAL FIX #3: Check error from inferTypeFromExpr
+	errType, err := p.inferTypeFromExpr(errorArg)
+	if err != nil {
+		// Type inference failed - default to "error"
+		p.ctx.Logger.Warn("Type inference failed for Err(%s): %v, defaulting to 'error'", FormatExprForDebug(errorArg), err)
+		errType = "error"
+	}
+
+	// CRITICAL FIX #3: Validate errType is not empty
+	if errType == "" {
+		p.ctx.Logger.Warn("Type inference returned empty string for Err(%s), defaulting to 'error'", FormatExprForDebug(errorArg))
+		errType = "error"
+	}
 
 	// For Err(), the Ok type must be inferred from context
 	// This is a limitation without full type inference
 	// For now, we'll use "interface{}" as a placeholder
+	// TODO(Phase 4): Context-based type inference for Err()
 	okType := "interface{}" // Will be refined with type inference
 
 	// Generate unique Result type name
@@ -232,11 +302,26 @@ func (p *ResultTypePlugin) transformErrConstructor(call *ast.CallExpr) ast.Expr 
 		p.emittedTypes[resultTypeName] = true
 	}
 
-	// Log transformation
-	p.ctx.Logger.Debug("Transforming Err(%s) → %s{tag: ResultTag_Err, err_0: &value}", errType, resultTypeName)
+	// Log transformation with type inference details
+	p.ctx.Logger.Debug("Fix A5: Inferred error type for Err(%s) → %s", FormatExprForDebug(errorArg), errType)
+
+	// Fix A4: Handle addressability - wrap literals in IIFE if needed
+	var errValue ast.Expr
+	if isAddressable(errorArg) {
+		// Direct address-of for addressable expressions
+		errValue = &ast.UnaryExpr{
+			Op: token.AND,
+			X:  errorArg,
+		}
+		p.ctx.Logger.Debug("Fix A4: Error expression is addressable, using &expr")
+	} else {
+		// Non-addressable (literal, function call, etc.) - wrap in IIFE
+		errValue = wrapInIIFE(errorArg, errType, p.ctx)
+		p.ctx.Logger.Debug("Fix A4: Error expression is non-addressable, wrapping in IIFE (temp var: __tmp%d)", p.ctx.TempVarCounter-1)
+	}
 
 	// Create the replacement CompositeLit
-	// Err(error) → Result_T_E{tag: ResultTag_Err, err_0: &error}
+	// Err(error) → Result_T_E{tag: ResultTag_Err, err_0: &error or IIFE}
 	replacement := &ast.CompositeLit{
 		Type: ast.NewIdent(resultTypeName),
 		Elts: []ast.Expr{
@@ -245,11 +330,8 @@ func (p *ResultTypePlugin) transformErrConstructor(call *ast.CallExpr) ast.Expr 
 				Value: ast.NewIdent("ResultTag_Err"),
 			},
 			&ast.KeyValueExpr{
-				Key: ast.NewIdent("err_0"),
-				Value: &ast.UnaryExpr{
-					Op: token.AND,
-					X:  errorArg, // Use original argument expression
-				},
+				Key:   ast.NewIdent("err_0"),
+				Value: errValue,
 			},
 		},
 	}
@@ -259,107 +341,115 @@ func (p *ResultTypePlugin) transformErrConstructor(call *ast.CallExpr) ast.Expr 
 
 // inferTypeFromExpr infers the type of an expression
 //
-// This is a hybrid implementation that:
-// 1. Uses go/types if TypesInfo is available in the context
-// 2. Falls back to structural heuristics for common cases
-// 3. Returns "interface{}" for complex cases that need full type checking
+// Fix A5: Updated to use TypeInferenceService with go/types integration
+// CRITICAL FIX #3: Now returns error on failure instead of empty string
 //
-// TODO(enhancement): Integrate full go/types type checking pipeline
-func (p *ResultTypePlugin) inferTypeFromExpr(expr ast.Expr) string {
-	// Try go/types first if available
-	if p.typesInfo != nil && p.typesInfo.Types != nil {
-		if tv, ok := p.typesInfo.Types[expr]; ok && tv.Type != nil {
-			return tv.Type.String()
-		}
+// Strategy:
+// 1. Use TypeInferenceService.InferType() for go/types-based inference (most accurate)
+// 2. Fall back to heuristics if go/types unavailable
+// 3. Return explicit error on complete failure
+//
+// Returns: (Type name string, error) - error is non-nil if inference fails
+func (p *ResultTypePlugin) inferTypeFromExpr(expr ast.Expr) (string, error) {
+	if expr == nil {
+		return "", fmt.Errorf("cannot infer type from nil expression")
 	}
 
-	// Fallback to structural heuristics
+	// Fix A5: Use TypeInferenceService if available
+	if p.typeInference != nil {
+		typ, ok := p.typeInference.InferType(expr)
+		if ok && typ != nil {
+			typeName := p.typeInference.TypeToString(typ)
+			p.ctx.Logger.Debug("Fix A5: TypeInferenceService resolved %T to %s", expr, typeName)
+			return typeName, nil
+		}
+		p.ctx.Logger.Debug("Fix A5: TypeInferenceService could not infer type for %T", expr)
+	}
+
+	// Fallback to structural heuristics for basic cases
 	switch e := expr.(type) {
 	case *ast.BasicLit:
 		// Infer from literal kind
 		switch e.Kind {
 		case token.INT:
-			return "int"
+			return "int", nil
 		case token.FLOAT:
-			return "float64"
+			return "float64", nil
 		case token.STRING:
-			return "string"
+			return "string", nil
 		case token.CHAR:
-			return "rune"
+			return "rune", nil
 		}
 
 	case *ast.Ident:
 		// Special built-in types
 		switch e.Name {
 		case "nil":
-			return "interface{}"
+			return "interface{}", nil
 		case "true", "false":
-			return "bool"
+			return "bool", nil
 		}
 
-		// For variables, we'd need type information
-		// Without go/types, we can't reliably infer the type
-		// TODO: This is the key limitation - returns variable name instead of type
-		// Full fix requires running go/types type checker
-		if p.ctx != nil && p.ctx.Logger != nil {
-			p.ctx.Logger.Debug("Type inference limitation: cannot determine type of identifier '%s' without go/types", e.Name)
-		}
-		return "interface{}"
+		// CRITICAL FIX #3: Return explicit error for identifiers
+		return "", fmt.Errorf("cannot determine type of identifier '%s' without go/types", e.Name)
 
 	case *ast.CompositeLit:
 		// Struct/array/map literals with explicit type
 		if e.Type != nil {
-			return p.exprToTypeString(e.Type)
+			return p.exprToTypeString(e.Type), nil
 		}
-		return "interface{}"
+		// CRITICAL FIX #3: Return explicit error
+		return "", fmt.Errorf("cannot infer composite literal type without explicit type")
 
 	case *ast.UnaryExpr:
 		// &x → pointer to x's type
 		if e.Op == token.AND {
-			innerType := p.inferTypeFromExpr(e.X)
-			if innerType != "interface{}" {
-				return "*" + innerType
+			innerType, err := p.inferTypeFromExpr(e.X)
+			if err == nil && innerType != "" && innerType != "interface{}" {
+				return "*" + innerType, nil
 			}
+			return "", fmt.Errorf("cannot infer pointer type: %w", err)
 		}
-		return "interface{}"
+		// CRITICAL FIX #3: Return explicit error
+		return "", fmt.Errorf("cannot infer unary expression type for op %v", e.Op)
 
 	case *ast.CallExpr:
-		// Function calls would need return type analysis from go/types
-		// Without it, we can't know the return type
-		return "interface{}"
+		// CRITICAL FIX #3: Return explicit error for function calls
+		return "", fmt.Errorf("function call requires go/types for return type inference")
 
 	case *ast.StarExpr:
-		// *x → dereference, need type info
-		return "interface{}"
+		// CRITICAL FIX #3: Return explicit error
+		return "", fmt.Errorf("dereference requires type info")
 
 	case *ast.SelectorExpr:
-		// x.field → need type info for x
-		return "interface{}"
+		// CRITICAL FIX #3: Return explicit error
+		return "", fmt.Errorf("field/method access requires type info")
 
 	case *ast.IndexExpr:
-		// arr[i] or map[key] → need type info
-		return "interface{}"
+		// CRITICAL FIX #3: Return explicit error
+		return "", fmt.Errorf("array/slice/map indexing requires type info")
 
 	case *ast.ArrayType:
-		return p.exprToTypeString(e)
+		return p.exprToTypeString(e), nil
 
 	case *ast.StructType:
-		return p.exprToTypeString(e)
+		return p.exprToTypeString(e), nil
 
 	case *ast.FuncType:
-		return p.exprToTypeString(e)
+		return p.exprToTypeString(e), nil
 
 	case *ast.InterfaceType:
-		return p.exprToTypeString(e)
+		return p.exprToTypeString(e), nil
 
 	case *ast.MapType:
-		return p.exprToTypeString(e)
+		return p.exprToTypeString(e), nil
 
 	case *ast.ChanType:
-		return p.exprToTypeString(e)
+		return p.exprToTypeString(e), nil
 	}
 
-	return "interface{}"
+	// CRITICAL FIX #3: Return explicit error for unknown expression types
+	return "", fmt.Errorf("type inference failed for expression type %T", expr)
 }
 
 // exprToTypeString converts an AST type expression to a string representation
@@ -452,6 +542,13 @@ func (p *ResultTypePlugin) emitResultDeclaration(okType, errType, resultTypeName
 	}
 
 	p.pendingDecls = append(p.pendingDecls, resultStruct)
+
+	// CRITICAL FIX #1: Register the Result type with type inference service
+	if p.typeInference != nil {
+		okTypeObj := p.typeInference.makeBasicType(okType)
+		errTypeObj := p.typeInference.makeBasicType(errType)
+		p.typeInference.RegisterResultType(resultTypeName, okTypeObj, errTypeObj, okType, errType)
+	}
 
 	// Generate constructor functions
 	p.emitConstructorFunction(resultTypeName, okType, true, "Ok")
@@ -844,17 +941,124 @@ func (p *ResultTypePlugin) emitHelperMethods(resultTypeName, okType, errType str
 	}
 	p.pendingDecls = append(p.pendingDecls, unwrapErrMethod)
 
-	// Task 1.3: Add complete helper method set
-	// TODO(Stage 3): Implement advanced helper methods (Map, MapErr, Filter, AndThen, OrElse)
-	// Currently disabled to prevent nil panics - these methods require generic type handling
-	// p.emitAdvancedHelperMethods(resultTypeName, okType, errType)
+	// Task 3a: Enable complete helper method set
+	p.emitAdvancedHelperMethods(resultTypeName, okType, errType)
 }
 
 // emitAdvancedHelperMethods generates Map, MapErr, Filter, AndThen, OrElse, And, Or methods
-// Task 1.3: Complete helper method implementation
+// Task 3a: Complete helper method implementation
 func (p *ResultTypePlugin) emitAdvancedHelperMethods(resultTypeName, okType, errType string) {
+	// UnwrapOrElse(fn func(error) T) T
+	// Returns Ok value or calls fn with Err value
+	unwrapOrElseMethod := &ast.FuncDecl{
+		Recv: &ast.FieldList{
+			List: []*ast.Field{
+				{
+					Names: []*ast.Ident{ast.NewIdent("r")},
+					Type:  ast.NewIdent(resultTypeName),
+				},
+			},
+		},
+		Name: ast.NewIdent("UnwrapOrElse"),
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Names: []*ast.Ident{ast.NewIdent("fn")},
+						Type: &ast.FuncType{
+							Params: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: p.typeToAST(errType, false)},
+								},
+							},
+							Results: &ast.FieldList{
+								List: []*ast.Field{
+									{Type: p.typeToAST(okType, false)},
+								},
+							},
+						},
+					},
+				},
+			},
+			Results: &ast.FieldList{
+				List: []*ast.Field{
+					{Type: p.typeToAST(okType, false)},
+				},
+			},
+		},
+		Body: &ast.BlockStmt{
+			List: []ast.Stmt{
+				// if r.tag == ResultTag_Ok && r.ok_0 != nil { return *r.ok_0 }
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")},
+							Op: token.EQL,
+							Y:  ast.NewIdent("ResultTag_Ok"),
+						},
+						Op: token.LAND,
+						Y: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("ok_0")},
+							Op: token.NEQ,
+							Y:  ast.NewIdent("nil"),
+						},
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{
+									&ast.StarExpr{
+										X: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("ok_0")},
+									},
+								},
+							},
+						},
+					},
+				},
+				// if r.err_0 != nil { return fn(*r.err_0) }
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("err_0")},
+						Op: token.NEQ,
+						Y:  ast.NewIdent("nil"),
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{
+									&ast.CallExpr{
+										Fun: ast.NewIdent("fn"),
+										Args: []ast.Expr{
+											&ast.StarExpr{
+												X: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("err_0")},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				// panic("Result in invalid state")
+				&ast.ExprStmt{
+					X: &ast.CallExpr{
+						Fun: ast.NewIdent("panic"),
+						Args: []ast.Expr{
+							&ast.BasicLit{
+								Kind:  token.STRING,
+								Value: `"Result in invalid state"`,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	p.pendingDecls = append(p.pendingDecls, unwrapOrElseMethod)
+
 	// Map(fn func(T) U) Result<U, E>
 	// Transforms the Ok value if present
+	// Note: Since we don't have generics, we use interface{} for U and return a generic Result
 	mapMethod := &ast.FuncDecl{
 		Recv: &ast.FieldList{
 			List: []*ast.Field{
@@ -893,10 +1097,90 @@ func (p *ResultTypePlugin) emitAdvancedHelperMethods(resultTypeName, okType, err
 		},
 		Body: &ast.BlockStmt{
 			List: []ast.Stmt{
-				// if r.tag == ResultTag_Ok { return fn(*r.ok_0) wrapped as Ok }
-				// This is a placeholder - full implementation needs generic handling
+				// if r.tag == ResultTag_Ok && r.ok_0 != nil {
+				//     u := fn(*r.ok_0)
+				//     return Result_interface{}_error{tag: ResultTag_Ok, ok_0: &u}
+				// }
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")},
+							Op: token.EQL,
+							Y:  ast.NewIdent("ResultTag_Ok"),
+						},
+						Op: token.LAND,
+						Y: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("ok_0")},
+							Op: token.NEQ,
+							Y:  ast.NewIdent("nil"),
+						},
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							// u := fn(*r.ok_0)
+							&ast.AssignStmt{
+								Lhs: []ast.Expr{ast.NewIdent("u")},
+								Tok: token.DEFINE,
+								Rhs: []ast.Expr{
+									&ast.CallExpr{
+										Fun: ast.NewIdent("fn"),
+										Args: []ast.Expr{
+											&ast.StarExpr{
+												X: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("ok_0")},
+											},
+										},
+									},
+								},
+							},
+							// return struct with u
+							&ast.ReturnStmt{
+								Results: []ast.Expr{
+									&ast.CompositeLit{
+										Type: &ast.StructType{
+											Fields: &ast.FieldList{
+												List: []*ast.Field{
+													{Names: []*ast.Ident{ast.NewIdent("tag")}, Type: ast.NewIdent("ResultTag")},
+													{Names: []*ast.Ident{ast.NewIdent("ok_0")}, Type: &ast.StarExpr{X: ast.NewIdent("interface{}")}},
+													{Names: []*ast.Ident{ast.NewIdent("err_0")}, Type: p.typeToAST(errType, true)},
+												},
+											},
+										},
+										Elts: []ast.Expr{
+											&ast.KeyValueExpr{Key: ast.NewIdent("tag"), Value: ast.NewIdent("ResultTag_Ok")},
+											&ast.KeyValueExpr{
+												Key: ast.NewIdent("ok_0"),
+												Value: &ast.UnaryExpr{
+													Op: token.AND,
+													X:  ast.NewIdent("u"),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				// return Err variant unchanged (cast to interface{})
 				&ast.ReturnStmt{
-					Results: []ast.Expr{ast.NewIdent("nil")},
+					Results: []ast.Expr{
+						&ast.CompositeLit{
+							Type: &ast.StructType{
+								Fields: &ast.FieldList{
+									List: []*ast.Field{
+										{Names: []*ast.Ident{ast.NewIdent("tag")}, Type: ast.NewIdent("ResultTag")},
+										{Names: []*ast.Ident{ast.NewIdent("ok_0")}, Type: &ast.StarExpr{X: ast.NewIdent("interface{}")}},
+										{Names: []*ast.Ident{ast.NewIdent("err_0")}, Type: p.typeToAST(errType, true)},
+									},
+								},
+							},
+							Elts: []ast.Expr{
+								&ast.KeyValueExpr{Key: ast.NewIdent("tag"), Value: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")}},
+								&ast.KeyValueExpr{Key: ast.NewIdent("ok_0"), Value: ast.NewIdent("nil")},
+								&ast.KeyValueExpr{Key: ast.NewIdent("err_0"), Value: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("err_0")}},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -904,7 +1188,7 @@ func (p *ResultTypePlugin) emitAdvancedHelperMethods(resultTypeName, okType, err
 	p.pendingDecls = append(p.pendingDecls, mapMethod)
 
 	// MapErr(fn func(E) F) Result<T, F>
-	// Transforms the Err value if present
+	// Transforms the Err value if present (returns interface{} for simplicity)
 	mapErrMethod := &ast.FuncDecl{
 		Recv: &ast.FieldList{
 			List: []*ast.Field{
@@ -943,8 +1227,91 @@ func (p *ResultTypePlugin) emitAdvancedHelperMethods(resultTypeName, okType, err
 		},
 		Body: &ast.BlockStmt{
 			List: []ast.Stmt{
+				// if r.tag == ResultTag_Err && r.err_0 != nil {
+				//     f := fn(*r.err_0)
+				//     return Result with mapped error
+				// }
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")},
+							Op: token.EQL,
+							Y:  ast.NewIdent("ResultTag_Err"),
+						},
+						Op: token.LAND,
+						Y: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("err_0")},
+							Op: token.NEQ,
+							Y:  ast.NewIdent("nil"),
+						},
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							// f := fn(*r.err_0)
+							&ast.AssignStmt{
+								Lhs: []ast.Expr{ast.NewIdent("f")},
+								Tok: token.DEFINE,
+								Rhs: []ast.Expr{
+									&ast.CallExpr{
+										Fun: ast.NewIdent("fn"),
+										Args: []ast.Expr{
+											&ast.StarExpr{
+												X: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("err_0")},
+											},
+										},
+									},
+								},
+							},
+							// return Result with mapped error
+							&ast.ReturnStmt{
+								Results: []ast.Expr{
+									&ast.CompositeLit{
+										Type: &ast.StructType{
+											Fields: &ast.FieldList{
+												List: []*ast.Field{
+													{Names: []*ast.Ident{ast.NewIdent("tag")}, Type: ast.NewIdent("ResultTag")},
+													{Names: []*ast.Ident{ast.NewIdent("ok_0")}, Type: p.typeToAST(okType, true)},
+													{Names: []*ast.Ident{ast.NewIdent("err_0")}, Type: &ast.StarExpr{X: ast.NewIdent("interface{}")}},
+												},
+											},
+										},
+										Elts: []ast.Expr{
+											&ast.KeyValueExpr{Key: ast.NewIdent("tag"), Value: ast.NewIdent("ResultTag_Err")},
+											&ast.KeyValueExpr{Key: ast.NewIdent("ok_0"), Value: ast.NewIdent("nil")},
+											&ast.KeyValueExpr{
+												Key: ast.NewIdent("err_0"),
+												Value: &ast.UnaryExpr{
+													Op: token.AND,
+													X:  ast.NewIdent("f"),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				// return Ok variant unchanged
 				&ast.ReturnStmt{
-					Results: []ast.Expr{ast.NewIdent("nil")},
+					Results: []ast.Expr{
+						&ast.CompositeLit{
+							Type: &ast.StructType{
+								Fields: &ast.FieldList{
+									List: []*ast.Field{
+										{Names: []*ast.Ident{ast.NewIdent("tag")}, Type: ast.NewIdent("ResultTag")},
+										{Names: []*ast.Ident{ast.NewIdent("ok_0")}, Type: p.typeToAST(okType, true)},
+										{Names: []*ast.Ident{ast.NewIdent("err_0")}, Type: &ast.StarExpr{X: ast.NewIdent("interface{}")}},
+									},
+								},
+							},
+							Elts: []ast.Expr{
+								&ast.KeyValueExpr{Key: ast.NewIdent("tag"), Value: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")}},
+								&ast.KeyValueExpr{Key: ast.NewIdent("ok_0"), Value: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("ok_0")}},
+								&ast.KeyValueExpr{Key: ast.NewIdent("err_0"), Value: ast.NewIdent("nil")},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -1067,8 +1434,58 @@ func (p *ResultTypePlugin) emitAdvancedHelperMethods(resultTypeName, okType, err
 		},
 		Body: &ast.BlockStmt{
 			List: []ast.Stmt{
+				// if r.tag == ResultTag_Ok && r.ok_0 != nil { return fn(*r.ok_0) }
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")},
+							Op: token.EQL,
+							Y:  ast.NewIdent("ResultTag_Ok"),
+						},
+						Op: token.LAND,
+						Y: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("ok_0")},
+							Op: token.NEQ,
+							Y:  ast.NewIdent("nil"),
+						},
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{
+									&ast.CallExpr{
+										Fun: ast.NewIdent("fn"),
+										Args: []ast.Expr{
+											&ast.StarExpr{
+												X: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("ok_0")},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				// Return Err variant as interface{} with same structure
 				&ast.ReturnStmt{
-					Results: []ast.Expr{ast.NewIdent("nil")},
+					Results: []ast.Expr{
+						&ast.CompositeLit{
+							Type: &ast.StructType{
+								Fields: &ast.FieldList{
+									List: []*ast.Field{
+										{Names: []*ast.Ident{ast.NewIdent("tag")}, Type: ast.NewIdent("ResultTag")},
+										{Names: []*ast.Ident{ast.NewIdent("ok_0")}, Type: &ast.StarExpr{X: ast.NewIdent("interface{}")}},
+										{Names: []*ast.Ident{ast.NewIdent("err_0")}, Type: p.typeToAST(errType, true)},
+									},
+								},
+							},
+							Elts: []ast.Expr{
+								&ast.KeyValueExpr{Key: ast.NewIdent("tag"), Value: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")}},
+								&ast.KeyValueExpr{Key: ast.NewIdent("ok_0"), Value: ast.NewIdent("nil")},
+								&ast.KeyValueExpr{Key: ast.NewIdent("err_0"), Value: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("err_0")}},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -1115,8 +1532,58 @@ func (p *ResultTypePlugin) emitAdvancedHelperMethods(resultTypeName, okType, err
 		},
 		Body: &ast.BlockStmt{
 			List: []ast.Stmt{
+				// if r.tag == ResultTag_Err && r.err_0 != nil { return fn(*r.err_0) }
+				&ast.IfStmt{
+					Cond: &ast.BinaryExpr{
+						X: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")},
+							Op: token.EQL,
+							Y:  ast.NewIdent("ResultTag_Err"),
+						},
+						Op: token.LAND,
+						Y: &ast.BinaryExpr{
+							X:  &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("err_0")},
+							Op: token.NEQ,
+							Y:  ast.NewIdent("nil"),
+						},
+					},
+					Body: &ast.BlockStmt{
+						List: []ast.Stmt{
+							&ast.ReturnStmt{
+								Results: []ast.Expr{
+									&ast.CallExpr{
+										Fun: ast.NewIdent("fn"),
+										Args: []ast.Expr{
+											&ast.StarExpr{
+												X: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("err_0")},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				// Return Ok variant as interface{} with same structure
 				&ast.ReturnStmt{
-					Results: []ast.Expr{ast.NewIdent("nil")},
+					Results: []ast.Expr{
+						&ast.CompositeLit{
+							Type: &ast.StructType{
+								Fields: &ast.FieldList{
+									List: []*ast.Field{
+										{Names: []*ast.Ident{ast.NewIdent("tag")}, Type: ast.NewIdent("ResultTag")},
+										{Names: []*ast.Ident{ast.NewIdent("ok_0")}, Type: p.typeToAST(okType, true)},
+										{Names: []*ast.Ident{ast.NewIdent("err_0")}, Type: &ast.StarExpr{X: ast.NewIdent("interface{}")}},
+									},
+								},
+							},
+							Elts: []ast.Expr{
+								&ast.KeyValueExpr{Key: ast.NewIdent("tag"), Value: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("tag")}},
+								&ast.KeyValueExpr{Key: ast.NewIdent("ok_0"), Value: &ast.SelectorExpr{X: ast.NewIdent("r"), Sel: ast.NewIdent("ok_0")}},
+								&ast.KeyValueExpr{Key: ast.NewIdent("err_0"), Value: ast.NewIdent("nil")},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -1251,10 +1718,11 @@ func (p *ResultTypePlugin) getTypeName(expr ast.Expr) string {
 
 // sanitizeTypeName converts type names to valid Go identifiers
 // Examples:
-//   *User → ptr_User
-//   []byte → slice_byte
-//   map[string]int → map_string_int
-//   interface{} → any
+//
+//	*User → ptr_User
+//	[]byte → slice_byte
+//	map[string]int → map_string_int
+//	interface{} → any
 func (p *ResultTypePlugin) sanitizeTypeName(typeName string) string {
 	s := typeName
 
