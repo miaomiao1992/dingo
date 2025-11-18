@@ -42,6 +42,9 @@ editors/vscode/.vscode-test/
 *.gen.go
 *.pb.go
 
+# Source map files (test artifacts)
+*.go.map
+
 # Golden test artifacts
 *.actual
 *.go.generated
