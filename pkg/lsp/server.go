@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
-	"go.lsp.dev/uri"
 )
 
 // ServerConfig holds configuration for the LSP server
@@ -27,8 +27,11 @@ type Server struct {
 	watcher       *FileWatcher
 	workspacePath string
 	initialized   bool
-	ideConn       jsonrpc2.Conn  // CRITICAL FIX C1: Store IDE connection for diagnostics
-	ctx           context.Context // IMPORTANT FIX I3: Store server context
+
+	// CRITICAL FIX (Qwen): Protect connection and context with mutex
+	connMu  sync.RWMutex
+	ideConn jsonrpc2.Conn   // Store IDE connection for diagnostics
+	ctx     context.Context // Store server context
 }
 
 // NewServer creates a new LSP server instance
@@ -51,29 +54,44 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 	// Initialize auto-transpiler
 	transpiler := NewAutoTranspiler(cfg.Logger, mapCache, gopls)
 
-	return &Server{
+	server := &Server{
 		config:     cfg,
 		gopls:      gopls,
 		mapCache:   mapCache,
 		translator: translator,
 		transpiler: transpiler,
-	}, nil
+	}
+
+	// Set diagnostics handler for gopls -> IDE diagnostics forwarding
+	gopls.SetDiagnosticsHandler(server.handlePublishDiagnostics)
+
+	return server, nil
 }
 
-// Serve starts the LSP server with the given connection
-func (s *Server) Serve(ctx context.Context, conn jsonrpc2.Conn) error {
-	// CRITICAL FIX C1 & IMPORTANT FIX I3: Store IDE connection and context
+// SetConn stores the connection and context in the server (thread-safe)
+func (s *Server) SetConn(conn jsonrpc2.Conn, ctx context.Context) {
+	s.connMu.Lock()
+	defer s.connMu.Unlock()
 	s.ideConn = conn
 	s.ctx = ctx
+}
 
-	_ = jsonrpc2.ReplyHandler(s.handleRequest)
-	// Start serving (connection runs until closed)
-	<-conn.Done()
-	return conn.Err()
+// GetConn returns the IDE connection (thread-safe)
+func (s *Server) GetConn() (jsonrpc2.Conn, context.Context) {
+	s.connMu.RLock()
+	defer s.connMu.RUnlock()
+	return s.ideConn, s.ctx
+}
+
+// Handler returns a jsonrpc2 handler for this server
+func (s *Server) Handler() jsonrpc2.Handler {
+	return jsonrpc2.ReplyHandler(s.handleRequest)
 }
 
 // handleRequest routes LSP requests to appropriate handlers
 func (s *Server) handleRequest(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
+	s.config.Logger.Debugf("Received request: %s", req.Method())
+
 	switch req.Method() {
 	case "initialize":
 		return s.handleInitialize(ctx, reply, req)
@@ -106,10 +124,14 @@ func (s *Server) handleRequest(ctx context.Context, reply jsonrpc2.Replier, req 
 
 // handleInitialize processes the initialize request
 func (s *Server) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
+	s.config.Logger.Debugf("handleInitialize: Starting")
+
 	var params protocol.InitializeParams
 	if err := json.Unmarshal(req.Params(), &params); err != nil {
+		s.config.Logger.Errorf("handleInitialize: Failed to unmarshal params: %v", err)
 		return reply(ctx, nil, fmt.Errorf("invalid initialize params: %w", err))
 	}
+	s.config.Logger.Debugf("handleInitialize: Params unmarshaled")
 
 	// Extract workspace path
 	if params.RootURI != "" {
@@ -128,10 +150,13 @@ func (s *Server) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, r
 	}
 
 	// Forward initialize to gopls
+	s.config.Logger.Debugf("handleInitialize: Forwarding to gopls")
 	goplsResult, err := s.gopls.Initialize(ctx, params)
 	if err != nil {
+		s.config.Logger.Errorf("handleInitialize: gopls failed: %v", err)
 		return reply(ctx, nil, fmt.Errorf("gopls initialize failed: %w", err))
 	}
+	s.config.Logger.Debugf("handleInitialize: gopls responded")
 
 	// Return modified capabilities (Dingo-specific)
 	result := protocol.InitializeResult{
@@ -156,6 +181,7 @@ func (s *Server) handleInitialize(ctx context.Context, reply jsonrpc2.Replier, r
 	}
 
 	s.initialized = true
+	s.config.Logger.Debugf("Sending initialize response to client")
 	s.config.Logger.Infof("Server initialized (auto-transpile: %v)", s.config.AutoTranspile)
 
 	return reply(ctx, result, nil)
@@ -209,13 +235,15 @@ func (s *Server) handleDidOpen(ctx context.Context, reply jsonrpc2.Replier, req 
 		return reply(ctx, nil, err)
 	}
 
-	// If .dingo file, translate to .go file and forward
+	// IMPORTANT: Don't forward .dingo file opens to gopls
+	// gopls should only know about .go files on disk, not .dingo source
+	// We translate positions during queries (hover, completion, etc.)
 	if isDingoFile(params.TextDocument.URI) {
-		goPath := dingoToGoPath(params.TextDocument.URI.Filename())
-		params.TextDocument.URI = uri.File(goPath)
+		s.config.Logger.Debugf("Opened .dingo file (not forwarding to gopls): %s", params.TextDocument.URI)
+		return reply(ctx, nil, nil)
 	}
 
-	// Forward to gopls
+	// Forward non-dingo files to gopls
 	if err := s.gopls.DidOpen(ctx, params); err != nil {
 		s.config.Logger.Warnf("gopls didOpen failed: %v", err)
 	}
@@ -230,13 +258,15 @@ func (s *Server) handleDidChange(ctx context.Context, reply jsonrpc2.Replier, re
 		return reply(ctx, nil, err)
 	}
 
-	// If .dingo file, translate to .go file and forward
+	// IMPORTANT: Don't forward .dingo file changes to gopls
+	// gopls reads .go files from disk (updated by auto-transpiler on save)
+	// We translate positions during queries instead
 	if isDingoFile(params.TextDocument.URI) {
-		goPath := dingoToGoPath(params.TextDocument.URI.Filename())
-		params.TextDocument.URI = uri.File(goPath)
+		s.config.Logger.Debugf("Changed .dingo file (not forwarding to gopls): %s", params.TextDocument.URI)
+		return reply(ctx, nil, nil)
 	}
 
-	// Forward to gopls
+	// Forward non-dingo files to gopls
 	if err := s.gopls.DidChange(ctx, params); err != nil {
 		s.config.Logger.Warnf("gopls didChange failed: %v", err)
 	}
@@ -256,16 +286,14 @@ func (s *Server) handleDidSave(ctx context.Context, reply jsonrpc2.Replier, req 
 		dingoPath := params.TextDocument.URI.Filename()
 		s.config.Logger.Debugf("Auto-transpile on save: %s", dingoPath)
 
-		// Trigger transpilation (non-blocking, handled by transpiler)
+		// Trigger transpilation (AutoTranspiler will notify gopls after completion)
 		go s.transpiler.OnFileChange(ctx, dingoPath)
+
+		// Don't forward to gopls - transpiler handles it after successful transpilation
+		return reply(ctx, nil, nil)
 	}
 
-	// Forward to gopls (with translated URI if .dingo file)
-	if isDingoFile(params.TextDocument.URI) {
-		goPath := dingoToGoPath(params.TextDocument.URI.Filename())
-		params.TextDocument.URI = uri.File(goPath)
-	}
-
+	// Forward non-dingo files to gopls
 	if err := s.gopls.DidSave(ctx, params); err != nil {
 		s.config.Logger.Warnf("gopls didSave failed: %v", err)
 	}
@@ -280,13 +308,14 @@ func (s *Server) handleDidClose(ctx context.Context, reply jsonrpc2.Replier, req
 		return reply(ctx, nil, err)
 	}
 
-	// If .dingo file, translate to .go file and forward
+	// IMPORTANT: Don't forward .dingo file closes to gopls
+	// We never told gopls about .dingo files opening, so don't tell it about closes
 	if isDingoFile(params.TextDocument.URI) {
-		goPath := dingoToGoPath(params.TextDocument.URI.Filename())
-		params.TextDocument.URI = uri.File(goPath)
+		s.config.Logger.Debugf("Closed .dingo file (not forwarding to gopls): %s", params.TextDocument.URI)
+		return reply(ctx, nil, nil)
 	}
 
-	// Forward to gopls
+	// Forward non-dingo files to gopls
 	if err := s.gopls.DidClose(ctx, params); err != nil {
 		s.config.Logger.Warnf("gopls didClose failed: %v", err)
 	}

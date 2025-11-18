@@ -1,0 +1,32 @@
+# LSP Crash Investigation Summary
+
+Status: Root Cause Identified
+Consulted: GPT-5.1 Codex via claudish
+Date: 2025-11-18
+
+## Root Cause
+
+The gopls subprocess stdio pipes close immediately when the process exits, causing `conn.Call()` to write to a destroyed jsonrpc2 stream. VS Code sees "Cannot call write after a stream was destroyed" and the entire connection tears down before diagnostics can be sent.
+
+## Key Issues Identified by Codex
+
+1. **Pipe Closure**: `pkg/lsp/gopls_client.go:49-112` - Pipes close when subprocess exits
+2. **No Error Propagation**: `conn.Call`/`Notify` (lines 130-205) don't check connection health
+3. **Premature Connection Death**: `main.go:34-77` blocks on `<-conn.Done()`, tearing down IDE connection on any write error
+4. **No Crash Recovery**: gopls crashes aren't surfaced to VS Code users
+
+## Recommended Fixes
+
+1. **Connection Health Checks**: Wrap every `Call`/`Notify` with connection-health checks that propagate errors back to handlers
+2. **Keep IDE Alive**: Supervise gopls with restart/backoff loop while keeping IDE-side conn alive
+3. **Controlled Pipe Closure**: Only close pipes after shutdown flag is set (gopls_client.go:208-245)
+4. **User-Visible Errors**: Surface gopls crashes via `window/showMessage` using stored IDE conn (server.go:20-67)
+5. **Error Logging**: Log stderr to `window/logMessage` for actionable user feedback
+
+## Files to Fix
+
+- `cmd/dingo-lsp/main.go` - Connection lifecycle management
+- `pkg/lsp/gopls_client.go` - Connection health, pipe management, crash recovery
+- `pkg/lsp/server.go` - Error surfacing to VS Code
+
+Details: /Users/jack/mag/dingo/ai-docs/lsp-crash-investigation/codex-analysis.md

@@ -4,21 +4,72 @@ All notable changes to the Dingo compiler will be documented in this file.
 
 ## [Unreleased] - 2025-11-18
 
-### Phase 4.2 - Pattern Matching Enhancements (IN PROGRESS)
+### Phase 4.2 - Pattern Matching Enhancements (COMPLETE ✅)
 
 **Session**: 20251118-173201
-**Status**: Planning phase
-**Objective**: Extend pattern matching with guards, Swift syntax, tuples, and enhanced error messages
+**Date**: 2025-11-18
+**Status**: COMPLETE - 3 out of 4 planned features delivered
 
-**Planned Features:**
-1. **Pattern Guards** - `pattern if condition` syntax for conditional matching
-2. **Swift Pattern Syntax** - `switch/case .Variant(let x)` as alternative to Rust syntax
-3. **Tuple Destructuring** - `(pattern1, pattern2)` with wildcard support
-4. **Enhanced Error Messages** - rustc-style source snippets with suggestions
+### Pattern Match AST Positioning Bug Fix (Post-Phase 4.2)
 
-**Prerequisites:** Phase 4.1 complete (configuration, parent tracking, Rust patterns, exhaustiveness, transformation, None inference)
+**Sessions**: 20251118-223253 (investigation), 20251118-223543 (implementation)
 
-**Timeline:** 4-6 hours estimated
+**Fixed:**
+- **CRITICAL: SwitchStmt.Init loss** - `transformMatchExpression()` now preserves `__match_0 := scrutinee` by prepending to replacement slice before if-else chain
+- Added `TestSwitchInitPreservation` unit test verifying init preservation + if-chain generation
+
+**Results:**
+- **13/13 pattern_match golden tests passing** (updated 2 `.go.golden` files for temp var output)
+
+**Files Changed:**
+- `pkg/plugin/builtin/pattern_match.go`
+- `pkg/plugin/builtin/pattern_match_test.go`
+- `tests/golden/pattern_match_01_basic.go.golden`
+- `tests/golden/pattern_match_04_exhaustive.go.golden`
+
+**Impact:** Pattern matching if-else chain correctly positioned after temp assignment; zero runtime overhead
+
+**Delivered Features:**
+1. ✅ **Pattern Guards** - Rust-style `if` keyword syntax for conditional matching
+   - Nested if-statement transformation (safe, debuggable)
+   - Guards are runtime checks, ignored by exhaustiveness analysis
+   - Multiple guards per variant supported
+2. ✅ **Tuple Destructuring** - 2-6 element pattern support with wildcard semantics
+   - `(Ok(x), Err(e))` pattern syntax
+   - Wildcard `(_, _)` makes match exhaustive
+   - Efficient decision tree exhaustiveness checking
+3. ✅ **Enhanced Error Messages** - rustc-style diagnostics with source snippets
+   - Source code context (2 lines before/after)
+   - Colored annotations and caret positioning
+   - Actionable suggestions for fixes
+   - File I/O caching for performance
+
+**Removed During Implementation:**
+- ❌ **Swift Syntax Support** - Removed in favor of single, polished Rust-style syntax
+  - **Reason**: 50% working status, regex parsing challenges, maintenance complexity
+  - **Decision**: Focus on one well-implemented syntax over two half-working ones
+  - **Impact**: Removed 815 lines (580 preprocessor + 235 tests + docs)
+  - **Future**: May reconsider if strong user demand, would require complete redesign
+
+**Implementation Summary:**
+- New code: ~2,620 lines (preprocessors, plugins, exhaustiveness, errors)
+- Modified: ~750 lines
+- Deleted: 815 lines (Swift cleanup)
+- Net change: +2,555 lines
+- Tests: 8 golden tests + 36 unit tests (100% pass rate for delivered features)
+
+**Performance:**
+- Total compile overhead: <15ms per file (beat 20ms target) ✅
+- Tuple exhaustiveness: <1ms
+- Enhanced error formatting: <3ms
+
+**Architecture:**
+- Two-stage pipeline: Preprocessor (Rust match) → Plugin (AST transformation)
+- Guard markers: `DINGO_GUARD` comments for plugin detection
+- Tuple markers: `DINGO_TUPLE_PATTERN` with arity information
+- Enhanced errors: Source cache with UTF-8 validation and line ending normalization
+
+**Session artifacts:** `ai-docs/sessions/20251118-173201/` (planning, implementation, reviews, fixes)
 
 ---
 

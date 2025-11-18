@@ -170,7 +170,8 @@ func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
 		}
 	}
 
-	// Step 5: Print AST to Go source code
+	// Step 5: Print AST to Go source code in correct order
+	// Order: package statement -> imports -> injected types -> user declarations
 	var buf bytes.Buffer
 
 	cfg := printer.Config{
@@ -178,8 +179,46 @@ func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
 		Tabwidth: 8,
 	}
 
-	if err := cfg.Fprint(&buf, g.fset, transformed); err != nil {
-		return nil, fmt.Errorf("failed to print AST: %w", err)
+	// 1. Print package statement from main AST
+	fmt.Fprintf(&buf, "package %s\n\n", transformed.Name.Name)
+
+	// 2. Print imports from main AST (if any)
+	if len(transformed.Imports) > 0 {
+		buf.WriteString("import (\n")
+		for _, imp := range transformed.Imports {
+			if err := cfg.Fprint(&buf, g.fset, imp); err != nil {
+				return nil, fmt.Errorf("failed to print import: %w", err)
+			}
+			buf.WriteString("\n")
+		}
+		buf.WriteString(")\n\n")
+	}
+
+	// 3. Print injected type declarations (if any)
+	if g.pipeline != nil {
+		injectedAST := g.pipeline.GetInjectedTypesAST()
+		if injectedAST != nil && len(injectedAST.Decls) > 0 {
+			for _, decl := range injectedAST.Decls {
+				if err := cfg.Fprint(&buf, g.fset, decl); err != nil {
+					return nil, fmt.Errorf("failed to print injected type declaration: %w", err)
+				}
+				buf.WriteString("\n")
+			}
+			buf.WriteString("\n")
+		}
+	}
+
+	// 4. Print main AST declarations ONLY (skip package/imports - already printed)
+	for _, decl := range transformed.Decls {
+		// Skip import declarations (already printed in step 2)
+		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.IMPORT {
+			continue
+		}
+
+		if err := cfg.Fprint(&buf, g.fset, decl); err != nil {
+			return nil, fmt.Errorf("failed to print declaration: %w", err)
+		}
+		buf.WriteString("\n")
 	}
 
 	// Step 6: Format the generated code

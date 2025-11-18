@@ -1,0 +1,141 @@
+// pattern_match_03_result_option.dingo
+//
+// Pattern matching for Result<T,E> and Option<T> types
+// Demonstrates tag-based dispatch and binding extraction
+
+package main
+
+import (
+	"fmt"
+	"strconv"
+)
+
+// Example 1: Result pattern match - user validation
+func validateAge(ageStr: string) -> Result<int, error> {
+	age, err := strconv.Atoi(ageStr)
+	if err != nil {
+		return Err(err)
+	}
+	if age < 0 || age > 150 {
+		return Err(fmt.Errorf("invalid age: %d", age))
+	}
+	return Ok(age)
+}
+
+func processAge(ageStr: string) -> string {
+	result := validateAge(ageStr)
+
+	match result {
+		Ok(age) => {
+			return fmt.Sprintf("Valid age: %d", age)
+		},
+		Err(e) => {
+			return fmt.Sprintf("Error: %v", e)
+		}
+	}
+}
+
+// Example 2: Option pattern match - user lookup
+type User struct {
+	ID   int
+	Name string
+	Age  int
+}
+
+func findUser(id: int) -> Option<User> {
+	if id == 1 {
+		return Some(User{ID: 1, Name: "Alice", Age: 30})
+	}
+	return None
+}
+
+func getUserName(id: int) -> string {
+	userOpt := findUser(id)
+
+	match userOpt {
+		Some(user) => {
+			return user.Name
+		},
+		None => {
+			return "Unknown"
+		}
+	}
+}
+
+// Example 3: Nested Result and Option
+func getUserAge(id: int) -> Result<int, string> {
+	userOpt := findUser(id)
+
+	match userOpt {
+		Some(user) => {
+			if user.Age > 0 {
+				return Ok(user.Age)
+			}
+			return Err("age not set")
+		},
+		None => {
+			return Err("user not found")
+		}
+	}
+}
+
+// Example 4: Complex Result with error handling
+func divideNumbers(a: int, b: int) -> Result<float64, string> {
+	if b == 0 {
+		return Err("division by zero")
+	}
+	return Ok(float64(a) / float64(b))
+}
+
+func performDivision(a: int, b: int) -> string {
+	result := divideNumbers(a, b)
+
+	match result {
+		Ok(quotient) => {
+			return fmt.Sprintf("%.2f", quotient)
+		},
+		Err(errMsg) => {
+			return fmt.Sprintf("Error: %s", errMsg)
+		}
+	}
+}
+
+// Example 5: Option with default value
+func getAgeDisplay(id: int) -> string {
+	userOpt := findUser(id)
+
+	match userOpt {
+		Some(user) => {
+			return fmt.Sprintf("Age: %d", user.Age)
+		},
+		None => {
+			return "Age: N/A"
+		}
+	}
+}
+
+func main() {
+	// Test Result pattern matching
+	fmt.Println(processAge("25"))      // Valid age: 25
+	fmt.Println(processAge("invalid")) // Error: strconv.Atoi: parsing "invalid": invalid syntax
+	fmt.Println(processAge("200"))     // Error: invalid age: 200
+
+	// Test Option pattern matching
+	fmt.Println(getUserName(1)) // Alice
+	fmt.Println(getUserName(2)) // Unknown
+
+	// Test nested patterns
+	ageResult := getUserAge(1)
+	match ageResult {
+		Ok(age) => fmt.Println("User age:", age),
+		Err(msg) => fmt.Println("Error:", msg)
+	}
+
+	// Test division
+	fmt.Println(performDivision(10, 2)) // 5.00
+	fmt.Println(performDivision(10, 0)) // Error: division by zero
+
+	// Test Option display
+	fmt.Println(getAgeDisplay(1)) // Age: 30
+	fmt.Println(getAgeDisplay(2)) // Age: N/A
+}

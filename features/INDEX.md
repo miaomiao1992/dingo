@@ -29,12 +29,22 @@ This document provides a comprehensive overview of all planned features for the 
 - 🔴 **Not Started** - No implementation yet
 - 🟡 **In Design** - Active design/proposal phase
 - 🟢 **In Development** - Implementation in progress
+- ✅ **Designed** - Architecture/design complete, ready for implementation
 - ✅ **Implemented** - Feature complete
 - ⏸️ **On Hold** - Postponed pending other features
 
 ---
 
 ## Feature Matrix
+
+### Infrastructure & Architecture
+
+| Priority | Feature | Complexity | Timeline | Community Demand | Status | File |
+|----------|---------|------------|----------|------------------|--------|------|
+| **ARCH** | File Organization | 🟡 Medium | 4 weeks (Phase 1) | ⭐⭐⭐⭐⭐ | ✅ Designed | [file-organization.md](./file-organization.md) |
+| **ARCH** | Parser Architecture | 🟠 High | 5-6 weeks | ⭐⭐⭐⭐⭐ | ✅ Designed | [architecture-plan.md](./architecture-plan.md) |
+
+### Language Features
 
 | Priority | Feature | Complexity | Timeline | Community Demand | Status | File |
 |----------|---------|------------|----------|------------------|--------|------|

@@ -21,8 +21,9 @@ func NewRegistry() *Registry {
 
 // Pipeline executes plugins in sequence
 type Pipeline struct {
-	Ctx     *Context
-	plugins []Plugin
+	Ctx              *Context
+	plugins          []Plugin
+	injectedTypesAST *ast.File // Separate AST for injected type declarations (Option B)
 }
 
 // NewPipeline creates a new plugin pipeline
@@ -51,7 +52,7 @@ func (p *Pipeline) RegisterPlugin(plugin Plugin) {
 // Transform transforms an AST using the 3-phase pipeline
 // Phase 1: Discovery - Process() to discover types
 // Phase 2: Transform - Transform() to replace constructor calls
-// Phase 3: Inject - GetPendingDeclarations() to add type declarations
+// Phase 3: Inject - GetPendingDeclarations() to add type declarations (SEPARATE AST - Option B)
 func (p *Pipeline) Transform(file *ast.File) (*ast.File, error) {
 	if len(p.plugins) == 0 {
 		return file, nil // No plugins, no transformation
@@ -80,20 +81,124 @@ func (p *Pipeline) Transform(file *ast.File) (*ast.File, error) {
 		}
 	}
 
-	// Phase 3: Declaration Injection - Add pending declarations
+	// Phase 3: Declaration Injection - Create SEPARATE AST for injected types (Option B)
+	// This prevents comment pollution by isolating generated code from user code
+	var allInjectedDecls []ast.Decl
 	for _, plugin := range p.plugins {
 		if dp, ok := plugin.(DeclarationProvider); ok {
 			decls := dp.GetPendingDeclarations()
 			if len(decls) > 0 {
-				// Prepend declarations to the file
-				// We put them at the beginning so they're available to all code
-				transformed.Decls = append(decls, transformed.Decls...)
+				// Set positions to token.NoPos (still needed for proper formatting)
+				clearPositions(decls)
+
+				// Accumulate all injected declarations
+				allInjectedDecls = append(allInjectedDecls, decls...)
 				dp.ClearPendingDeclarations()
 			}
 		}
 	}
 
+	// Create separate AST file for injected type declarations
+	// Note: We use the same package name but no imports
+	// The generator will extract just the declarations when printing
+	if len(allInjectedDecls) > 0 {
+		p.injectedTypesAST = &ast.File{
+			Name:  transformed.Name, // Same package name (required by printer)
+			Decls: allInjectedDecls,
+		}
+	}
+
+	// transformed (user code) remains unchanged - NO injected declarations
 	return transformed, nil
+}
+
+// clearPositions recursively sets all positions in AST nodes to token.NoPos.
+//
+// This prevents go/printer from associating file comments with injected nodes.
+// Without this, DINGO_MATCH_* comments and user comments can incorrectly appear
+// inside generated Result/Option type declarations.
+//
+// The function walks the entire AST tree of each declaration and zeros out all
+// position fields.
+func clearPositions(decls []ast.Decl) {
+	for _, decl := range decls {
+		ast.Inspect(decl, func(n ast.Node) bool {
+			if n == nil {
+				return false
+			}
+
+			// Clear position for every node type
+			switch node := n.(type) {
+			case *ast.GenDecl:
+				node.TokPos = token.NoPos
+				node.Lparen = token.NoPos
+				node.Rparen = token.NoPos
+			case *ast.FuncDecl:
+				if node.Name != nil {
+					node.Name.NamePos = token.NoPos
+				}
+			case *ast.Ident:
+				node.NamePos = token.NoPos
+			case *ast.BasicLit:
+				node.ValuePos = token.NoPos
+			case *ast.CompositeLit:
+				node.Lbrace = token.NoPos
+				node.Rbrace = token.NoPos
+			case *ast.CallExpr:
+				node.Lparen = token.NoPos
+				node.Rparen = token.NoPos
+			case *ast.UnaryExpr:
+				node.OpPos = token.NoPos
+			case *ast.BinaryExpr:
+				node.OpPos = token.NoPos
+			case *ast.KeyValueExpr:
+				node.Colon = token.NoPos
+			case *ast.StarExpr:
+				node.Star = token.NoPos
+			case *ast.Field:
+				// Fields in struct/function signatures
+			case *ast.FieldList:
+				node.Opening = token.NoPos
+				node.Closing = token.NoPos
+			case *ast.BlockStmt:
+				node.Lbrace = token.NoPos
+				node.Rbrace = token.NoPos
+			case *ast.ReturnStmt:
+				node.Return = token.NoPos
+			case *ast.IfStmt:
+				node.If = token.NoPos
+			case *ast.AssignStmt:
+				node.TokPos = token.NoPos
+			case *ast.ExprStmt:
+				// No position field
+			case *ast.TypeSpec:
+				if node.Name != nil {
+					node.Name.NamePos = token.NoPos
+				}
+			case *ast.ValueSpec:
+				// No direct position field
+			case *ast.StructType:
+				node.Struct = token.NoPos
+			case *ast.FuncType:
+				node.Func = token.NoPos
+			case *ast.InterfaceType:
+				node.Interface = token.NoPos
+			case *ast.ArrayType:
+				node.Lbrack = token.NoPos
+			case *ast.SelectorExpr:
+				// No direct position field
+			}
+
+			return true // Continue walking
+		})
+	}
+}
+
+// GetInjectedTypesAST returns the separate AST containing injected type declarations
+// Returns nil if no types were injected during transformation
+// (Option B: Separate AST architecture)
+func (p *Pipeline) GetInjectedTypesAST() *ast.File {
+	return p.injectedTypesAST
 }
 
 // GetStats returns pipeline stats
@@ -269,6 +374,12 @@ func (ctx *Context) GetParent(node ast.Node) ast.Node {
 		return nil
 	}
 	return ctx.parentMap[node]
+}
+
+// GetParentMap returns the parent map for context-based type inference
+// This allows plugins to access the complete parent relationships
+func (ctx *Context) GetParentMap() map[ast.Node]ast.Node {
+	return ctx.parentMap
 }
 
 // WalkParents walks up the parent chain from the given node

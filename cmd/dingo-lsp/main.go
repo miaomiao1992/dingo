@@ -10,13 +10,15 @@ import (
 	"go.lsp.dev/jsonrpc2"
 )
 
+var logger lsp.Logger
+
 func main() {
 	// Configure logging from environment variable
 	logLevel := os.Getenv("DINGO_LSP_LOG")
 	if logLevel == "" {
 		logLevel = "info"
 	}
-	logger := lsp.NewLogger(logLevel, os.Stderr)
+	logger = lsp.NewLogger(logLevel, os.Stderr)
 
 	logger.Infof("Starting dingo-lsp server (log level: %s)", logLevel)
 
@@ -37,17 +39,32 @@ func main() {
 	}
 
 	// Create stdio transport using ReadWriteCloser wrapper
-	rwc := &stdinoutCloser{stdin: os.Stdin, stdout: os.Stdout}
+	logger.Infof("Creating stdin/stdout ReadWriteCloser")
+	rwc := &stdinoutCloser{stdin: os.Stdin, stdout: os.Stdout, logger: logger}
+	logger.Infof("Creating JSON-RPC2 stream")
 	stream := jsonrpc2.NewStream(rwc)
+	logger.Infof("Creating JSON-RPC2 connection")
 	conn := jsonrpc2.NewConn(stream)
+	logger.Infof("JSON-RPC2 connection created: %p", conn)
 
-	// Start serving
-	ctx := context.Background()
-	if err := server.Serve(ctx, conn); err != nil {
-		logger.Errorf("Server error: %v", err)
-		os.Exit(1)
-	}
+	// Start serving with cancellable context (Gemini fix)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
+	// CRITICAL FIX (Sherlock): Store connection BEFORE starting handler
+	// This prevents race condition where handlers try to use nil ideConn
+	logger.Infof("Storing connection in server")
+	server.SetConn(conn, ctx)
+
+	// Create handler and start connection
+	handler := server.Handler()
+	logger.Infof("Starting JSON-RPC2 connection handler")
+	conn.Go(ctx, handler)
+	logger.Infof("JSON-RPC2 connection handler started")
+
+	// Wait for connection to close
+	<-conn.Done()
+	logger.Infof("JSON-RPC2 connection handler finished")
 	logger.Infof("Server stopped")
 }
 
@@ -66,18 +83,24 @@ func findGopls(logger lsp.Logger) string {
 type stdinoutCloser struct {
 	stdin  *os.File
 	stdout *os.File
+	logger lsp.Logger
 }
 
 func (s *stdinoutCloser) Read(p []byte) (n int, err error) {
-	return s.stdin.Read(p)
+	n, err = s.stdin.Read(p)
+	s.logger.Debugf("stdinoutCloser.Read: n=%d, err=%v", n, err)
+	return n, err
 }
 
 func (s *stdinoutCloser) Write(p []byte) (n int, err error) {
-	return s.stdout.Write(p)
+	n, err = s.stdout.Write(p)
+	s.logger.Debugf("stdinoutCloser.Write: n=%d, err=%v", n, err)
+	return n, err
 }
 
 func (s *stdinoutCloser) Close() error {
-	// Don't actually close stdin/stdout
+	s.logger.Infof("stdinoutCloser.Close called")
+	// Don't actually close stdin/stdout, but log the event
 	return nil
 }
 

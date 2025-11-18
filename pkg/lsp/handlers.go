@@ -62,6 +62,13 @@ func (t *Translator) TranslateHover(
 		hover.Range = &newRange
 	}
 
+	// Ensure Contents has proper MarkupContent format
+	// gopls returns MarkupContent, but we need to ensure it's valid
+	if hover.Contents.Kind == "" {
+		// Default to markdown if kind is missing
+		hover.Contents.Kind = protocol.Markdown
+	}
+
 	return hover, nil
 }
 
@@ -268,11 +275,23 @@ func (s *Server) handleHoverWithTranslation(
 		return reply(ctx, nil, err)
 	}
 
+	// Debug: Log hover result from gopls
+	if result != nil {
+		s.config.Logger.Debugf("Hover from gopls: Kind=%q, ValueLen=%d, HasRange=%v",
+			result.Contents.Kind, len(result.Contents.Value), result.Range != nil)
+	}
+
 	// Translate response: Go range → Dingo range
 	translatedResult, err := s.translator.TranslateHover(result, originalURI, GoToDingo)
 	if err != nil {
 		s.config.Logger.Warnf("Hover response translation failed: %v", err)
 		return reply(ctx, result, nil)
+	}
+
+	// Debug: Log translated hover
+	if translatedResult != nil {
+		s.config.Logger.Debugf("Hover translated: Kind=%q, ValueLen=%d, HasRange=%v",
+			translatedResult.Contents.Kind, len(translatedResult.Contents.Value), translatedResult.Range != nil)
 	}
 
 	return reply(ctx, translatedResult, nil)
@@ -310,10 +329,17 @@ func (s *Server) handlePublishDiagnostics(
 
 	s.config.Logger.Debugf("Publishing %d diagnostics for %s", len(translatedDiagnostics), dingoPath)
 
-	// CRITICAL FIX C1: Actually publish to IDE connection
-	if s.ideConn != nil {
-		return s.ideConn.Notify(ctx, "textDocument/publishDiagnostics", translatedParams)
+	// CRITICAL FIX C1: Actually publish to IDE connection (thread-safe)
+	ideConn, serverCtx := s.GetConn()
+	if ideConn != nil {
+		// Use server context if available, otherwise use provided context
+		publishCtx := serverCtx
+		if publishCtx == nil {
+			publishCtx = ctx
+		}
+		return ideConn.Notify(publishCtx, "textDocument/publishDiagnostics", translatedParams)
 	}
 
+	s.config.Logger.Warnf("No IDE connection available, cannot publish diagnostics")
 	return nil
 }

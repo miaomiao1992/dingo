@@ -1,0 +1,19 @@
+package main
+
+// Test: Cross-file package scanning - main file
+// Feature: Unqualified import inference (package-wide scanning)
+// Complexity: advanced
+
+func main() {
+	// Unqualified stdlib call - should transform to os.ReadFile
+	data := ReadFile("test.txt")?
+
+	// Unqualified local call from helpers.dingo - should NOT transform
+	processed := ProcessData(data)
+
+	// Another local call - should NOT transform
+	if ValidateInput(processed) {
+		// Unqualified stdlib call - should transform to fmt.Println
+		Println(processed)
+	}
+}

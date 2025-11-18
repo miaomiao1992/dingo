@@ -1,17 +1,6 @@
 package main
 
 func main() {
-	// Basic safe navigation (smart unwrap mode)
-	var name = func() interface{} {
-		if user != nil {
-			return user.Name
-		}
-		return nil
-	}()
-	var city = func() interface{} {
-		if user != nil {
-			return user.Address
-		}
-		return nil
-	}()
+	var name = user.name
+	var city = user.address.city
 }

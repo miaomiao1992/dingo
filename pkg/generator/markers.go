@@ -35,6 +35,12 @@ func (m *MarkerInjector) InjectMarkers(source []byte) ([]byte, error) {
 
 	sourceStr := string(source)
 
+	// Check if markers are already present (added by preprocessor)
+	// If so, skip injection to avoid duplicates
+	if strings.Contains(sourceStr, "// dingo:s:") || strings.Contains(sourceStr, "// dingo:e:") {
+		return source, nil
+	}
+
 	// Pattern to detect error propagation generated code
 	// Looks for: if __err0 != nil { return ... }
 	errorCheckPattern := regexp.MustCompile(`(?m)(^[ \t]*if __err\d+ != nil \{[^}]*return[^}]*\}[ \t]*\n)`)

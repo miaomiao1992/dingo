@@ -18,7 +18,8 @@ import (
 //   - Complex nested: x: map[string][]func() error
 // Strategy: Match everything up to next comma or closing paren, handling nested brackets/parens
 var (
-	paramPattern = regexp.MustCompile(`(\w+)\s*:\s*([^,)]+)`)
+	paramPattern      = regexp.MustCompile(`(\w+)\s*:\s*([^,)]+)`)
+	returnArrowPattern = regexp.MustCompile(`\)\s*->\s*(.+?)\s*\{`)
 )
 
 // TypeAnnotProcessor converts Dingo type annotations (: type) to Go syntax (space type)
@@ -50,9 +51,24 @@ func (t *TypeAnnotProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 	for i, line := range lines {
 		// Check if this line contains a function declaration
 		if bytes.Contains(line, []byte("func ")) {
+			// First handle return type arrow: ) -> Type {  →  ) Type {
+			line = returnArrowPattern.ReplaceAllFunc(line, func(match []byte) []byte {
+				submatch := returnArrowPattern.FindSubmatch(match)
+				if len(submatch) != 2 {
+					return match
+				}
+				returnType := submatch[1]
+
+				var buf bytes.Buffer
+				buf.WriteString(") ")
+				buf.Write(returnType)
+				buf.WriteString(" {")
+				return buf.Bytes()
+			})
+
 			// Find the parameter list
 			openParen := bytes.IndexByte(line, '(')
-			closeParen := bytes.LastIndexByte(line, ')')
+			closeParen := bytes.IndexByte(line, ')')
 
 			if openParen != -1 && closeParen != -1 && closeParen > openParen {
 				// Process only the parameter list

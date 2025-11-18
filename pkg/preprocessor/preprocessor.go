@@ -21,6 +21,10 @@ type Preprocessor struct {
 	processors []FeatureProcessor
 	oldConfig  *Config        // Deprecated: Legacy preprocessor-specific config
 	config     *config.Config // Main Dingo configuration
+
+	// Package-wide cache (optional, for unqualified import inference)
+	// When present, enables early bailout optimization and local function exclusion
+	cache      *FunctionExclusionCache
 }
 
 // FeatureProcessor defines the interface for individual feature preprocessors
@@ -59,49 +63,62 @@ func NewWithConfig(source []byte, legacyConfig *Config) *Preprocessor {
 
 // NewWithMainConfig creates a new preprocessor with main Dingo configuration
 func NewWithMainConfig(source []byte, cfg *config.Config) *Preprocessor {
+	return newWithConfigAndCache(source, cfg, nil)
+}
+
+// newWithConfigAndCache is the internal constructor that accepts an optional cache
+func newWithConfigAndCache(source []byte, cfg *config.Config, cache *FunctionExclusionCache) *Preprocessor {
 	if cfg == nil {
 		cfg = config.DefaultConfig()
 	}
 
 	processors := []FeatureProcessor{
 		// Order matters! Process in this sequence:
-		// 0. Type annotations (: → space) - must be first
+		// 0. Generic syntax (<> → []) - must be FIRST before type annotations
+		NewGenericSyntaxProcessor(),
+		// 1. Type annotations (: → space) - after generic syntax
 		NewTypeAnnotProcessor(),
-		// 1. Error propagation (expr?) - always enabled
+		// 2. Error propagation (expr?) - always enabled
 		NewErrorPropProcessor(),
 	}
 
-	// 2. Enums (enum Name { ... }) - after error prop, before keywords
+	// 3. Enums (enum Name { ... }) - after error prop, before keywords
 	processors = append(processors, NewEnumProcessor())
 
-	// 3. Pattern matching (match) - CONDITIONAL based on config
-	//    Add RustMatchProcessor or SwiftMatchProcessor based on config
-	switch cfg.Match.Syntax {
-	case "rust":
-		processors = append(processors, NewRustMatchProcessor())
-	case "swift":
-		processors = append(processors, NewSwiftMatchProcessor())
-	default:
-		// Default to Rust syntax if not specified
-		processors = append(processors, NewRustMatchProcessor())
-	}
+	// 4. Pattern matching (match) - Always use Rust syntax (Swift removed in Phase 4.2)
+	processors = append(processors, NewRustMatchProcessor())
 
-	// 4. Keywords (let → var) - after error prop, enum, and pattern match so it doesn't interfere
+	// 5. Keywords (let → var) - after error prop, enum, and pattern match so it doesn't interfere
 	processors = append(processors, NewKeywordProcessor())
 
-	// 5. Lambdas (|x| expr) - future
-	// 6. Operators (ternary, ??, ?.) - future
+	// 6. Unqualified imports (ReadFile → os.ReadFile) - requires cache
+	if cache != nil {
+		processors = append(processors, NewUnqualifiedImportProcessor(cache))
+	}
+
+	// 7. Lambdas (|x| expr) - future
+	// 8. Operators (ternary, ??, ?.) - future
 
 	return &Preprocessor{
 		source:     source,
 		config:     cfg,
 		oldConfig:  nil, // No longer used
 		processors: processors,
+		cache:      cache,
 	}
 }
 
 // Process runs all feature processors in sequence and combines source maps
 func (p *Preprocessor) Process() (string, *SourceMap, error) {
+	// Early bailout optimization (GPT-5.1): If cache indicates no unqualified imports
+	// in this package, skip expensive symbol resolution for unqualified import processors
+	skipUnqualifiedProcessing := false
+	if p.cache != nil && !p.cache.HasUnqualifiedImports() {
+		// This package has no unqualified stdlib calls, skip that processing
+		skipUnqualifiedProcessing = true
+	}
+	_ = skipUnqualifiedProcessing // TODO: Use when UnqualifiedImportProcessor is integrated
+
 	result := p.source
 	sourceMap := NewSourceMap()
 	neededImports := []string{}
@@ -158,6 +175,17 @@ func (p *Preprocessor) ProcessBytes() ([]byte, *SourceMap, error) {
 		return nil, nil, err
 	}
 	return []byte(str), sm, nil
+}
+
+// GetCache returns the function exclusion cache (if present)
+// Returns nil if preprocessor was created without a cache
+func (p *Preprocessor) GetCache() *FunctionExclusionCache {
+	return p.cache
+}
+
+// HasCache returns true if this preprocessor has a package-wide cache
+func (p *Preprocessor) HasCache() bool {
+	return p.cache != nil
 }
 
 // injectImportsWithPosition adds needed imports to the source code and returns the insertion line

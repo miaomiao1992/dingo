@@ -1,5 +1,9 @@
 package main
 
+// Test: Option type interoperating with Go nil pointers
+// Feature: Option type + Go interop
+// Complexity: intermediate
+
 type OptionTag uint8
 
 const (

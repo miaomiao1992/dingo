@@ -1,6 +1,7 @@
 package main
 
-func readConfig(path: string) ([]byte, error) {
+func readConfig(path string) ([]byte, error) {
 	let data = ReadFile(path)?
 	return data, nil
+
 }

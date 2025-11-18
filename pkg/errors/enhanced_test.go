@@ -158,7 +158,10 @@ line 7
 			// Clear cache to ensure fresh read
 			ClearCache()
 
-			lines, idx := extractSourceLines(testFile, tt.targetLine, tt.contextLines)
+			lines, idx, err := extractSourceLines(testFile, tt.targetLine, tt.contextLines)
+			if err != nil {
+				t.Fatalf("extractSourceLines failed: %v", err)
+			}
 
 			if len(lines) != len(tt.expectedLines) {
 				t.Errorf("Expected %d lines, got %d", len(tt.expectedLines), len(lines))
@@ -193,10 +196,10 @@ func TestSourceCaching(t *testing.T) {
 	ClearCache()
 
 	// First read - should cache
-	lines1, _ := extractSourceLines(testFile, 2, 1)
+	lines1, _, _ := extractSourceLines(testFile, 2, 1)
 
 	// Second read - should use cache
-	lines2, _ := extractSourceLines(testFile, 2, 1)
+	lines2, _, _ := extractSourceLines(testFile, 2, 1)
 
 	// Verify same result
 	if len(lines1) != len(lines2) {

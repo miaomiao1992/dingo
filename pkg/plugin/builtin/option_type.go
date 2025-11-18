@@ -276,17 +276,36 @@ func (p *OptionTypePlugin) emitOptionDeclaration(valueType, optionTypeName strin
 		Tok: token.TYPE,
 		Specs: []ast.Spec{
 			&ast.TypeSpec{
-				Name: ast.NewIdent(optionTypeName),
+				Name: &ast.Ident{
+					NamePos: token.NoPos, // Prevent comment grabbing
+					Name:    optionTypeName,
+				},
 				Type: &ast.StructType{
+					Struct: token.NoPos, // Prevent comment grabbing
 					Fields: &ast.FieldList{
+						Opening: token.NoPos, // Prevent comment grabbing
+						Closing: token.NoPos, // Prevent comment grabbing
 						List: []*ast.Field{
 							{
-								Names: []*ast.Ident{ast.NewIdent("tag")},
-								Type:  ast.NewIdent("OptionTag"),
+								Names: []*ast.Ident{
+									{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "tag",
+									},
+								},
+								Type: &ast.Ident{
+									NamePos: token.NoPos, // Prevent comment grabbing
+									Name:    "OptionTag",
+								},
 							},
 							{
-								Names: []*ast.Ident{ast.NewIdent("some_0")},
-								Type:  p.typeToAST(valueType, true), // Pointer
+								Names: []*ast.Ident{
+									{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "some_0",
+									},
+								},
+								Type: p.typeToAST(valueType, true), // Pointer
 							},
 						},
 					},
@@ -312,8 +331,14 @@ func (p *OptionTypePlugin) emitOptionTagEnum() {
 		Tok: token.TYPE,
 		Specs: []ast.Spec{
 			&ast.TypeSpec{
-				Name: ast.NewIdent("OptionTag"),
-				Type: ast.NewIdent("uint8"),
+				Name: &ast.Ident{
+					NamePos: token.NoPos, // Prevent comment grabbing
+					Name:    "OptionTag",
+				},
+				Type: &ast.Ident{
+					NamePos: token.NoPos, // Prevent comment grabbing
+					Name:    "uint8",
+				},
 			},
 		},
 	}
@@ -324,14 +349,30 @@ func (p *OptionTypePlugin) emitOptionTagEnum() {
 		Tok: token.CONST,
 		Specs: []ast.Spec{
 			&ast.ValueSpec{
-				Names: []*ast.Ident{ast.NewIdent("OptionTag_Some")},
-				Type:  ast.NewIdent("OptionTag"),
+				Names: []*ast.Ident{
+					{
+						NamePos: token.NoPos, // Prevent comment grabbing
+						Name:    "OptionTag_Some",
+					},
+				},
+				Type: &ast.Ident{
+					NamePos: token.NoPos, // Prevent comment grabbing
+					Name:    "OptionTag",
+				},
 				Values: []ast.Expr{
-					ast.NewIdent("iota"),
+					&ast.Ident{
+						NamePos: token.NoPos, // Prevent comment grabbing
+						Name:    "iota",
+					},
 				},
 			},
 			&ast.ValueSpec{
-				Names: []*ast.Ident{ast.NewIdent("OptionTag_None")},
+				Names: []*ast.Ident{
+					{
+						NamePos: token.NoPos, // Prevent comment grabbing
+						Name:    "OptionTag_None",
+					},
+				},
 			},
 		},
 	}
@@ -347,40 +388,79 @@ func (p *OptionTypePlugin) emitSomeConstructor(optionTypeName, valueType string)
 	//     return Option_T{tag: OptionTag_Some, some_0: &arg0}
 	// }
 	constructorFunc := &ast.FuncDecl{
-		Name: ast.NewIdent(funcName),
+		Name: &ast.Ident{
+			NamePos: token.NoPos, // Prevent comment grabbing
+			Name:    funcName,
+		},
 		Type: &ast.FuncType{
+			Func: token.NoPos, // Prevent comment grabbing
 			Params: &ast.FieldList{
+				Opening: token.NoPos, // Prevent comment grabbing
+				Closing: token.NoPos, // Prevent comment grabbing
 				List: []*ast.Field{
 					{
-						Names: []*ast.Ident{ast.NewIdent("arg0")},
-						Type:  valueTypeAST,
+						Names: []*ast.Ident{
+							{
+								NamePos: token.NoPos, // Prevent comment grabbing
+								Name:    "arg0",
+							},
+						},
+						Type: valueTypeAST,
 					},
 				},
 			},
 			Results: &ast.FieldList{
+				Opening: token.NoPos, // Prevent comment grabbing
+				Closing: token.NoPos, // Prevent comment grabbing
 				List: []*ast.Field{
 					{
-						Type: ast.NewIdent(optionTypeName),
+						Type: &ast.Ident{
+							NamePos: token.NoPos, // Prevent comment grabbing
+							Name:    optionTypeName,
+						},
 					},
 				},
 			},
 		},
 		Body: &ast.BlockStmt{
+			Lbrace: token.NoPos, // Prevent comment grabbing
+			Rbrace: token.NoPos, // Prevent comment grabbing
 			List: []ast.Stmt{
 				&ast.ReturnStmt{
+					Return: token.NoPos, // Prevent comment grabbing
 					Results: []ast.Expr{
 						&ast.CompositeLit{
-							Type: ast.NewIdent(optionTypeName),
+							Lbrace: token.NoPos, // Prevent comment grabbing
+							Rbrace: token.NoPos, // Prevent comment grabbing
+							Type: &ast.Ident{
+								NamePos: token.NoPos, // Prevent comment grabbing
+								Name:    optionTypeName,
+							},
 							Elts: []ast.Expr{
 								&ast.KeyValueExpr{
-									Key:   ast.NewIdent("tag"),
-									Value: ast.NewIdent("OptionTag_Some"),
+									Colon: token.NoPos, // Prevent comment grabbing
+									Key: &ast.Ident{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "tag",
+									},
+									Value: &ast.Ident{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "OptionTag_Some",
+									},
 								},
 								&ast.KeyValueExpr{
-									Key: ast.NewIdent("some_0"),
+									Colon: token.NoPos, // Prevent comment grabbing
+									Key: &ast.Ident{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "some_0",
+									},
 									Value: &ast.UnaryExpr{
-										Op: token.AND,
-										X:  ast.NewIdent("arg0"),
+										OpPos: token.NoPos, // Prevent comment grabbing
+										Op:    token.AND,
+										X: &ast.Ident{
+											NamePos: token.NoPos, // Prevent comment grabbing
+											Name:    "arg0",
+										},
 									},
 								},
 							},
@@ -402,27 +482,54 @@ func (p *OptionTypePlugin) emitNoneConstructor(optionTypeName, valueType string)
 	//     return Option_T{tag: OptionTag_None}
 	// }
 	constructorFunc := &ast.FuncDecl{
-		Name: ast.NewIdent(funcName),
+		Name: &ast.Ident{
+			NamePos: token.NoPos, // Prevent comment grabbing
+			Name:    funcName,
+		},
 		Type: &ast.FuncType{
-			Params: &ast.FieldList{},
+			Func: token.NoPos, // Prevent comment grabbing
+			Params: &ast.FieldList{
+				Opening: token.NoPos, // Prevent comment grabbing
+				Closing: token.NoPos, // Prevent comment grabbing
+			},
 			Results: &ast.FieldList{
+				Opening: token.NoPos, // Prevent comment grabbing
+				Closing: token.NoPos, // Prevent comment grabbing
 				List: []*ast.Field{
 					{
-						Type: ast.NewIdent(optionTypeName),
+						Type: &ast.Ident{
+							NamePos: token.NoPos, // Prevent comment grabbing
+							Name:    optionTypeName,
+						},
 					},
 				},
 			},
 		},
 		Body: &ast.BlockStmt{
+			Lbrace: token.NoPos, // Prevent comment grabbing
+			Rbrace: token.NoPos, // Prevent comment grabbing
 			List: []ast.Stmt{
 				&ast.ReturnStmt{
+					Return: token.NoPos, // Prevent comment grabbing
 					Results: []ast.Expr{
 						&ast.CompositeLit{
-							Type: ast.NewIdent(optionTypeName),
+							Lbrace: token.NoPos, // Prevent comment grabbing
+							Rbrace: token.NoPos, // Prevent comment grabbing
+							Type: &ast.Ident{
+								NamePos: token.NoPos, // Prevent comment grabbing
+								Name:    optionTypeName,
+							},
 							Elts: []ast.Expr{
 								&ast.KeyValueExpr{
-									Key:   ast.NewIdent("tag"),
-									Value: ast.NewIdent("OptionTag_None"),
+									Colon: token.NoPos, // Prevent comment grabbing
+									Key: &ast.Ident{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "tag",
+									},
+									Value: &ast.Ident{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "OptionTag_None",
+									},
 								},
 							},
 						},
@@ -1027,11 +1134,17 @@ func (p *OptionTypePlugin) getTypeName(expr ast.Expr) string {
 
 func (p *OptionTypePlugin) sanitizeTypeName(typeName string) string {
 	s := typeName
+	// Convert interface{} to any (Go 1.18+)
+	if s == "interface{}" {
+		return "any"
+	}
 	s = strings.ReplaceAll(s, "*", "ptr_")
 	s = strings.ReplaceAll(s, "[]", "slice_")
 	s = strings.ReplaceAll(s, "[", "_")
 	s = strings.ReplaceAll(s, "]", "_")
 	s = strings.ReplaceAll(s, ".", "_")
+	s = strings.ReplaceAll(s, "{", "")
+	s = strings.ReplaceAll(s, "}", "")
 	s = strings.ReplaceAll(s, " ", "")
 	s = strings.Trim(s, "_")
 	return s

@@ -53,9 +53,9 @@ const (
 // MatchConfig controls pattern matching feature behavior
 type MatchConfig struct {
 	// Syntax selects the pattern matching syntax style
-	// Valid values: "rust", "swift"
+	// Valid values: "rust" (only)
 	// - "rust": Rust-style match syntax (match expr { ... })
-	// - "swift": Swift-style switch syntax (switch expr { ... })
+	// Note: Swift syntax ("swift") was removed in Phase 4.2 (incomplete implementation)
 	Syntax string `toml:"syntax"`
 }
 
@@ -255,10 +255,14 @@ func (c *Config) Validate() error {
 	// Validate match syntax
 	if c.Match.Syntax != "" {
 		switch c.Match.Syntax {
-		case "rust", "swift":
+		case "rust":
 			// Valid
+		case "swift":
+			// Deprecated: Swift syntax removed in Phase 4.2
+			return fmt.Errorf("invalid match.syntax: %q (Swift syntax removed in Phase 4.2, use 'rust' only)",
+				c.Match.Syntax)
 		default:
-			return fmt.Errorf("invalid match.syntax: %q (must be 'rust' or 'swift')",
+			return fmt.Errorf("invalid match.syntax: %q (must be 'rust')",
 				c.Match.Syntax)
 		}
 	}

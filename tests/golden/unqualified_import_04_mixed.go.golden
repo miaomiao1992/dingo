@@ -1,0 +1,36 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"os"
+)
+
+import (
+	"errors"
+	"fmt"
+	"os"
+)
+
+func validateFile(path string) error {
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	if len(data) == 0 {
+
+		return errors.New("empty file")
+	}
+
+	fmt.Printf("File size: %d bytes\n", len(data))
+
+	return nil
+}
+func main() {
+	err := validateFile("test.txt")
+	if err != nil {
+		panic(err)
+	}
+}

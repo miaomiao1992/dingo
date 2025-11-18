@@ -4,6 +4,7 @@ package builtin
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"strings"
 
@@ -67,6 +68,12 @@ func (p *NoneContextPlugin) SetContext(ctx *plugin.Context) {
 					service.SetTypesInfo(typesInfo)
 					ctx.Logger.Debug("None context plugin: go/types integration enabled")
 				}
+			}
+
+			// Inject parent map for context-based inference
+			if ctx.GetParentMap() != nil {
+				service.SetParentMap(ctx.GetParentMap())
+				ctx.Logger.Debug("None context plugin: parent map integration enabled")
 			}
 		}
 	}
@@ -205,6 +212,23 @@ func (p *NoneContextPlugin) inferNoneType(noneIdent *ast.Ident) (string, error) 
 					foundContext = true
 					return false
 				}
+			}
+
+		case *ast.CaseClause:
+			// Context: case OptionTag_None: None (in match expression)
+			// Infer from other arms in the same switch statement
+			if p.ctx.Logger != nil {
+				p.ctx.Logger.Debug("NoneContextPlugin: Found CaseClause parent, attempting match arm type inference")
+			}
+			if typ, err := p.findMatchArmType(noneIdent, parentNode); err == nil && typ != "" {
+				if p.ctx.Logger != nil {
+					p.ctx.Logger.Debug("NoneContextPlugin: Inferred type %s from match arms", typ)
+				}
+				inferredType = typ
+				foundContext = true
+				return false
+			} else if p.ctx.Logger != nil {
+				p.ctx.Logger.Debug("NoneContextPlugin: Match arm type inference failed: %v", err)
 			}
 		}
 
@@ -372,6 +396,176 @@ func (p *NoneContextPlugin) findFieldType(noneIdent *ast.Ident, compLit *ast.Com
 	}
 
 	return "", fmt.Errorf("cannot infer type from struct field")
+}
+
+// findMatchArmType infers type from other arms in a match expression (switch statement)
+// Example: case OptionTag_Some: Some(x*2)  →  case OptionTag_None: None should infer Option_int
+func (p *NoneContextPlugin) findMatchArmType(noneIdent *ast.Ident, caseClause *ast.CaseClause) (string, error) {
+	// Walk up to find the containing switch statement
+	var switchStmt *ast.SwitchStmt
+	p.ctx.WalkParents(caseClause, func(parent ast.Node) bool {
+		if sw, ok := parent.(*ast.SwitchStmt); ok {
+			switchStmt = sw
+			return false // Stop walking
+		}
+		return true
+	})
+
+	if switchStmt == nil {
+		return "", fmt.Errorf("cannot find containing switch statement")
+	}
+
+	// Look for Some() calls in other case arms to infer the Option type
+	// Strategy: Find first CompositeLit with type Option_T in any case body
+	var optionType string
+	foundSomeCalls := 0
+	foundCompLits := 0
+
+	ast.Inspect(switchStmt, func(n ast.Node) bool {
+		// Look for CompositeLit with Option_T type
+		if compLit, ok := n.(*ast.CompositeLit); ok {
+			foundCompLits++
+			if ident, ok := compLit.Type.(*ast.Ident); ok {
+				if p.ctx.Logger != nil {
+					p.ctx.Logger.Debug("NoneContextPlugin: Found CompositeLit with type %s", ident.Name)
+				}
+				if strings.HasPrefix(ident.Name, "Option_") {
+					optionType = ident.Name
+					return false // Stop inspection
+				}
+			}
+		}
+
+		// Also look for CallExpr to Some() that hasn't been transformed yet
+		// (in case we're running before Some transformation)
+		if callExpr, ok := n.(*ast.CallExpr); ok {
+			if funcIdent, ok := callExpr.Fun.(*ast.Ident); ok {
+				if funcIdent.Name == "Some" {
+					foundSomeCalls++
+					if p.ctx.Logger != nil {
+						p.ctx.Logger.Debug("NoneContextPlugin: Found Some() call with %d args", len(callExpr.Args))
+					}
+
+					// Strategy 1: Try go/types inference if available
+					if len(callExpr.Args) > 0 && p.typeInference != nil && p.typeInference.typesInfo != nil {
+						if tv, ok := p.typeInference.typesInfo.Types[callExpr.Args[0]]; ok {
+							// Build Option_T name from argument type
+							typeName := p.typeNameFromGoType(tv.Type)
+							if typeName != "" {
+								if p.ctx.Logger != nil {
+									p.ctx.Logger.Debug("NoneContextPlugin: Inferred %s from Some() argument via go/types", typeName)
+								}
+								optionType = "Option_" + typeName
+								return false
+							}
+						}
+					}
+
+					// Strategy 2: Heuristic - infer from literal types in argument
+					if len(callExpr.Args) > 0 {
+						argType := p.inferTypeFromExpr(callExpr.Args[0])
+						if argType != "" {
+							if p.ctx.Logger != nil {
+								p.ctx.Logger.Debug("NoneContextPlugin: Inferred %s from Some() argument via heuristic", argType)
+							}
+							optionType = "Option_" + argType
+							return false
+						}
+					}
+				}
+			}
+		}
+
+		return true
+	})
+
+	if p.ctx.Logger != nil {
+		p.ctx.Logger.Debug("NoneContextPlugin: Match arm inspection: %d Some() calls, %d CompositeLits, inferred type: %s", foundSomeCalls, foundCompLits, optionType)
+	}
+
+	if optionType == "" {
+		return "", fmt.Errorf("cannot infer Option type from match arms")
+	}
+
+	return optionType, nil
+}
+
+// typeNameFromGoType converts a go/types.Type to a Dingo type name string
+func (p *NoneContextPlugin) typeNameFromGoType(t types.Type) string {
+	switch typ := t.(type) {
+	case *types.Basic:
+		return typ.Name()
+	case *types.Named:
+		return typ.Obj().Name()
+	case *types.Pointer:
+		return "ptr_" + p.typeNameFromGoType(typ.Elem())
+	case *types.Slice:
+		return "slice_" + p.typeNameFromGoType(typ.Elem())
+	default:
+		return "interface{}"
+	}
+}
+
+// inferTypeFromExpr attempts to infer type from an expression using heuristics
+// This is used when go/types information is not available
+func (p *NoneContextPlugin) inferTypeFromExpr(expr ast.Expr) string {
+	switch e := expr.(type) {
+	case *ast.BasicLit:
+		// Literal: 42, "hello", 3.14
+		switch e.Kind {
+		case token.INT:
+			return "int"
+		case token.FLOAT:
+			return "float64"
+		case token.STRING:
+			return "string"
+		case token.CHAR:
+			return "rune"
+		}
+
+	case *ast.BinaryExpr:
+		// Expression: x * 2, a + b
+		// Try to infer from either operand
+		leftType := p.inferTypeFromExpr(e.X)
+		if leftType != "" {
+			return leftType
+		}
+		rightType := p.inferTypeFromExpr(e.Y)
+		if rightType != "" {
+			return rightType
+		}
+
+	case *ast.Ident:
+		// Variable reference: x, count, etc.
+		// Try to use go/types if available
+		if p.typeInference != nil && p.typeInference.typesInfo != nil {
+			if obj := p.typeInference.typesInfo.Uses[e]; obj != nil {
+				return p.typeNameFromGoType(obj.Type())
+			}
+			if obj := p.typeInference.typesInfo.Defs[e]; obj != nil {
+				return p.typeNameFromGoType(obj.Type())
+			}
+		}
+
+	case *ast.CallExpr:
+		// Function call: foo(x)
+		// Try to get return type
+		if p.typeInference != nil && p.typeInference.typesInfo != nil {
+			if tv, ok := p.typeInference.typesInfo.Types[e]; ok {
+				return p.typeNameFromGoType(tv.Type)
+			}
+		}
+
+	case *ast.UnaryExpr:
+		// Unary operation: -x, !flag
+		return p.inferTypeFromExpr(e.X)
+
+	case *ast.ParenExpr:
+		// Parenthesized expression: (x + y)
+		return p.inferTypeFromExpr(e.X)
+	}
+
+	return ""
 }
 
 // extractOptionType extracts the Option_T type name from an AST type expression

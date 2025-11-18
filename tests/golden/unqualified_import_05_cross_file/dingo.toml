@@ -1,0 +1,4 @@
+# Configuration for cross-file test
+
+[pattern_matching]
+syntax = "rust"  # Use Rust syntax for pattern matching

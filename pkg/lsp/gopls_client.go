@@ -3,27 +3,33 @@ package lsp
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os/exec"
 	"sync"
+	"time"
 
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
 	"go.lsp.dev/uri"
 )
 
+// DiagnosticsHandler is called when gopls sends diagnostics
+type DiagnosticsHandler func(ctx context.Context, params protocol.PublishDiagnosticsParams) error
+
 // GoplsClient manages a gopls subprocess and forwards LSP requests
 type GoplsClient struct {
-	cmd          *exec.Cmd
-	conn         jsonrpc2.Conn
-	logger       Logger
-	goplsPath    string
-	restarts     int
-	maxRestarts  int
-	mu           sync.Mutex
-	shuttingDown bool           // CRITICAL FIX C2: Track shutdown state
-	closeMu      sync.Mutex     // CRITICAL FIX C2: Protect shutdown flag
+	cmd                 *exec.Cmd
+	conn                jsonrpc2.Conn
+	logger              Logger
+	goplsPath           string
+	restarts            int
+	maxRestarts         int
+	mu                  sync.Mutex
+	shuttingDown        bool           // CRITICAL FIX C2: Track shutdown state
+	closeMu             sync.Mutex     // CRITICAL FIX C2: Protect shutdown flag
+	diagnosticsHandler  DiagnosticsHandler // Callback for diagnostics
 }
 
 // NewGoplsClient creates and starts a gopls subprocess
@@ -44,6 +50,13 @@ func NewGoplsClient(goplsPath string, logger Logger) (*GoplsClient, error) {
 	}
 
 	return client, nil
+}
+
+// SetDiagnosticsHandler sets the callback for handling diagnostics from gopls
+func (c *GoplsClient) SetDiagnosticsHandler(handler DiagnosticsHandler) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.diagnosticsHandler = handler
 }
 
 func (c *GoplsClient) start() error {
@@ -76,10 +89,59 @@ func (c *GoplsClient) start() error {
 	// Log stderr in background
 	go c.logStderr(stderr)
 
-	// Create JSON-RPC connection using a ReadWriteCloser wrapper
-	rwc := &readWriteCloser{stdin: stdin, stdout: stdout}
+	// Create JSON-RPC connection using a buffered ReadWriteCloser wrapper (GPT-5 fix)
+	rwc := newReadWriteCloser(stdin, stdout)
 	stream := jsonrpc2.NewStream(rwc)
 	c.conn = jsonrpc2.NewConn(stream)
+
+	// Start handler to process gopls responses and notifications
+	ctx := context.Background()
+	handler := jsonrpc2.ReplyHandler(func(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
+		// Log gopls -> dingo-lsp notifications/requests (if any)
+		c.logger.Debugf("gopls notification/request: %s", req.Method())
+
+		// Handle server->client requests from gopls
+		switch req.Method() {
+		case "client/registerCapability", "client/unregisterCapability":
+			// Accept capability registration (we don't need to track them)
+			return reply(ctx, nil, nil)
+		case "window/showMessage", "window/logMessage":
+			// Log messages from gopls
+			var params map[string]interface{}
+			if err := json.Unmarshal(req.Params(), &params); err == nil {
+				c.logger.Debugf("gopls %s: %v", req.Method(), params)
+			}
+			return reply(ctx, nil, nil)
+		case "textDocument/publishDiagnostics":
+			// Forward diagnostics to handler (for translation to .dingo positions)
+			var params protocol.PublishDiagnosticsParams
+			if err := json.Unmarshal(req.Params(), &params); err != nil {
+				c.logger.Warnf("Failed to unmarshal diagnostics: %v", err)
+				return reply(ctx, nil, nil)
+			}
+
+			// Call diagnostics handler if set
+			c.mu.Lock()
+			handler := c.diagnosticsHandler
+			c.mu.Unlock()
+
+			if handler != nil {
+				if err := handler(ctx, params); err != nil {
+					c.logger.Warnf("Diagnostics handler error: %v", err)
+				}
+			} else {
+				c.logger.Debugf("No diagnostics handler set, discarding %d diagnostics for %s",
+					len(params.Diagnostics), params.URI)
+			}
+
+			return reply(ctx, nil, nil)
+		default:
+			// Unknown method - reply with empty result
+			c.logger.Debugf("gopls unknown method: %s", req.Method())
+			return reply(ctx, nil, nil)
+		}
+	})
+	c.conn.Go(ctx, handler)
 
 	c.logger.Infof("gopls started (PID: %d)", c.cmd.Process.Pid)
 
@@ -118,13 +180,28 @@ func (c *GoplsClient) logStderr(stderr io.Reader) {
 	}
 }
 
-// Initialize sends initialize request to gopls
+// Initialize sends initialize request to gopls with timeout (GPT-5 fix)
 func (c *GoplsClient) Initialize(ctx context.Context, params protocol.InitializeParams) (*protocol.InitializeResult, error) {
+	// Check if gopls process is still alive
+	c.mu.Lock()
+	if c.cmd == nil || c.cmd.Process == nil {
+		c.mu.Unlock()
+		return nil, fmt.Errorf("gopls process not running")
+	}
+	c.mu.Unlock()
+
+	// Add timeout to prevent hanging forever
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	c.logger.Debugf("Calling gopls initialize")
 	var result protocol.InitializeResult
 	_, err := c.conn.Call(ctx, "initialize", params, &result)
 	if err != nil {
+		c.logger.Errorf("gopls initialize call failed: %v", err)
 		return nil, fmt.Errorf("gopls initialize failed: %w", err)
 	}
+	c.logger.Debugf("gopls initialize succeeded")
 	return &result, nil
 }
 
@@ -251,21 +328,39 @@ func (c *GoplsClient) handleCrash() error {
 	return c.start()
 }
 
-// readWriteCloser combines separate Read and Write closers into a single ReadWriteCloser
+// readWriteCloser combines separate Read and Write closers with buffering (GPT-5 fix)
 type readWriteCloser struct {
-	stdin  io.WriteCloser
-	stdout io.ReadCloser
+	stdin   io.WriteCloser
+	stdout  io.ReadCloser
+	reader  *bufio.Reader
+	writer  *bufio.Writer
+}
+
+func newReadWriteCloser(stdin io.WriteCloser, stdout io.ReadCloser) *readWriteCloser {
+	return &readWriteCloser{
+		stdin:  stdin,
+		stdout: stdout,
+		reader: bufio.NewReaderSize(stdout, 32*1024), // 32KB buffer
+		writer: bufio.NewWriterSize(stdin, 32*1024),  // 32KB buffer
+	}
 }
 
 func (rwc *readWriteCloser) Read(p []byte) (n int, err error) {
-	return rwc.stdout.Read(p)
+	return rwc.reader.Read(p)
 }
 
 func (rwc *readWriteCloser) Write(p []byte) (n int, err error) {
-	return rwc.stdin.Write(p)
+	n, err = rwc.writer.Write(p)
+	if err != nil {
+		return n, err
+	}
+	// Flush after each write to ensure messages are sent immediately
+	return n, rwc.writer.Flush()
 }
 
 func (rwc *readWriteCloser) Close() error {
+	// Flush any remaining data
+	_ = rwc.writer.Flush()
 	err1 := rwc.stdin.Close()
 	err2 := rwc.stdout.Close()
 	if err1 != nil {

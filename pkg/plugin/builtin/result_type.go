@@ -513,21 +513,45 @@ func (p *ResultTypePlugin) emitResultDeclaration(okType, errType, resultTypeName
 		Tok: token.TYPE,
 		Specs: []ast.Spec{
 			&ast.TypeSpec{
-				Name: ast.NewIdent(resultTypeName),
+				Name: &ast.Ident{
+					NamePos: token.NoPos, // Prevent comment grabbing
+					Name:    resultTypeName,
+				},
 				Type: &ast.StructType{
+					Struct: token.NoPos, // Prevent comment grabbing
 					Fields: &ast.FieldList{
+						Opening: token.NoPos, // Prevent comment grabbing
+						Closing: token.NoPos, // Prevent comment grabbing
 						List: []*ast.Field{
 							{
-								Names: []*ast.Ident{ast.NewIdent("tag")},
-								Type:  ast.NewIdent("ResultTag"),
+								Names: []*ast.Ident{
+									{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "tag",
+									},
+								},
+								Type: &ast.Ident{
+									NamePos: token.NoPos, // Prevent comment grabbing
+									Name:    "ResultTag",
+								},
 							},
 							{
-								Names: []*ast.Ident{ast.NewIdent("ok_0")},
-								Type:  p.typeToAST(okType, true), // Pointer for zero-value safety
+								Names: []*ast.Ident{
+									{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "ok_0",
+									},
+								},
+								Type: p.typeToAST(okType, true), // Pointer for zero-value safety
 							},
 							{
-								Names: []*ast.Ident{ast.NewIdent("err_0")},
-								Type:  p.typeToAST(errType, true), // Pointer
+								Names: []*ast.Ident{
+									{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "err_0",
+									},
+								},
+								Type: p.typeToAST(errType, true), // Pointer
 							},
 						},
 					},
@@ -560,8 +584,14 @@ func (p *ResultTypePlugin) emitResultTagEnum() {
 		Tok: token.TYPE,
 		Specs: []ast.Spec{
 			&ast.TypeSpec{
-				Name: ast.NewIdent("ResultTag"),
-				Type: ast.NewIdent("uint8"),
+				Name: &ast.Ident{
+					NamePos: token.NoPos, // Prevent comment grabbing
+					Name:    "ResultTag",
+				},
+				Type: &ast.Ident{
+					NamePos: token.NoPos, // Prevent comment grabbing
+					Name:    "uint8",
+				},
 			},
 		},
 	}
@@ -573,14 +603,30 @@ func (p *ResultTypePlugin) emitResultTagEnum() {
 		Lparen: 1, // Required for const block
 		Specs: []ast.Spec{
 			&ast.ValueSpec{
-				Names: []*ast.Ident{ast.NewIdent("ResultTag_Ok")},
-				Type:  ast.NewIdent("ResultTag"),
+				Names: []*ast.Ident{
+					{
+						NamePos: token.NoPos, // Prevent comment grabbing
+						Name:    "ResultTag_Ok",
+					},
+				},
+				Type: &ast.Ident{
+					NamePos: token.NoPos, // Prevent comment grabbing
+					Name:    "ResultTag",
+				},
 				Values: []ast.Expr{
-					ast.NewIdent("iota"),
+					&ast.Ident{
+						NamePos: token.NoPos, // Prevent comment grabbing
+						Name:    "iota",
+					},
 				},
 			},
 			&ast.ValueSpec{
-				Names: []*ast.Ident{ast.NewIdent("ResultTag_Err")},
+				Names: []*ast.Ident{
+					{
+						NamePos: token.NoPos, // Prevent comment grabbing
+						Name:    "ResultTag_Err",
+					},
+				},
 			},
 		},
 		Rparen: 2, // Required for const block
@@ -604,40 +650,79 @@ func (p *ResultTypePlugin) emitConstructorFunction(resultTypeName, argType strin
 	//     return Result_T_E{tag: ResultTag_Ok, ok_0: &arg0}
 	// }
 	constructorFunc := &ast.FuncDecl{
-		Name: ast.NewIdent(funcName),
+		Name: &ast.Ident{
+			NamePos: token.NoPos, // Prevent comment grabbing
+			Name:    funcName,
+		},
 		Type: &ast.FuncType{
+			Func: token.NoPos, // Prevent comment grabbing
 			Params: &ast.FieldList{
+				Opening: token.NoPos, // Prevent comment grabbing
+				Closing: token.NoPos, // Prevent comment grabbing
 				List: []*ast.Field{
 					{
-						Names: []*ast.Ident{ast.NewIdent("arg0")},
-						Type:  argTypeAST,
+						Names: []*ast.Ident{
+							{
+								NamePos: token.NoPos, // Prevent comment grabbing
+								Name:    "arg0",
+							},
+						},
+						Type: argTypeAST,
 					},
 				},
 			},
 			Results: &ast.FieldList{
+				Opening: token.NoPos, // Prevent comment grabbing
+				Closing: token.NoPos, // Prevent comment grabbing
 				List: []*ast.Field{
 					{
-						Type: ast.NewIdent(resultTypeName),
+						Type: &ast.Ident{
+							NamePos: token.NoPos, // Prevent comment grabbing
+							Name:    resultTypeName,
+						},
 					},
 				},
 			},
 		},
 		Body: &ast.BlockStmt{
+			Lbrace: token.NoPos, // Prevent comment grabbing
+			Rbrace: token.NoPos, // Prevent comment grabbing
 			List: []ast.Stmt{
 				&ast.ReturnStmt{
+					Return: token.NoPos, // Prevent comment grabbing
 					Results: []ast.Expr{
 						&ast.CompositeLit{
-							Type: ast.NewIdent(resultTypeName),
+							Lbrace: token.NoPos, // Prevent comment grabbing
+							Rbrace: token.NoPos, // Prevent comment grabbing
+							Type: &ast.Ident{
+								NamePos: token.NoPos, // Prevent comment grabbing
+								Name:    resultTypeName,
+							},
 							Elts: []ast.Expr{
 								&ast.KeyValueExpr{
-									Key:   ast.NewIdent("tag"),
-									Value: ast.NewIdent(variantTag),
+									Colon: token.NoPos, // Prevent comment grabbing
+									Key: &ast.Ident{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    "tag",
+									},
+									Value: &ast.Ident{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    variantTag,
+									},
 								},
 								&ast.KeyValueExpr{
-									Key: ast.NewIdent(fieldName),
+									Colon: token.NoPos, // Prevent comment grabbing
+									Key: &ast.Ident{
+										NamePos: token.NoPos, // Prevent comment grabbing
+										Name:    fieldName,
+									},
 									Value: &ast.UnaryExpr{
-										Op: token.AND,
-										X:  ast.NewIdent("arg0"),
+										OpPos: token.NoPos, // Prevent comment grabbing
+										Op:    token.AND,
+										X: &ast.Ident{
+											NamePos: token.NoPos, // Prevent comment grabbing
+											Name:    "arg0",
+										},
 									},
 								},
 							},

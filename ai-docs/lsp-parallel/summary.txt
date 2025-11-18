@@ -1,0 +1,33 @@
+LSP Server Context & Goroutine Analysis - Summary
+====================================================
+
+THREE CRITICAL THREADING ISSUES IDENTIFIED:
+
+1. UNPROTECTED SERVER CONTEXT (CRITICAL - Race Condition)
+   - Lines: 30-31, 64-67, 327, 269
+   - Problem: s.ctx and s.ideConn accessed from multiple goroutines without mutex
+   - Risk: Data race when main thread calls SetConn() while handlers read s.ctx
+   - Fix: Add sync.RWMutex to protect Server.ctx and Server.ideConn
+
+2. GOPLS CLIENT SHUTDOWN DEADLOCK (CRITICAL - Deadlock Risk)
+   - Lines: 96-109, 220-257, 260-272
+   - Problem: Monitor goroutine and Shutdown() use inconsistent lock ordering
+   - Risk: Shutdown() waits for mu while monitor goroutine waits for handleCrash()
+   - Scenario: IDE calls Shutdown while gopls crashes simultaneously = HANG
+   - Fix: Use single mutex consistently or switch to channel-based sync
+
+3. FILEWATCHER CALLBACK RACE (HIGH - Race Condition)
+   - Lines: 177-179, 183-197, 200-211
+   - Problem: processPendingFiles() callback runs without protection after lock release
+   - Risk: Close() can execute while callback is calling onChange()
+   - Fix: Add fw.closed check in processPendingFiles()
+
+ADDITIONAL ISSUES (MEDIUM):
+4. Context Lifecycle Confusion - Multiple contexts in flight (handler ctx vs server ctx)
+5. Handler Synchronization - Need to verify thread-safety of SourceMapCache/Translator
+
+SEVERITY RANKING: Issues 1 & 2 are production blockers - must fix before release.
+
+TESTING: Run with -race flag to detect these at runtime.
+
+Full analysis: /Users/jack/mag/dingo/ai-docs/lsp-parallel/goroutine-analysis.md

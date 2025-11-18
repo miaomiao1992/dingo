@@ -58,7 +58,7 @@ func TestGoldenFiles(t *testing.T) {
 				"func_util_",       // Parser doesn't support function types in parameters
 				"lambda_",          // Lambda causes nil positioner crash in type checker
 				"sum_types_",       // Type checker crashes on method receivers in generated code
-				"pattern_match_",   // Pattern matching not yet implemented
+				// "pattern_match_",   // Pattern matching IMPLEMENTED in Phase 4.2
 				"safe_nav_",        // Safe navigation transformation not yet implemented
 				"null_coalesce_",   // Null coalescing transformation not yet implemented
 				"ternary_",         // Ternary operator not yet implemented (Phase 3)
@@ -110,12 +110,23 @@ func TestGoldenFiles(t *testing.T) {
 				}
 			}
 
-			// Preprocess THEN parse
+			// Preprocess THEN parse (with cache for unqualified imports)
+			// Create cache for unqualified import inference
+			pkgDir := filepath.Dir(dingoFile)
+			cache := preprocessor.NewFunctionExclusionCache(pkgDir)
+			// Scan only this test file (not entire golden directory - has experimental tests)
+			err = cache.ScanPackage([]string{dingoFile})
 			var preprocessorInst *preprocessor.Preprocessor
-			if cfg != nil {
-				preprocessorInst = preprocessor.NewWithMainConfig(dingoSrc, cfg)
+			if err != nil {
+				// Cache scan failed, fall back to no cache
+				if cfg != nil {
+					preprocessorInst = preprocessor.NewWithMainConfig(dingoSrc, cfg)
+				} else {
+					preprocessorInst = preprocessor.New(dingoSrc)
+				}
 			} else {
-				preprocessorInst = preprocessor.New(dingoSrc)
+				// Cache scan successful, use it for unqualified imports
+				preprocessorInst = preprocessor.NewWithCache(dingoSrc, cache)
 			}
 			preprocessed, _, err := preprocessorInst.Process()
 			require.NoError(t, err, "Failed to preprocess Dingo file: %s", dingoFile)

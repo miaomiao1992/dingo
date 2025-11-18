@@ -217,19 +217,45 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput, cfg
 		return fmt.Errorf("failed to read file: %w", err)
 	}
 
-	// Step 2: Preprocess (with main config - C1 integration)
+	// Step 2: Preprocess (with main config + package context for unqualified imports)
 	prepStart := time.Now()
-	prep := preprocessor.NewWithMainConfig(src, cfg)
-	goSource, sourceMap, err := prep.Process()
-	prepDuration := time.Since(prepStart)
+	var goSource string
+	var sourceMap *preprocessor.SourceMap
+	var prepDuration time.Duration
 
+	// Get package directory for cache
+	pkgDir := filepath.Dir(inputPath)
+
+	// For single-file builds, create a simple cache for just this file
+	// (Full package scanning can fail if other files have experimental syntax)
+	cache := preprocessor.NewFunctionExclusionCache(pkgDir)
+	err = cache.ScanPackage([]string{inputPath}) // Only scan the file being built
 	if err != nil {
-		buildUI.PrintStep(ui.Step{
-			Name:     "Preprocess",
-			Status:   ui.StepError,
-			Duration: prepDuration,
-		})
-		return fmt.Errorf("preprocessing error: %w", err)
+		// Fall back to no cache if scanning fails (e.g., syntax errors in .dingo file)
+		prep := preprocessor.NewWithMainConfig(src, cfg)
+		goSource, sourceMap, err = prep.Process()
+		prepDuration = time.Since(prepStart)
+		if err != nil {
+			buildUI.PrintStep(ui.Step{
+				Name:     "Preprocess",
+				Status:   ui.StepError,
+				Duration: prepDuration,
+			})
+			return fmt.Errorf("preprocessing error: %w", err)
+		}
+	} else {
+		// Cache scan successful, use preprocessor with unqualified import inference
+		prep := preprocessor.NewWithCache(src, cache)
+		goSource, sourceMap, err = prep.Process()
+		prepDuration = time.Since(prepStart)
+		if err != nil {
+			buildUI.PrintStep(ui.Step{
+				Name:     "Preprocess",
+				Status:   ui.StepError,
+				Duration: prepDuration,
+			})
+			return fmt.Errorf("preprocessing error: %w", err)
+		}
 	}
 
 	buildUI.PrintStep(ui.Step{
@@ -237,6 +263,7 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput, cfg
 		Status:   ui.StepSuccess,
 		Duration: prepDuration,
 	})
+
 
 	// Step 3: Parse preprocessed Go
 	parseStart := time.Now()
@@ -365,12 +392,25 @@ func runDingoFile(inputPath string, programArgs []string, multiValueReturnMode s
 		return err
 	}
 
-	// Preprocess (with main config - C1 integration)
-	prep := preprocessor.NewWithMainConfig(src, cfg)
-	goSource, _, err := prep.Process()
+	// Preprocess (with main config + package context for unqualified imports)
+	var goSource string
+	pkgDir := filepath.Dir(inputPath)
+	pkgCtx, err := preprocessor.NewPackageContext(pkgDir, preprocessor.DefaultBuildOptions())
 	if err != nil {
-		buildUI.PrintError(fmt.Sprintf("Preprocessing error: %v", err))
-		return err
+		// Fall back to no cache if package context fails
+		prep := preprocessor.NewWithMainConfig(src, cfg)
+		goSource, _, err = prep.Process()
+		if err != nil {
+			buildUI.PrintError(fmt.Sprintf("Preprocessing error: %v", err))
+			return err
+		}
+	} else {
+		prep := preprocessor.NewWithCache(src, pkgCtx.GetCache())
+		goSource, _, err = prep.Process()
+		if err != nil {
+			buildUI.PrintError(fmt.Sprintf("Preprocessing error: %v", err))
+			return err
+		}
 	}
 
 	// Parse

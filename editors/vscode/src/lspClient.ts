@@ -41,10 +41,22 @@ export async function activateLSPClient(context: vscode.ExtensionContext): Promi
             fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{dingo,go.map}')
         },
         outputChannelName: 'Dingo Language Server',
-        // Show error notifications
+        // Show error notifications and restart on errors
         errorHandler: {
-            error: () => ({ action: 2 }), // Continue
-            closed: () => ({ action: 1 })  // Don't restart automatically on close
+            error: () => ({ action: 1 }), // Restart on error (was: 2 Continue)
+            closed: () => ({ action: 1 })  // Restart on close
+        },
+        // Handle initialization failures
+        initializationFailedHandler: (error) => {
+            vscode.window.showErrorMessage(
+                `Dingo LSP initialization failed: ${error.message}`,
+                'View Output'
+            ).then(selection => {
+                if (selection === 'View Output') {
+                    client?.outputChannel.show();
+                }
+            });
+            return false; // Don't retry immediately
         }
     };
 

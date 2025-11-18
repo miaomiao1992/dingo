@@ -1,17 +1,6 @@
 package main
 
 func main() {
-	// Basic null coalescing with Option types
-	var name = func() interface{} {
-		if optName.IsSome() {
-			return optName.Unwrap()
-		}
-		return "Unknown"
-	}()
-	var count = func() interface{} {
-		if optCount.IsSome() {
-			return optCount.Unwrap()
-		}
-		return 0
-	}()
+	var name = (optName)
+	var count = (optCount)
 }

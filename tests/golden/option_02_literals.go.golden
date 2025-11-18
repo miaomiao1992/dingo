@@ -1,8 +1,5 @@
 package main
 
-import "fmt"
-
-// OptionTag represents the tag for Option type variants
 type OptionTag uint8
 
 const (
@@ -10,144 +7,313 @@ const (
 	OptionTag_None
 )
 
-// Option_int represents Option<int> type
 type Option_int struct {
 	tag    OptionTag
 	some_0 *int
 }
 
+func Option_int_Some(arg0 int) Option_int {
+	return Option_int{tag: OptionTag_Some, some_0: &arg0}
+}
+func Option_int_None() Option_int {
+	return Option_int{tag: OptionTag_None}
+}
 func (o Option_int) IsSome() bool {
 	return o.tag == OptionTag_Some
 }
-
 func (o Option_int) IsNone() bool {
 	return o.tag == OptionTag_None
 }
-
 func (o Option_int) Unwrap() int {
 	if o.tag != OptionTag_Some {
 		panic("called Unwrap on None")
 	}
 	return *o.some_0
 }
-
 func (o Option_int) UnwrapOr(defaultValue int) int {
 	if o.tag == OptionTag_Some {
 		return *o.some_0
 	}
 	return defaultValue
 }
+func (o Option_int) UnwrapOrElse(fn func() int) int {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return fn()
+}
+func (o Option_int) Map(fn func(int) interface{}) Option_int {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	mapped := fn(*o.some_0)
+	result := mapped.(int)
+	return Option_int{tag: OptionTag_Some, some_0: &result}
+}
+func (o Option_int) AndThen(fn func(int) Option_int) Option_int {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	return fn(*o.some_0)
+}
+func (o Option_int) Filter(predicate func(int) bool) Option_int {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	if predicate(*o.some_0) {
+		return o
+	}
+	return Option_int{tag: OptionTag_None}
+}
 
-// Option_string represents Option<string> type
 type Option_string struct {
 	tag    OptionTag
 	some_0 *string
 }
 
+func Option_string_Some(arg0 string) Option_string {
+	return Option_string{tag: OptionTag_Some, some_0: &arg0}
+}
+func Option_string_None() Option_string {
+	return Option_string{tag: OptionTag_None}
+}
 func (o Option_string) IsSome() bool {
 	return o.tag == OptionTag_Some
 }
-
 func (o Option_string) IsNone() bool {
 	return o.tag == OptionTag_None
 }
-
 func (o Option_string) Unwrap() string {
 	if o.tag != OptionTag_Some {
 		panic("called Unwrap on None")
 	}
 	return *o.some_0
 }
-
 func (o Option_string) UnwrapOr(defaultValue string) string {
 	if o.tag == OptionTag_Some {
 		return *o.some_0
 	}
 	return defaultValue
 }
+func (o Option_string) UnwrapOrElse(fn func() string) string {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return fn()
+}
+func (o Option_string) Map(fn func(string) interface{}) Option_string {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	mapped := fn(*o.some_0)
+	result := mapped.(string)
+	return Option_string{tag: OptionTag_Some, some_0: &result}
+}
+func (o Option_string) AndThen(fn func(string) Option_string) Option_string {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	return fn(*o.some_0)
+}
+func (o Option_string) Filter(predicate func(string) bool) Option_string {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	if predicate(*o.some_0) {
+		return o
+	}
+	return Option_string{tag: OptionTag_None}
+}
 
-// Option_float64 represents Option<float64> type
 type Option_float64 struct {
 	tag    OptionTag
 	some_0 *float64
 }
 
+func Option_float64_Some(arg0 float64) Option_float64 {
+	return Option_float64{tag: OptionTag_Some, some_0: &arg0}
+}
+func Option_float64_None() Option_float64 {
+	return Option_float64{tag: OptionTag_None}
+}
 func (o Option_float64) IsSome() bool {
 	return o.tag == OptionTag_Some
 }
-
 func (o Option_float64) IsNone() bool {
 	return o.tag == OptionTag_None
 }
-
 func (o Option_float64) Unwrap() float64 {
 	if o.tag != OptionTag_Some {
 		panic("called Unwrap on None")
 	}
 	return *o.some_0
 }
-
 func (o Option_float64) UnwrapOr(defaultValue float64) float64 {
 	if o.tag == OptionTag_Some {
 		return *o.some_0
 	}
 	return defaultValue
 }
+func (o Option_float64) UnwrapOrElse(fn func() float64) float64 {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return fn()
+}
+func (o Option_float64) Map(fn func(float64) interface{}) Option_float64 {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	mapped := fn(*o.some_0)
+	result := mapped.(float64)
+	return Option_float64{tag: OptionTag_Some, some_0: &result}
+}
+func (o Option_float64) AndThen(fn func(float64) Option_float64) Option_float64 {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	return fn(*o.some_0)
+}
+func (o Option_float64) Filter(predicate func(float64) bool) Option_float64 {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	if predicate(*o.some_0) {
+		return o
+	}
+	return Option_float64{tag: OptionTag_None}
+}
 
-// Option_bool represents Option<bool> type
 type Option_bool struct {
 	tag    OptionTag
 	some_0 *bool
 }
 
+func Option_bool_Some(arg0 bool) Option_bool {
+	return Option_bool{tag: OptionTag_Some, some_0: &arg0}
+}
+func Option_bool_None() Option_bool {
+	return Option_bool{tag: OptionTag_None}
+}
 func (o Option_bool) IsSome() bool {
 	return o.tag == OptionTag_Some
 }
-
 func (o Option_bool) IsNone() bool {
 	return o.tag == OptionTag_None
 }
-
 func (o Option_bool) Unwrap() bool {
 	if o.tag != OptionTag_Some {
 		panic("called Unwrap on None")
 	}
 	return *o.some_0
 }
-
 func (o Option_bool) UnwrapOr(defaultValue bool) bool {
 	if o.tag == OptionTag_Some {
 		return *o.some_0
 	}
 	return defaultValue
 }
+func (o Option_bool) UnwrapOrElse(fn func() bool) bool {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return fn()
+}
+func (o Option_bool) Map(fn func(bool) interface{}) Option_bool {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	mapped := fn(*o.some_0)
+	result := mapped.(bool)
+	return Option_bool{tag: OptionTag_Some, some_0: &result}
+}
+func (o Option_bool) AndThen(fn func(bool) Option_bool) Option_bool {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	return fn(*o.some_0)
+}
+func (o Option_bool) Filter(predicate func(bool) bool) Option_bool {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	if predicate(*o.some_0) {
+		return o
+	}
+	return Option_bool{tag: OptionTag_None}
+}
+
+type Option_interface{} struct {
+	tag    OptionTag
+	some_0 *interface{}
+}
+
+func Option_interface{}_Some(arg0 interface{}) Option_interface{} {
+	return Option_interface{}{tag: OptionTag_Some, some_0: &arg0}
+}
+func Option_interface{}_None() Option_interface{} {
+	return Option_interface{}{tag: OptionTag_None}
+}
+func (o Option_interface{}) IsSome() bool {
+	return o.tag == OptionTag_Some
+}
+func (o Option_interface{}) IsNone() bool {
+	return o.tag == OptionTag_None
+}
+func (o Option_interface{}) Unwrap() interface{} {
+	if o.tag != OptionTag_Some {
+		panic("called Unwrap on None")
+	}
+	return *o.some_0
+}
+func (o Option_interface{}) UnwrapOr(defaultValue interface{}) interface{} {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return defaultValue
+}
+func (o Option_interface{}) UnwrapOrElse(fn func() interface{}) interface{} {
+	if o.tag == OptionTag_Some {
+		return *o.some_0
+	}
+	return fn()
+}
+func (o Option_interface{}) Map(fn func(interface{}) interface{}) Option_interface{} {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	mapped := fn(*o.some_0)
+	result := mapped.(interface{})
+	return Option_interface{}{tag: OptionTag_Some, some_0: &result}
+}
+func (o Option_interface{}) AndThen(fn func(interface{}) Option_interface{}) Option_interface{} {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	return fn(*o.some_0)
+}
+func (o Option_interface{}) Filter(predicate func(interface{}) bool) Option_interface{} {
+	if o.tag == OptionTag_None {
+		return o
+	}
+	if predicate(*o.some_0) {
+		return o
+	}
+	return Option_interface{}{tag: OptionTag_None}
+}
+
+import "fmt"
 
 func main() {
-	// Fix A4: Some() with literal values (non-addressable)
-	// The transpiler should wrap literals in IIFE to make them addressable
 
-	intOpt := Option_int{tag: OptionTag_Some, some_0: func() *int {
-		__tmp0 := 42
-		return &__tmp0
-	}()}
-	strOpt := Option_string{tag: OptionTag_Some, some_0: func() *string {
-		__tmp1 := "hello"
-		return &__tmp1
-	}()}
-	floatOpt := Option_float64{tag: OptionTag_Some, some_0: func() *float64 {
-		__tmp2 := 3.14
-		return &__tmp2
-	}()}
-	boolOpt := Option_bool{tag: OptionTag_Some, some_0: func() *bool {
-		__tmp3 := true
-		return &__tmp3
-	}()}
+	intOpt := Some(42)
+	strOpt := Some("hello")
+	floatOpt := Some(3.14)
+	boolOpt := Some(true)
 
-	// Some() with variables (addressable - no IIFE needed)
 	x := 100
-	varOpt := Option_int{tag: OptionTag_Some, some_0: &x}
+	varOpt := Some(x)
 
-	// Print results
 	if intOpt.IsSome() {
 		fmt.Printf("intOpt: %d\n", intOpt.Unwrap())
 	}

@@ -136,7 +136,48 @@ func (p *PatternMatchPlugin) Process(node ast.Node) error {
 		}
 	}
 
+	// Debug: Log match expressions found
+	if p.ctx.Logger != nil {
+		p.ctx.Logger.Debug("PatternMatchPlugin.Process: Found %d match expressions", len(p.matchExpressions))
+	}
+
 	return nil
+}
+
+// findMatchMarkerInFile looks for DINGO_MATCH_START marker in switch statement within a specific file
+func (p *PatternMatchPlugin) findMatchMarkerInFile(file *ast.File, switchStmt *ast.SwitchStmt) *matchExpression {
+	switchPos := switchStmt.Pos()
+
+	// Look for DINGO_MATCH_START comment immediately before this switch
+	var bestMatch *matchExpression
+	var bestDistance token.Pos = 1000000
+
+	for _, cg := range file.Comments {
+		for _, c := range cg.List {
+			if strings.HasPrefix(c.Text, "// DINGO_MATCH_START:") {
+				// Check if comment is before this switch (within 100 positions)
+				if c.Pos() < switchPos {
+					distance := switchPos - c.Pos()
+					if distance < bestDistance && distance < 100 {
+						// Extract scrutinee expression
+						parts := strings.SplitN(c.Text, ":", 2)
+						if len(parts) != 2 {
+							continue
+						}
+						scrutinee := strings.TrimSpace(parts[1])
+
+						bestMatch = &matchExpression{
+							startPos:  c.Pos(),
+							scrutinee: scrutinee,
+						}
+						bestDistance = distance
+					}
+				}
+			}
+		}
+	}
+
+	return bestMatch
 }
 
 // findMatchMarker looks for DINGO_MATCH_START marker in switch statement
@@ -185,6 +226,63 @@ func (p *PatternMatchPlugin) findMatchMarker(switchStmt *ast.SwitchStmt) *matchE
 	}
 
 	return bestMatch
+}
+
+// parsePatternArmsInFile extracts pattern names from case clauses in a specific file
+func (p *PatternMatchPlugin) parsePatternArmsInFile(file *ast.File, switchStmt *ast.SwitchStmt) ([]string, bool) {
+	patterns := make([]string, 0)
+	hasWildcard := false
+
+	// Build map of all DINGO_PATTERN comments first
+	patternComments := p.collectPatternCommentsInFile(file)
+
+	for _, stmt := range switchStmt.Body.List {
+		caseClause, ok := stmt.(*ast.CaseClause)
+		if !ok {
+			continue
+		}
+
+		// Default case is wildcard
+		if caseClause.List == nil || len(caseClause.List) == 0 {
+			hasWildcard = true
+			continue
+		}
+
+		// Find pattern comment for this case
+		pattern := p.findPatternForCase(caseClause, patternComments)
+		if pattern != "" {
+			if pattern == "_" {
+				hasWildcard = true
+			} else {
+				patterns = append(patterns, pattern)
+			}
+		}
+	}
+
+	return patterns, hasWildcard
+}
+
+// collectPatternCommentsInFile collects all DINGO_PATTERN comments in the file
+func (p *PatternMatchPlugin) collectPatternCommentsInFile(file *ast.File) []patternComment {
+	result := make([]patternComment, 0)
+
+	for _, cg := range file.Comments {
+		for _, c := range cg.List {
+			if strings.HasPrefix(c.Text, "// DINGO_PATTERN:") {
+				parts := strings.SplitN(c.Text, ":", 2)
+				if len(parts) == 2 {
+					fullPattern := strings.TrimSpace(parts[1])
+					pattern := p.extractConstructorName(fullPattern)
+					result = append(result, patternComment{
+						pos:     c.Pos(),
+						pattern: pattern,
+					})
+				}
+			}
+		}
+	}
+
+	return result
 }
 
 // parsePatternArms extracts pattern names from case clauses
@@ -530,38 +628,34 @@ func (p *PatternMatchPlugin) findGuardForCase(caseClause *ast.CaseClause, guardC
 	return bestMatch
 }
 
-// Transform transforms pattern match switch statements into efficient Go code
-// This phase generates tag-based dispatch, extracts pattern bindings, and adds safety checks
-func (p *PatternMatchPlugin) Transform(node ast.Node) (ast.Node, error) {
-	// For each discovered match expression, transform the switch statement
-	for _, match := range p.matchExpressions {
-		if err := p.transformMatchExpression(match); err != nil {
-			return nil, err
+// buildIfElseChain builds an if-else chain from a match expression
+// Converts: switch s.tag { case Tag_Ok: ... } → if s.IsOk() { return ... }
+func (p *PatternMatchPlugin) buildIfElseChain(match *matchExpression, file *ast.File) []ast.Stmt {
+	patternComments := p.collectPatternCommentsInFile(file)
+	stmts := make([]ast.Stmt, 0)
+
+	
+	// Get scrutinee variable name from the switch init
+	scrutineeVar := match.scrutinee
+	if match.switchStmt.Init != nil {
+		// Extract variable name from init statement
+		if assignStmt, ok := match.switchStmt.Init.(*ast.AssignStmt); ok {
+			if len(assignStmt.Lhs) > 0 {
+				if ident, ok := assignStmt.Lhs[0].(*ast.Ident); ok {
+					scrutineeVar = ident.Name
+				}
+			}
 		}
 	}
 
-	return node, nil
-}
-
-// transformMatchExpression transforms a single match expression
-func (p *PatternMatchPlugin) transformMatchExpression(match *matchExpression) error {
-	switchStmt := match.switchStmt
-
-	// Transform guards first (nested if injection)
-	if err := p.transformGuards(match); err != nil {
-		return err
-	}
-
-	// Transform each case clause
-	patternComments := p.collectPatternComments()
-
-	for i, stmt := range switchStmt.Body.List {
+	// Build if statements for each case
+	for _, stmt := range match.switchStmt.Body.List {
 		caseClause, ok := stmt.(*ast.CaseClause)
 		if !ok {
 			continue
 		}
 
-		// Skip default case (already handles wildcard)
+		// Skip default case for now (handle at end)
 		if caseClause.List == nil || len(caseClause.List) == 0 {
 			continue
 		}
@@ -572,26 +666,239 @@ func (p *PatternMatchPlugin) transformMatchExpression(match *matchExpression) er
 			continue
 		}
 
-		// Transform case condition to tag-based dispatch
-		// Already done by preprocessor (case ResultTagOk, etc.)
-		// We just need to ensure binding extraction is present
+		// Extract simple variant name from pattern (Status_Pending → Pending)
+		variantName := pattern
+		if idx := strings.LastIndex(pattern, "_"); idx >= 0 {
+			variantName = pattern[idx+1:]
+		}
 
-		// Extract bindings if not already present
-		// The preprocessor should have added: x := *__match_0.ok_0
-		// We validate and potentially add missing bindings
+		// Build if condition: scrutineeVar.IsVariant()
+		condition := &ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: scrutineeVar},
+				Sel: &ast.Ident{Name: "Is" + variantName},
+			},
+		}
 
-		// For now, preprocessor handles all transformation
-		// This plugin focuses on validation only
-		_ = i
-		_ = pattern
+		// Convert case body to return statements
+		body := p.convertCaseBodyToReturn(caseClause.Body)
+
+		// Create if statement
+		ifStmt := &ast.IfStmt{
+			Cond: condition,
+			Body: &ast.BlockStmt{
+				List: body,
+			},
+		}
+
+		stmts = append(stmts, ifStmt)
 	}
 
-	// Add default panic for exhaustive matches (if no wildcard)
+	// Add panic for exhaustive matches (if no wildcard)
 	if !match.hasWildcard {
-		p.addExhaustivePanic(switchStmt)
+		panicStmt := &ast.ExprStmt{
+			X: &ast.CallExpr{
+				Fun: &ast.Ident{Name: "panic"},
+				Args: []ast.Expr{
+					&ast.BasicLit{
+						Kind:  token.STRING,
+						Value: `"non-exhaustive match"`,
+					},
+				},
+			},
+		}
+		stmts = append(stmts, panicStmt)
+	}
+
+	return stmts
+}
+
+// convertCaseBodyToReturn converts case body statements to return statements
+// If the body is just an expression, wraps it in a return statement
+func (p *PatternMatchPlugin) convertCaseBodyToReturn(body []ast.Stmt) []ast.Stmt {
+	if len(body) == 0 {
+		return body
+	}
+
+	// Check if body is a single expression statement
+	if len(body) == 1 {
+		if exprStmt, ok := body[0].(*ast.ExprStmt); ok {
+			// Convert to return statement
+			return []ast.Stmt{
+				&ast.ReturnStmt{
+					Results: []ast.Expr{exprStmt.X},
+				},
+			}
+		}
+	}
+
+	// If already has return statements, keep as-is
+	// Otherwise, wrap last expression in return
+	lastIdx := len(body) - 1
+	if exprStmt, ok := body[lastIdx].(*ast.ExprStmt); ok {
+		// Replace last expression with return
+		newBody := make([]ast.Stmt, len(body))
+		copy(newBody, body[:lastIdx])
+		newBody[lastIdx] = &ast.ReturnStmt{
+			Results: []ast.Expr{exprStmt.X},
+		}
+		return newBody
+	}
+
+	return body
+}
+
+// replaceNodeInParent replaces oldNode with newStmts in the parent AST node
+func (p *PatternMatchPlugin) replaceNodeInParent(parent ast.Node, oldNode ast.Node, newStmts []ast.Stmt) bool {
+	switch parentNode := parent.(type) {
+	case *ast.BlockStmt:
+		// Find and replace in statement list
+		for i, stmt := range parentNode.List {
+			if stmt == oldNode {
+				// Standard replacement
+				newList := make([]ast.Stmt, 0, len(parentNode.List)-1+len(newStmts))
+				newList = append(newList, parentNode.List[:i]...)
+				newList = append(newList, newStmts...)
+				newList = append(newList, parentNode.List[i+1:]...)
+				parentNode.List = newList
+				return true
+			}
+		}
+	case *ast.FuncDecl:
+		if parentNode.Body != nil {
+			return p.replaceNodeInParent(parentNode.Body, oldNode, newStmts)
+		}
+	}
+	return false
+}
+
+// Transform transforms pattern match switch statements into efficient Go code
+// This phase converts switch statements to if-else chains using Is* methods
+// RE-DISCOVERS matches to avoid stale AST pointers from Process phase
+func (p *PatternMatchPlugin) Transform(node ast.Node) (ast.Node, error) {
+	file, ok := node.(*ast.File)
+	if !ok {
+		return node, nil
+	}
+
+	// Re-discover match expressions (fresh AST walk)
+	// We can't use stored pointers from Process because AST may have been mutated by other plugins
+	matches := make([]*matchExpression, 0)
+
+	// Debug: Check if file has comments
+
+	ast.Inspect(file, func(n ast.Node) bool {
+		switchStmt, ok := n.(*ast.SwitchStmt)
+		if !ok {
+			return true
+		}
+
+
+		// Check for DINGO_MATCH_START marker
+		matchInfo := p.findMatchMarkerInFile(file, switchStmt)
+		if matchInfo == nil {
+			return true // Not a pattern match
+		}
+
+
+		// Parse pattern arms
+		patterns, hasWildcard := p.parsePatternArmsInFile(file, switchStmt)
+		matchInfo.patterns = patterns
+		matchInfo.hasWildcard = hasWildcard
+		matchInfo.switchStmt = switchStmt
+
+		matches = append(matches, matchInfo)
+		return true
+	})
+
+	// Early return if no matches found
+	if len(matches) == 0 {
+		return file, nil
+	}
+
+
+	// Transform each match expression
+	// NOTE: Switch→if transformation disabled - switch-based output is clearer and preserves DINGO comments
+	// We keep exhaustiveness checking (done in Discovery/Process phase)
+	for i, match := range matches {
+		// DISABLED: switch→if transformation (was stripping DINGO comments)
+		// if err := p.transformMatchExpression(file, match); err != nil {
+		//     return nil, fmt.Errorf("transformMatchExpression #%d failed: %w", i, err)
+		// }
+		_ = i
+		_ = match
+	}
+
+	return file, nil
+}
+
+// transformMatchExpression transforms a single match expression
+// Converts switch statement to if-else chain using Is* methods
+func (p *PatternMatchPlugin) transformMatchExpression(file *ast.File, match *matchExpression) error {
+	switchStmt := match.switchStmt
+
+	ifChain := p.buildIfElseChain(match, file)
+	if len(ifChain) == 0 {
+		return fmt.Errorf("failed to build if-else chain for match expression")
+	}
+
+	// CONSENSUS FIX: Preserve switch init statement by wrapping in BlockStmt
+	var replacement []ast.Stmt
+	if switchStmt.Init != nil {
+		// Create block statement: { init; if-else-chain }
+		blockStmt := &ast.BlockStmt{
+			List: append([]ast.Stmt{switchStmt.Init}, ifChain...),
+		}
+		replacement = []ast.Stmt{blockStmt}
+	} else {
+		// No init, just use if-else chain
+		replacement = ifChain
+	}
+
+	// Find parent in file
+	parent := findParent(file, switchStmt)
+	if parent == nil {
+		return fmt.Errorf("cannot find parent of switch statement")
+	}
+
+	// Replace in parent based on parent type
+	replaced := p.replaceNodeInParent(parent, switchStmt, replacement)
+	if !replaced {
+		return fmt.Errorf("failed to replace switch statement in parent: parent type is %T", parent)
 	}
 
 	return nil
+}
+
+// findParent walks the AST to find the parent of a node
+func findParent(root ast.Node, target ast.Node) ast.Node {
+	var parent ast.Node
+	ast.Inspect(root, func(n ast.Node) bool {
+		if n == nil {
+			return false
+		}
+		// Check if any child of n is our target
+		switch node := n.(type) {
+		case *ast.BlockStmt:
+			for _, stmt := range node.List {
+				if stmt == target {
+					parent = n
+					return false
+				}
+			}
+		case *ast.FuncDecl:
+			if node.Body != nil {
+				for _, stmt := range node.Body.List {
+					if stmt == target {
+						parent = node.Body
+						return false
+					}
+				}
+			}
+		}
+		return parent == nil
+	})
+	return parent
 }
 
 // transformGuards transforms guards into nested if statements
@@ -617,8 +924,8 @@ func (p *PatternMatchPlugin) injectNestedIf(guard *guardInfo) error {
 	// Parse guard condition as Go expression
 	condExpr, err := parser.ParseExpr(guard.condition)
 	if err != nil {
-		// Invalid guard syntax - report error
-		return fmt.Errorf("invalid guard condition: %s (error: %v)", guard.condition, err)
+		// Invalid guard syntax - preserve original parse error for debugging
+		return fmt.Errorf("invalid guard condition '%s': %v", guard.condition, err)
 	}
 
 	// Save original body

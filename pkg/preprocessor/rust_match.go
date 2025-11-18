@@ -48,8 +48,23 @@ func (r *RustMatchProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 	for inputLineNum < len(lines) {
 		line := lines[inputLineNum]
 
-		// Check if this line starts a match expression
-		if strings.Contains(line, "match ") {
+		// Check if this line starts a match expression (not in comments)
+		// Must be "match " followed by identifier (not in middle of word, not in comment)
+		trimmed := strings.TrimSpace(line)
+		isMatchExpr := false
+		if !strings.HasPrefix(trimmed, "//") && !strings.HasPrefix(trimmed, "/*") {
+			// Look for standalone "match " keyword (not part of another word)
+			if strings.Contains(line, "match ") {
+				// Simple heuristic: check it's not in the middle of a word
+				// by verifying character before "match" is whitespace or punctuation
+				idx := strings.Index(line, "match ")
+				if idx == 0 || !isAlphanumeric(rune(line[idx-1])) {
+					isMatchExpr = true
+				}
+			}
+		}
+
+		if isMatchExpr {
 			// Collect the entire match expression (may span multiple lines)
 			matchExpr, linesConsumed := r.collectMatchExpression(lines, inputLineNum)
 			if matchExpr != "" {
@@ -85,6 +100,11 @@ func (r *RustMatchProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 	}
 
 	return output.Bytes(), r.mappings, nil
+}
+
+// isAlphanumeric checks if a rune is alphanumeric or underscore
+func isAlphanumeric(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_'
 }
 
 // collectMatchExpression collects a complete match expression across multiple lines
@@ -135,6 +155,11 @@ func (r *RustMatchProcessor) transformMatch(matchExpr string, originalLine int, 
 	scrutinee := strings.TrimSpace(matches[1])
 	armsText := matches[2]
 
+	// Check if match expression is in assignment context and extract variable name
+	// If the entire match expression starts with "let x = match" or "var x = match",
+	// we need to handle it specially using Variable Hoisting pattern
+	isInAssignment, assignmentVar := r.extractAssignmentVar(matchExpr)
+
 	// Check if scrutinee is a tuple expression
 	isTuple, tupleElements, err := r.detectTuple(scrutinee)
 	if err != nil {
@@ -160,8 +185,53 @@ func (r *RustMatchProcessor) transformMatch(matchExpr string, originalLine int, 
 	}
 
 	// Generate Go switch statement
-	result, mappings := r.generateSwitch(scrutinee, arms, originalLine, outputLine)
+	result, mappings := r.generateSwitch(scrutinee, arms, originalLine, outputLine, isInAssignment, assignmentVar)
 	return result, mappings, nil
+}
+
+// extractAssignmentVar extracts the variable name if match is in assignment context
+// Returns: (isInAssignment, variableName)
+// Examples:
+//   "let x = match ..." -> (true, "x")
+//   "var result = match ..." -> (true, "result")
+//   "match ..." -> (false, "")
+func (r *RustMatchProcessor) extractAssignmentVar(matchExpr string) (bool, string) {
+	// Get the text before "match" keyword
+	matchIdx := strings.Index(matchExpr, "match")
+	if matchIdx == -1 {
+		return false, ""
+	}
+
+	beforeMatch := strings.TrimSpace(matchExpr[:matchIdx])
+
+	// Check if there's an assignment operator before match
+	if !strings.Contains(beforeMatch, "=") {
+		return false, ""
+	}
+
+	// Extract variable name from patterns like:
+	//   "let x ="
+	//   "var result ="
+	//   "x :="
+
+	// Remove any "let" or "var" keywords
+	beforeMatch = strings.TrimPrefix(beforeMatch, "let")
+	beforeMatch = strings.TrimPrefix(beforeMatch, "var")
+	beforeMatch = strings.TrimSpace(beforeMatch)
+
+	// Now we should have something like "x =" or "result ="
+	// Remove the "=" and any ":="
+	beforeMatch = strings.TrimSuffix(beforeMatch, "=")
+	beforeMatch = strings.TrimSuffix(beforeMatch, ":")
+	beforeMatch = strings.TrimSpace(beforeMatch)
+
+	// What remains should be the variable name
+	varName := beforeMatch
+	if varName == "" {
+		return false, ""
+	}
+
+	return true, varName
 }
 
 // patternArm represents a single pattern arm
@@ -271,29 +341,25 @@ func (r *RustMatchProcessor) parseArms(armsText string) ([]patternArm, error) {
 }
 
 // splitPatternAndGuard splits a pattern arm into pattern and optional guard
-// Supports both 'if' and 'where' guard keywords
+// Supports only 'if' guard keyword (Swift 'where' removed in Phase 4.2)
 // Examples:
 //   "Ok(x) if x > 0" -> ("Ok(x)", "x > 0")
-//   "Ok(x) where x > 0" -> ("Ok(x)", "x > 0")
 //   "Ok(x)" -> ("Ok(x)", "")
 func (r *RustMatchProcessor) splitPatternAndGuard(patternAndGuard string) (pattern string, guard string) {
-	// Strategy: Look for guard keywords (" if " or " where ") that come after a complete pattern
+	// Strategy: Look for guard keyword (" if ") that comes after a complete pattern
 	// Pattern formats:
 	//   - Ok(binding)   - ends with )
 	//   - None          - bare identifier
 	//   - _             - wildcard
 
-	// We need to find " if " or " where " (with surrounding spaces) that appears after the pattern
-	// To avoid false matches like "diff" containing "if" or "somewhere" containing "where",
-	// we require the keyword to be surrounded by spaces
-
-	// Strategy: scan through string looking for " if " or " where "
-	// For each match, check if it could be a guard keyword (not part of identifier)
+	// We need to find " if " (with surrounding spaces) that appears after the pattern
+	// To avoid false matches like "diff" containing "if", we require the keyword
+	// to be surrounded by spaces
 
 	var guardPos int = -1
 	var guardKeywordLen int = 0
 
-	// Try to find " if " first
+	// Find " if "
 	idx := strings.Index(patternAndGuard, " if ")
 	if idx != -1 {
 		// Found " if " - this could be the guard
@@ -302,18 +368,6 @@ func (r *RustMatchProcessor) splitPatternAndGuard(patternAndGuard string) (patte
 		if r.isCompletePattern(before) {
 			guardPos = idx
 			guardKeywordLen = 4 // len(" if ")
-		}
-	}
-
-	// Try " where " if " if " wasn't found
-	if guardPos == -1 {
-		idx = strings.Index(patternAndGuard, " where ")
-		if idx != -1 {
-			before := patternAndGuard[:idx]
-			if r.isCompletePattern(before) {
-				guardPos = idx
-				guardKeywordLen = 7 // len(" where ")
-			}
 		}
 	}
 
@@ -348,7 +402,7 @@ func (r *RustMatchProcessor) isCompletePattern(s string) bool {
 }
 
 // generateSwitch generates Go switch statement with DINGO_MATCH markers
-func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm, originalLine int, outputLine int) (string, []Mapping) {
+func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm, originalLine int, outputLine int, isInAssignment bool, assignmentVar string) (string, []Mapping) {
 	var buf bytes.Buffer
 	mappings := []Mapping{}
 
@@ -358,20 +412,25 @@ func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm,
 	// Create temporary variable for scrutinee
 	scrutineeVar := fmt.Sprintf("__match_%d", matchID)
 
-	// Line 1: DINGO_MATCH_START marker (C2 FIX: Emit BEFORE temp var)
-	buf.WriteString(fmt.Sprintf("// DINGO_MATCH_START: %s\n", scrutinee))
-	mappings = append(mappings, Mapping{
-		OriginalLine:    originalLine,
-		OriginalColumn:  1,
-		GeneratedLine:   outputLine,
-		GeneratedColumn: 1,
-		Length:          5, // "match"
-		Name:            "rust_match",
-	})
-	outputLine++
+	// Variable Hoisting Pattern: If in assignment context, declare result variable with proper type
+	if isInAssignment && assignmentVar != "" {
+		resultType := r.inferMatchResultType(arms)
 
-	// Line 2: Store scrutinee in temporary variable
-	buf.WriteString(fmt.Sprintf("%s := %s\n", scrutineeVar, scrutinee))
+		// Line 1: Declare result variable with proper type
+		buf.WriteString(fmt.Sprintf("var %s %s\n", assignmentVar, resultType))
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  1,
+			GeneratedLine:   outputLine,
+			GeneratedColumn: 1,
+			Length:          5,
+			Name:            "rust_match",
+		})
+		outputLine++
+	}
+
+	// Line 2: DINGO_MATCH_START marker (MUST BE BEFORE temp var)
+	buf.WriteString(fmt.Sprintf("// DINGO_MATCH_START: %s\n", scrutinee))
 	mappings = append(mappings, Mapping{
 		OriginalLine:    originalLine,
 		OriginalColumn:  1,
@@ -382,7 +441,19 @@ func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm,
 	})
 	outputLine++
 
-	// Line 3: switch statement opening (tag-based switch - CORRECT pattern)
+	// Line 3: Store scrutinee in temporary variable
+	buf.WriteString(fmt.Sprintf("%s := %s\n", scrutineeVar, scrutinee))
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  1,
+		GeneratedLine:   outputLine,
+		GeneratedColumn: 1,
+		Length:          5, // "match"
+		Name:            "rust_match",
+	})
+	outputLine++
+
+	// Line 4: switch statement opening (tag-based switch - CORRECT pattern)
 	buf.WriteString(fmt.Sprintf("switch %s.tag {\n", scrutineeVar))
 	mappings = append(mappings, Mapping{
 		OriginalLine:    originalLine,
@@ -396,7 +467,7 @@ func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm,
 
 	// Generate case statements for each arm
 	for _, arm := range arms {
-		caseLines, caseMappings := r.generateCase(scrutineeVar, arm, originalLine, outputLine)
+		caseLines, caseMappings := r.generateCase(scrutineeVar, arm, originalLine, outputLine, isInAssignment, assignmentVar)
 		buf.WriteString(caseLines)
 		mappings = append(mappings, caseMappings...)
 		outputLine += strings.Count(caseLines, "\n")
@@ -428,8 +499,32 @@ func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm,
 	return buf.String(), mappings
 }
 
+// inferMatchResultType infers the result type from match arms
+// For now, uses simple heuristics based on first arm's pattern
+func (r *RustMatchProcessor) inferMatchResultType(arms []patternArm) string {
+	if len(arms) == 0 {
+		return "interface{}" // Fallback
+	}
+
+	// Look at first arm's pattern to infer type
+	firstPattern := arms[0].pattern
+	switch firstPattern {
+	case "Ok", "Err":
+		// Result type - need to infer T and E types
+		// For now, return generic Result type placeholder
+		// TODO: Parse arm expressions to infer exact types
+		return "Result_int_error" // Simplified for now
+	case "Some", "None":
+		// Option type - need to infer T type
+		return "Option_int" // Simplified for now
+	default:
+		// Custom enum or unknown
+		return "interface{}"
+	}
+}
+
 // generateCase generates a single case statement
-func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, originalLine int, outputLine int) (string, []Mapping) {
+func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, originalLine int, outputLine int, isInAssignment bool, assignmentVar string) (string, []Mapping) {
 	var buf bytes.Buffer
 	mappings := []Mapping{}
 
@@ -437,7 +532,14 @@ func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, o
 	if arm.pattern == "_" {
 		buf.WriteString("default:\n")
 		buf.WriteString(fmt.Sprintf("\t// DINGO_PATTERN: _\n"))
-		buf.WriteString(fmt.Sprintf("\t%s\n", arm.expression))
+
+		// Variable Hoisting: Assign to result variable if in assignment context
+		if isInAssignment && assignmentVar != "" {
+			buf.WriteString(fmt.Sprintf("\t%s = %s\n", assignmentVar, arm.expression))
+		} else {
+			buf.WriteString(fmt.Sprintf("\t%s\n", arm.expression))
+		}
+
 		mappings = append(mappings, Mapping{
 			OriginalLine:    originalLine,
 			OriginalColumn:  1,
@@ -505,17 +607,11 @@ func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, o
 	}
 
 	// Pattern arm expression (C7 FIX: Handle block expressions properly)
-	// If expression is a block { ... }, extract the statements inside
+	// Variable Hoisting: If in assignment context, assign to result variable
 	exprStr := arm.expression
 	if strings.HasPrefix(exprStr, "{") && strings.HasSuffix(exprStr, "}") {
 		// Block expression: remove outer braces and preserve formatting
-		// The preprocessor's collectMatchExpression replaces newlines with spaces
-		// We need to restore them based on semicolons and braces
 		innerBlock := strings.TrimSpace(exprStr[1 : len(exprStr)-1])
-
-		// For now, just add the statements with tab indentation
-		// Since newlines were replaced with spaces during collection,
-		// we need to restore them properly
 		formatted := r.formatBlockStatements(innerBlock)
 		for _, line := range strings.Split(formatted, "\n") {
 			if trimmed := strings.TrimSpace(line); trimmed != "" {
@@ -523,8 +619,14 @@ func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, o
 			}
 		}
 	} else {
-		// Simple expression: add as-is
-		buf.WriteString(fmt.Sprintf("\t%s\n", exprStr))
+		// Simple expression
+		if isInAssignment && assignmentVar != "" {
+			// Variable Hoisting: Assign to result variable instead of returning
+			buf.WriteString(fmt.Sprintf("\t%s = %s\n", assignmentVar, exprStr))
+		} else {
+			// Not in assignment context: keep expression as-is
+			buf.WriteString(fmt.Sprintf("\t%s\n", exprStr))
+		}
 	}
 
 	mappings = append(mappings, Mapping{
@@ -541,6 +643,7 @@ func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, o
 
 // getTagName converts pattern name to Go tag constant name
 // Ok → ResultTagOk, Err → ResultTagErr, Some → OptionTagSome, None → OptionTagNone
+// Status_Pending → StatusTag_Pending (for custom enums)
 func (r *RustMatchProcessor) getTagName(pattern string) string {
 	switch pattern {
 	case "Ok":
@@ -552,7 +655,14 @@ func (r *RustMatchProcessor) getTagName(pattern string) string {
 	case "None":
 		return "OptionTagNone"
 	default:
-		// Custom enum variant: capitalize first letter if needed
+		// Custom enum variant: EnumName_Variant → EnumNameTag_Variant
+		// Example: Status_Pending → StatusTag_Pending
+		if idx := strings.Index(pattern, "_"); idx > 0 {
+			enumName := pattern[:idx]
+			variantName := pattern[idx:] // includes the underscore
+			return enumName + "Tag" + variantName
+		}
+		// Bare variant name (shouldn't happen in well-formed Dingo code)
 		return pattern + "Tag"
 	}
 }
@@ -710,18 +820,10 @@ func (r *RustMatchProcessor) parseTupleArms(armsText string) ([]tuplePatternArm,
 			i++
 		}
 
-		// Check for guard (if/where)
+		// Check for guard (if)
 		guard := ""
-		if i < len(text) && (strings.HasPrefix(text[i:], "if ") || strings.HasPrefix(text[i:], "where ")) {
-			// Find guard keyword
-			var guardKeyword string
-			if strings.HasPrefix(text[i:], "if ") {
-				guardKeyword = "if"
-				i += 3 // skip "if "
-			} else {
-				guardKeyword = "where"
-				i += 6 // skip "where "
-			}
+		if i < len(text) && strings.HasPrefix(text[i:], "if ") {
+			i += 3 // skip "if "
 
 			// Extract guard condition (until =>)
 			arrowPos := strings.Index(text[i:], "=>")
@@ -730,7 +832,6 @@ func (r *RustMatchProcessor) parseTupleArms(armsText string) ([]tuplePatternArm,
 			}
 			guard = strings.TrimSpace(text[i : i+arrowPos])
 			i += arrowPos
-			_ = guardKeyword // Used for validation
 		}
 
 		// Expect =>

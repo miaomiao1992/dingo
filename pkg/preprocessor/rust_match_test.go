@@ -407,49 +407,7 @@ func TestRustMatchProcessor_SplitPatternAndGuard_If(t *testing.T) {
 	}
 }
 
-func TestRustMatchProcessor_SplitPatternAndGuard_Where(t *testing.T) {
-	processor := NewRustMatchProcessor()
-
-	tests := []struct {
-		name         string
-		input        string
-		wantPattern  string
-		wantGuard    string
-	}{
-		{
-			name:        "simple where guard",
-			input:       "Ok(x) where x > 0",
-			wantPattern: "Ok(x)",
-			wantGuard:   "x > 0",
-		},
-		{
-			name:        "complex where guard",
-			input:       "Ok(x) where x > 0 && x < 100",
-			wantPattern: "Ok(x)",
-			wantGuard:   "x > 0 && x < 100",
-		},
-		{
-			name:        "where guard with function call",
-			input:       "Ok(x) where isValid(x)",
-			wantPattern: "Ok(x)",
-			wantGuard:   "isValid(x)",
-		},
-		{
-			name:        "where guard with nested conditions",
-			input:       "Ok(user) where user.age > 18 && user.verified",
-			wantPattern: "Ok(user)",
-			wantGuard:   "user.age > 18 && user.verified",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			pattern, guard := processor.splitPatternAndGuard(tt.input)
-			assert.Equal(t, tt.wantPattern, pattern, "pattern mismatch")
-			assert.Equal(t, tt.wantGuard, guard, "guard mismatch")
-		})
-	}
-}
+// Removed: TestRustMatchProcessor_SplitPatternAndGuard_Where (Swift 'where' keyword removed in Phase 4.2)
 
 func TestRustMatchProcessor_GuardParsing_If(t *testing.T) {
 	processor := NewRustMatchProcessor()
@@ -481,35 +439,7 @@ func TestRustMatchProcessor_GuardParsing_If(t *testing.T) {
 	}
 }
 
-func TestRustMatchProcessor_GuardParsing_Where(t *testing.T) {
-	processor := NewRustMatchProcessor()
-
-	input := `match result {
-    Ok(x) where x > 0 => x * 2,
-    Ok(x) => 0,
-    Err(e) => -1
-}`
-
-	output, _, err := processor.Process([]byte(input))
-	if err != nil {
-		t.Fatalf("Process() error: %v", err)
-	}
-
-	result := string(output)
-
-	// Check for guard marker in output (should be same as 'if')
-	expected := []string{
-		"// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0",
-		"// DINGO_PATTERN: Ok(x)",  // Second Ok arm without guard
-		"// DINGO_PATTERN: Err(e)",
-	}
-
-	for _, exp := range expected {
-		if !strings.Contains(result, exp) {
-			t.Errorf("Expected output to contain %q, but it didn't.\nGot:\n%s", exp, result)
-		}
-	}
-}
+// Removed: TestRustMatchProcessor_GuardParsing_Where (Swift 'where' keyword removed in Phase 4.2)
 
 func TestRustMatchProcessor_MultipleGuards(t *testing.T) {
 	processor := NewRustMatchProcessor()
@@ -547,7 +477,7 @@ func TestRustMatchProcessor_ComplexGuardExpressions(t *testing.T) {
 
 	input := `match result {
     Ok(user) if user.age > 18 && user.verified => processUser(user),
-    Ok(user) where len(user.name) > 0 => createUser(user),
+    Ok(user) if len(user.name) > 0 => createUser(user),
     Err(e) if e != nil => handleError(e)
 }`
 
@@ -618,15 +548,6 @@ func TestRustMatchProcessor_ParseArmsWithGuards(t *testing.T) {
 			wantGuard:   "x > 0",
 		},
 		{
-			name:        "where guard",
-			input:       "Ok(x) where x > 0 => x * 2",
-			wantCount:   1,
-			checkArm:    0,
-			wantPattern: "Ok",
-			wantBinding: "x",
-			wantGuard:   "x > 0",
-		},
-		{
 			name:        "no guard",
 			input:       "Ok(x) => x * 2",
 			wantCount:   1,
@@ -665,32 +586,4 @@ func TestRustMatchProcessor_ParseArmsWithGuards(t *testing.T) {
 	}
 }
 
-func TestRustMatchProcessor_BothIfAndWhere(t *testing.T) {
-	processor := NewRustMatchProcessor()
-
-	// Test that both 'if' and 'where' can be used in same match
-	input := `match result {
-    Ok(x) if x > 0 => x * 2,
-    Ok(x) where x < 0 => x * -1,
-    Ok(x) => 0
-}`
-
-	output, _, err := processor.Process([]byte(input))
-	if err != nil {
-		t.Fatalf("Process() error: %v", err)
-	}
-
-	result := string(output)
-
-	// Both should generate guard markers
-	expected := []string{
-		"// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0",
-		"// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x < 0",
-	}
-
-	for _, exp := range expected {
-		if !strings.Contains(result, exp) {
-			t.Errorf("Expected output to contain %q, but it didn't.\nGot:\n%s", exp, result)
-		}
-	}
-}
+// Removed: TestRustMatchProcessor_BothIfAndWhere (Swift 'where' keyword removed in Phase 4.2)

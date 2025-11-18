@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"bufio"
 	"fmt"
 	"go/token"
 	"os"
@@ -31,9 +30,12 @@ type EnhancedError struct {
 }
 
 // sourceCache caches file contents to avoid repeated reads
+// Cache is bounded to prevent memory leaks in long-running processes (LSP server)
 var (
-	sourceCache   = make(map[string][]string)
-	sourceCacheMu sync.RWMutex
+	sourceCache      = make(map[string][]string)
+	sourceCacheMu    sync.RWMutex
+	sourceCacheLimit = 100 // Keep last 100 files (LRU eviction when exceeded)
+	sourceCacheKeys  = make([]string, 0, sourceCacheLimit)
 )
 
 // NewEnhancedError creates an enhanced error with source context
@@ -56,9 +58,10 @@ func NewEnhancedError(
 	position := fset.Position(pos)
 
 	// Extract source lines (2 lines context before/after)
-	sourceLines, highlightIdx := extractSourceLines(position.Filename, position.Line, 2)
+	sourceLines, highlightIdx, extractErr := extractSourceLines(position.Filename, position.Line, 2)
 
-	return &EnhancedError{
+	// Create base error
+	err := &EnhancedError{
 		Message:       message,
 		Filename:      position.Filename,
 		Line:          position.Line,
@@ -67,6 +70,17 @@ func NewEnhancedError(
 		SourceLines:   sourceLines,
 		HighlightLine: highlightIdx,
 	}
+
+	// If source extraction failed, add note to annotation
+	if extractErr != nil {
+		if err.Annotation != "" {
+			err.Annotation += fmt.Sprintf(" (source unavailable: %v)", extractErr)
+		} else {
+			err.Annotation = fmt.Sprintf("(source unavailable: %v)", extractErr)
+		}
+	}
+
+	return err
 }
 
 // NewEnhancedErrorSpan creates an enhanced error with a span (start to end position)
@@ -179,44 +193,47 @@ func (e *EnhancedError) Error() string {
 }
 
 // extractSourceLines reads source file and extracts lines with context
-// Returns the lines and the index of the target line within the slice
-func extractSourceLines(filename string, targetLine, contextLines int) ([]string, int) {
+// Returns the lines, the index of the target line within the slice, and any error
+func extractSourceLines(filename string, targetLine, contextLines int) ([]string, int, error) {
 	// Try cache first
 	sourceCacheMu.RLock()
 	allLines, cached := sourceCache[filename]
 	sourceCacheMu.RUnlock()
 
 	if !cached {
-		// Read file
-		file, err := os.Open(filename)
+		// Read file content
+		content, err := os.ReadFile(filename)
 		if err != nil {
-			// Graceful fallback - return empty
-			return nil, 0
-		}
-		defer file.Close()
-
-		// Read all lines
-		scanner := bufio.NewScanner(file)
-		allLines = []string{}
-		for scanner.Scan() {
-			allLines = append(allLines, scanner.Text())
+			// Return error with context about what failed
+			return nil, 0, fmt.Errorf("cannot read file: %w", err)
 		}
 
-		if scanner.Err() != nil {
-			// Graceful fallback
-			return nil, 0
+		// Validate UTF-8
+		if !utf8.Valid(content) {
+			return nil, 0, fmt.Errorf("file is not valid UTF-8")
 		}
 
-		// Cache for future use
+		// Normalize line endings (Windows \r\n → Unix \n)
+		normalized := strings.ReplaceAll(string(content), "\r\n", "\n")
+
+		// Split into lines
+		allLines = strings.Split(normalized, "\n")
+
+		// Remove trailing empty line if file ends with newline
+		if len(allLines) > 0 && allLines[len(allLines)-1] == "" {
+			allLines = allLines[:len(allLines)-1]
+		}
+
+		// Cache for future use with LRU eviction
 		sourceCacheMu.Lock()
-		sourceCache[filename] = allLines
+		addToSourceCache(filename, allLines)
 		sourceCacheMu.Unlock()
 	}
 
 	// Calculate range (1-indexed to 0-indexed)
 	targetIdx := targetLine - 1
 	if targetIdx < 0 || targetIdx >= len(allLines) {
-		return nil, 0
+		return nil, 0, fmt.Errorf("line %d out of range (1-%d)", targetLine, len(allLines))
 	}
 
 	start := max(0, targetIdx-contextLines)
@@ -224,14 +241,48 @@ func extractSourceLines(filename string, targetLine, contextLines int) ([]string
 
 	// Return slice and highlight index within slice
 	highlightIdx := targetIdx - start
-	return allLines[start:end], highlightIdx
+	return allLines[start:end], highlightIdx, nil
 }
 
-// ClearCache clears the source file cache (useful for testing)
-func ClearCache() {
+// addToSourceCache adds a file to the cache with LRU eviction
+// Must be called with sourceCacheMu.Lock() held
+func addToSourceCache(filename string, lines []string) {
+	// Check if already in cache (update position)
+	for i, key := range sourceCacheKeys {
+		if key == filename {
+			// Move to end (most recently used)
+			sourceCacheKeys = append(sourceCacheKeys[:i], sourceCacheKeys[i+1:]...)
+			sourceCacheKeys = append(sourceCacheKeys, filename)
+			sourceCache[filename] = lines
+			return
+		}
+	}
+
+	// New entry - check if we need to evict
+	if len(sourceCacheKeys) >= sourceCacheLimit {
+		// Evict oldest (first in list)
+		oldest := sourceCacheKeys[0]
+		delete(sourceCache, oldest)
+		sourceCacheKeys = sourceCacheKeys[1:]
+	}
+
+	// Add new entry
+	sourceCacheKeys = append(sourceCacheKeys, filename)
+	sourceCache[filename] = lines
+}
+
+// ClearSourceCache clears the source file cache
+// Call this after compilation completes or periodically in long-running processes
+func ClearSourceCache() {
 	sourceCacheMu.Lock()
+	defer sourceCacheMu.Unlock()
 	sourceCache = make(map[string][]string)
-	sourceCacheMu.Unlock()
+	sourceCacheKeys = make([]string, 0, sourceCacheLimit)
+}
+
+// ClearCache is deprecated, use ClearSourceCache instead (kept for backward compatibility)
+func ClearCache() {
+	ClearSourceCache()
 }
 
 func max(a, b int) int {

@@ -295,7 +295,7 @@ func TestConfigValidation(t *testing.T) {
 			wantError: false,
 		},
 		{
-			name: "valid match syntax swift",
+			name: "invalid match syntax swift (removed in Phase 4.2)",
 			config: &Config{
 				Features: FeatureConfig{
 					ErrorPropagationSyntax: SyntaxQuestion,
@@ -308,7 +308,7 @@ func TestConfigValidation(t *testing.T) {
 					Format:  FormatInline,
 				},
 			},
-			wantError: false,
+			wantError: true,
 		},
 		{
 			name: "invalid match syntax",
@@ -592,9 +592,9 @@ func TestLoadConfigMatchSyntax(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	// Write project config with match syntax
+	// Write project config with match syntax (Rust-only)
 	projectConfig := `[match]
-syntax = "swift"
+syntax = "rust"
 
 [features]
 error_propagation_syntax = "question"
@@ -626,8 +626,8 @@ error_propagation_syntax = "question"
 		t.Fatalf("Load() error = %v", err)
 	}
 
-	if cfg.Match.Syntax != "swift" {
-		t.Errorf("Expected match syntax 'swift' from project config, got %q", cfg.Match.Syntax)
+	if cfg.Match.Syntax != "rust" {
+		t.Errorf("Expected match syntax 'rust' from project config, got %q", cfg.Match.Syntax)
 	}
 }
 
