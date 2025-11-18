@@ -23,11 +23,29 @@ const firebaseConfig = {
   appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Lazy initialization - only initialize when actually used (browser-only)
+let app: ReturnType<typeof initializeApp> | null = null;
+let _auth: Auth | null = null;
 
-// Initialize Firebase Authentication
-export const auth: Auth = getAuth(app);
+function getFirebaseApp() {
+  if (!app && typeof window !== 'undefined') {
+    app = initializeApp(firebaseConfig);
+  }
+  return app;
+}
+
+// Initialize Firebase Authentication (lazy)
+export const auth: Auth = new Proxy({} as Auth, {
+  get(target, prop) {
+    if (!_auth && typeof window !== 'undefined') {
+      const app = getFirebaseApp();
+      if (app) {
+        _auth = getAuth(app);
+      }
+    }
+    return _auth ? (_auth as any)[prop] : undefined;
+  }
+});
 
 // Auth Providers
 const googleProvider = new GoogleAuthProvider();
