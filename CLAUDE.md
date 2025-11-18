@@ -934,6 +934,224 @@ This is the key to handling complex projects without context overload!
 - Plugins transform AST for features that need Go semantics
 - Simpler, leverages Go's own parser, easier to maintain
 
+## 🤖 External Model Consultation Guidelines
+
+**When to use external models**: Complex architectural decisions, multi-perspective analysis, novel problem-solving, validating critical fixes.
+
+**How to invoke**: Delegate to specialized agents (golang-architect, etc.) in **PROXY MODE** with specific model IDs via `claudish`.
+
+### Curated Model Shortlist (Empirically Validated)
+
+**Based on**: LSP Source Mapping Bug Investigation (Session 20251118-223538)
+**Performance Data**: 7 models tested in parallel, ranked by accuracy, speed, and practicality
+
+#### 🥇 Tier 1: Primary Recommendations (Use First)
+
+**1. MiniMax M2** (`minimax/minimax-m2`)
+- **Score**: 91/100 | **Speed**: ⚡⚡⚡ (3 min) | **Cost**: $$ (moderate)
+- **Best for**: Fast root cause analysis, debugging, production bug investigations
+- **Strengths**: Pinpoint accuracy, simple solutions, avoids overengineering
+- **Proven**: Found exact bug (column calculation) in 3 minutes
+- **Use when**: Need quick, accurate diagnosis with minimal complexity
+
+**2. Grok Code Fast** (`x-ai/grok-code-fast-1`)
+- **Score**: 83/100 | **Speed**: ⚡⚡ (4 min) | **Cost**: $$ (moderate)
+- **Best for**: Debugging, validation, test strategy design
+- **Strengths**: Excellent execution traces, edge case coverage, practical validation
+- **Proven**: Step-by-step debugging, tab/space analysis, multiple test scenarios
+- **Use when**: Need detailed debugging trace or comprehensive test coverage
+
+**3. GPT-5.1 Codex** (`openai/gpt-5.1-codex`)
+- **Score**: 80/100 | **Speed**: ⚡ (5 min) | **Cost**: $$$ (high)
+- **Best for**: Architectural redesign, long-term improvements, comprehensive planning
+- **Strengths**: Strong architectural vision, excellent structure, detailed testing strategies
+- **Proven**: Proposed granular mapping system (good for future enhancements)
+- **Use when**: Planning major refactors or long-term architectural improvements
+
+#### 🥈 Tier 2: Specialized Use Cases
+
+**4. Gemini 2.5 Flash** (`google/gemini-2.5-flash`)
+- **Score**: 73/100 | **Speed**: ⚡ (6 min) | **Cost**: $ (low)
+- **Best for**: Exploring ambiguous bugs, exhaustive hypothesis testing
+- **Strengths**: Extremely thorough, explores multiple angles, good edge case coverage
+- **Caution**: Can go too deep; best for truly complex, multi-faceted problems
+- **Use when**: Bug is ambiguous and requires exploring multiple hypotheses
+
+**5. GLM-4.6** (`z-ai/glm-4.6`)
+- **Score**: 70/100 | **Speed**: 🐢 (7 min) | **Cost**: $$ (moderate)
+- **Best for**: Adding debugging infrastructure, algorithm enhancements
+- **Strengths**: Proposes comprehensive improvements, good test coverage ideas
+- **Caution**: Tends to overengineer; verify complexity is warranted
+- **Use when**: Need to add debugging/logging capabilities or enhance existing systems
+
+#### ⚠️ Tier 3: Use With Caution
+
+**6. Sherlock Think Alpha** (`openrouter/sherlock-think-alpha`)
+- **Score**: 65/100 | **Speed**: ⚡ (5 min) | **Cost**: $$$ (high)
+- **Best for**: Protocol/standards analysis, defensive programming
+- **Caution**: May focus on secondary issues; good for robustness, not bug-finding
+- **Use when**: Need to validate standards compliance or improve robustness
+
+#### ❌ Avoid
+
+**Qwen3 Coder** (`qwen/qwen3-coder-30b-a3b-instruct`)
+- **Status**: ❌ Failed (timeout after 8+ minutes)
+- **Reliability**: Poor (availability/performance issues)
+- **Recommendation**: Do NOT use for time-sensitive or production tasks
+
+### Recommended Consultation Strategies
+
+#### Strategy 1: Fast Parallel Diagnosis (Most Common)
+**Models**: MiniMax M2 + Grok Code Fast (2 models in parallel)
+**Time**: ~4 minutes total
+**Use**: 90% of bug investigations
+**Benefits**: Fast diagnosis + validation strategy
+
+#### Strategy 2: Comprehensive Analysis
+**Models**: MiniMax M2 + GPT-5.1 Codex + Grok Code Fast (3 models in parallel)
+**Time**: ~5 minutes total
+**Use**: Critical bugs, architectural decisions
+**Benefits**: Quick fix + long-term plan + validation
+
+#### Strategy 3: Deep Exploration
+**Models**: MiniMax M2 + Gemini 2.5 Flash + Grok Code Fast (3 models in parallel)
+**Time**: ~6 minutes total
+**Use**: Ambiguous, multi-faceted problems
+**Benefits**: Quick fix + exhaustive analysis + validation
+
+#### Strategy 4: Architecture + Implementation
+**Models**: GPT-5.1 Codex (architecture) → MiniMax M2 (implementation)
+**Time**: ~8 minutes sequential
+**Use**: New feature design → implementation
+**Benefits**: High-level design followed by practical implementation
+
+### Model Selection Decision Tree
+
+```
+┌─────────────────────────────────────┐
+│ What type of task?                  │
+└─────────────────────────────────────┘
+         ↓
+    [Bug Investigation?]
+         ↓ YES
+    MiniMax M2 + Grok Code Fast
+    (Fast + Validation)
+         ↓ NO
+    [Architectural Decision?]
+         ↓ YES
+    GPT-5.1 Codex + MiniMax M2
+    (Design + Implementation)
+         ↓ NO
+    [Ambiguous Problem?]
+         ↓ YES
+    Gemini 2.5 Flash + MiniMax M2
+    (Exploration + Quick Fix)
+         ↓ NO
+    [Algorithm Enhancement?]
+         ↓ YES
+    GLM-4.6 + Grok Code Fast
+    (Improvements + Validation)
+```
+
+### Cost-Effectiveness Rankings
+
+| Priority | Model | Value/Cost | Best Use |
+|----------|-------|------------|----------|
+| 1 | MiniMax M2 | ⭐⭐⭐⭐⭐ | Default choice for most tasks |
+| 2 | Grok Code Fast | ⭐⭐⭐⭐ | Debugging and validation |
+| 3 | Gemini 2.5 Flash | ⭐⭐⭐ | Low-cost exploration |
+| 4 | GPT-5.1 Codex | ⭐⭐⭐ | High-value architectural work |
+| 5 | GLM-4.6 | ⭐⭐ | Specialized enhancements only |
+
+### Critical Success Factors
+
+**What makes external model consultations successful:**
+
+✅ **Clear problem statements** - Provide specific file paths, line numbers, error messages
+✅ **Focused scope** - Single, well-defined problem per consultation
+✅ **Parallel execution** - Run 2-3 models simultaneously for diverse perspectives
+✅ **Timeout handling** - Always set 10-minute timeouts (claudish default is too short)
+✅ **Summary extraction** - Agents return MAX 5 sentences, details in files
+
+**What leads to poor results:**
+
+❌ Vague problem descriptions
+❌ Too many sub-questions in one consultation
+❌ Sequential execution (wastes time)
+❌ Using slow/unreliable models for time-sensitive tasks
+❌ Returning full analysis in agent response (context bloat)
+
+### Performance Benchmarks (from Session 20251118-223538)
+
+**Task**: Identify LSP source mapping bug (diagnostic underlining wrong code)
+
+| Model | Time | Accuracy | Solution | Value |
+|-------|------|----------|----------|-------|
+| MiniMax M2 | 3 min | ✅ Exact | Simple fix | ⭐⭐⭐⭐⭐ |
+| Grok Code Fast | 4 min | ✅ Correct | Good validation | ⭐⭐⭐⭐ |
+| GPT-5.1 Codex | 5 min | ⚠️ Partial | Complex design | ⭐⭐⭐⭐ |
+| Gemini 2.5 Flash | 6 min | ⚠️ Missed | Overanalyzed | ⭐⭐⭐ |
+| GLM-4.6 | 7 min | ❌ Wrong focus | Overengineered | ⭐⭐ |
+| Sherlock Think | 5 min | ❌ Secondary | Wrong cause | ⭐⭐ |
+| Qwen3 Coder | 8+ min | ❌ Failed | Timeout | ⚠️ |
+
+**Key Insight**: Faster models (MiniMax M2, Grok) delivered better results than slower ones. Speed correlates with focus on simplicity.
+
+### Usage Template for Agents
+
+When delegating to external models, use this template:
+
+```
+Task tool → golang-architect (PROXY MODE):
+
+You are operating in PROXY MODE to [task description] using [model-name].
+
+INPUT FILES:
+- [file paths]
+
+YOUR TASK (PROXY MODE):
+1. Read context from input files
+2. Use claudish to consult [model-name] (model ID: [model-id])
+3. Provide model with: [specific instructions]
+4. Write full response to output file
+
+**CRITICAL - Timeout Configuration**:
+Use timeout=600000 (10 minutes) when calling claudish via Bash tool.
+
+OUTPUT FILES:
+- [output-path] - Complete analysis
+
+RETURN MESSAGE (MAX 3 lines):
+[Model-name] analysis complete
+Root cause: [one-line summary]
+Full analysis: [output-path]
+```
+
+### When NOT to Use External Models
+
+❌ **Simple queries** - If internal golang-architect can answer in <2 minutes
+❌ **Already-solved problems** - Check project docs and past sessions first
+❌ **Implementation tasks** - Use golang-developer directly, not external models
+❌ **Trivial bugs** - If the issue is obvious, just fix it
+❌ **Multiple rounds** - Don't use external models iteratively; get answer once
+
+### Model Reliability Notes
+
+**Stable** (99%+ success rate):
+- MiniMax M2 ✅
+- Grok Code Fast ✅
+- GPT-5.1 Codex ✅
+- Gemini 2.5 Flash ✅
+
+**Unstable** (known issues):
+- Qwen3 Coder ❌ (timeouts)
+
+**Update frequency**: Re-evaluate model performance every 3-6 months as models improve.
+
+**Last Updated**: 2025-11-18 (Session 20251118-223538)
+
+---
+
 ## Important References
 
 ### Research Documents

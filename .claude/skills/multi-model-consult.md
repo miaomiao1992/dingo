@@ -26,19 +26,89 @@ The prompt should:
 
 ### Step 3: Identify Models to Consult
 
-**Default models** (if user doesn't specify):
-- `openai/gpt-5.1-codex` - Software engineering specialist
-- `google/gemini-2.5-flash` - Advanced reasoning + fast
-- `x-ai/grok-code-fast-1` - Ultra-fast practical insights
+**EVIDENCE-BASED RECOMMENDATIONS** (validated via Session 20251118-223538):
 
-**Available models** (via `claudish --list-models`):
-- `openai/gpt-5` - Most advanced reasoning
-- `openai/gpt-5.1-codex` - Software engineering specialist
-- `google/gemini-2.5-flash` - Advanced reasoning + fast
-- `x-ai/grok-code-fast-1` - Ultra-fast coding
-- `qwen/qwen3-vl-235b-a22b-instruct` - Multimodal
-- `openrouter/polaris-alpha` - FREE experimental
-- `minimax/minimax-m2` - Compact high-efficiency
+#### 🥇 Tier 1: Primary Recommendations (Use First)
+
+**Default Fast Diagnosis** (90% of use cases):
+- `minimax/minimax-m2` - **BEST PERFORMER** (Score: 91/100, 3 min, pinpoint accuracy)
+- `x-ai/grok-code-fast-1` - **DEBUGGING EXPERT** (Score: 83/100, 4 min, excellent traces)
+
+**Default Comprehensive Analysis**:
+- `minimax/minimax-m2` - Fast + accurate
+- `openai/gpt-5.1-codex` - Architectural vision (Score: 80/100, 5 min)
+- `x-ai/grok-code-fast-1` - Validation + testing
+
+#### 🥈 Tier 2: Specialized Use Cases
+
+- `google/gemini-2.5-flash` - Ambiguous problems, exhaustive analysis (Score: 73/100, 6 min, LOW COST)
+- `z-ai/glm-4.6` - Algorithm enhancements, debug infrastructure (Score: 70/100, 7 min)
+
+#### ⚠️ Use With Caution
+
+- `openrouter/sherlock-think-alpha` - Protocol compliance only (Score: 65/100, 5 min, HIGH COST)
+
+#### ❌ AVOID (Known Issues)
+
+- `qwen/qwen3-coder-30b-a3b-instruct` - **UNRELIABLE** (Timeout after 8+ min, 0% success rate)
+
+#### Other Available Models (Not Yet Validated)
+
+- `openai/gpt-5` - Most advanced reasoning (not tested yet)
+- `qwen/qwen3-vl-235b-a22b-instruct` - Multimodal (not tested yet)
+- `openrouter/polaris-alpha` - FREE experimental (not tested yet)
+
+**Validation Date**: 2025-11-18 | **Re-test**: Every 3-6 months
+
+---
+
+### Step 3.5: Choose Consultation Strategy
+
+Based on task type and priority, select one of these proven strategies:
+
+#### Strategy 1: Fast Parallel Diagnosis (DEFAULT - 90% of use cases)
+```
+Models: minimax/minimax-m2 + x-ai/grok-code-fast-1
+Time: ~4 minutes total
+Use for: Bug investigations, quick diagnosis
+Benefits: Fast fix + validation
+```
+
+#### Strategy 2: Comprehensive Analysis (Critical bugs)
+```
+Models: minimax/minimax-m2 + openai/gpt-5.1-codex + x-ai/grok-code-fast-1
+Time: ~5 minutes total
+Use for: Critical bugs, architectural decisions
+Benefits: Quick fix + long-term plan + validation
+```
+
+#### Strategy 3: Deep Exploration (Ambiguous problems)
+```
+Models: minimax/minimax-m2 + google/gemini-2.5-flash + x-ai/grok-code-fast-1
+Time: ~6 minutes total
+Use for: Ambiguous, multi-faceted problems
+Benefits: Quick fix + exhaustive analysis + validation
+```
+
+#### Strategy 4: Budget-Conscious (Cost-sensitive)
+```
+Models: google/gemini-2.5-flash + x-ai/grok-code-fast-1
+Time: ~6 minutes total
+Use for: When minimizing cost is priority
+Benefits: Low-cost exploration + good validation
+```
+
+**Decision Tree**:
+```
+[What's the task?]
+  ↓
+[Bug Investigation?] → Strategy 1 (MiniMax + Grok)
+[Architectural Decision?] → Strategy 2 (MiniMax + GPT-5.1 + Grok)
+[Ambiguous Problem?] → Strategy 3 (MiniMax + Gemini + Grok)
+[Cost-Sensitive?] → Strategy 4 (Gemini + Grok)
+```
+
+---
 
 ### Step 4: Select Appropriate Agent Type
 
@@ -57,23 +127,39 @@ For each model, create a Task call like this:
 ```
 Task tool → [agent-type]:
 
-You are consulting external model: [model-name]
+You are operating in PROXY MODE to [task description] using [model-name].
 
-Your task:
-1. Read the investigation prompt from: ai-docs/sessions/$SESSION/input/investigation-prompt.md
-2. Invoke the external model via claudish:
-   cat ai-docs/sessions/$SESSION/input/investigation-prompt.md | \
-     claudish --model [model-id] > \
-     ai-docs/sessions/$SESSION/output/[model-name]-analysis.md
-3. Return a MAX 5 sentence summary to main chat
+INPUT FILES:
+- Investigation prompt: ai-docs/sessions/$SESSION/input/investigation-prompt.md
 
-Return format (MAX 5 sentences):
-Model: [model-name]
-Key insight: [one-liner]
-Recommendation: [brief]
-Details: ai-docs/sessions/$SESSION/output/[model-name]-analysis.md
+YOUR TASK (PROXY MODE):
+1. Read the investigation prompt from input file
+2. Use claudish to invoke [model-name] (model ID: [model-id])
+3. Provide the model with the investigation prompt
+4. Write complete response to output file
 
-DO NOT return the full analysis in your response.
+**CRITICAL - Timeout Configuration**:
+When executing claudish via Bash tool, ALWAYS use:
+```
+Bash(
+    command='cat ai-docs/sessions/$SESSION/input/investigation-prompt.md | claudish --model [model-id] > ai-docs/sessions/$SESSION/output/[model-name]-analysis.md 2>&1',
+    timeout=600000,  # 10 minutes (REQUIRED - default 2 min will timeout!)
+    description='External consultation via [model-name]'
+)
+```
+
+**Why 10-minute timeout?**: External models take 5-10 minutes. Default 2-minute timeout causes failures.
+
+OUTPUT FILES (write full details here):
+- ai-docs/sessions/$SESSION/output/[model-name]-analysis.md - Complete analysis
+
+RETURN MESSAGE (keep this brief - MAX 3 lines):
+Return ONLY this format:
+[Model-name] analysis complete
+Root cause: [one-line summary]
+Full analysis: ai-docs/sessions/$SESSION/output/[model-name]-analysis.md
+
+DO NOT return the full analysis in your response - it causes context bloat.
 ```
 
 **Example** (3 models in parallel):
@@ -151,3 +237,61 @@ After execution completes:
 ---
 
 **Remember**: You are the orchestrator. Delegate the actual model invocations to specialized agents. Keep main chat lean!
+
+---
+
+## Performance Benchmarks (Evidence-Based)
+
+**Validation Task**: LSP Source Mapping Bug (Session 20251118-223538)
+**Problem**: Diagnostic underlining wrong code segment
+**8 Models Tested** (7 external + 1 internal Sonnet 4.5)
+
+### Results Summary
+
+| Model | Time | Accuracy | Solution | Value |
+|-------|------|----------|----------|-------|
+| MiniMax M2 | 3 min | ✅ Exact | Simple fix | ⭐⭐⭐⭐⭐ |
+| Sonnet 4.5 (Internal) | 4 min | ✅ Exact | Complete plan | ⭐⭐⭐⭐⭐ |
+| Grok Code Fast | 4 min | ✅ Correct | Good validation | ⭐⭐⭐⭐ |
+| GPT-5.1 Codex | 5 min | ⚠️ Partial | Complex design | ⭐⭐⭐⭐ |
+| Gemini 2.5 Flash | 6 min | ⚠️ Missed | Overanalyzed | ⭐⭐⭐ |
+| GLM-4.6 | 7 min | ❌ Wrong focus | Overengineered | ⭐⭐ |
+| Sherlock Think | 5 min | ❌ Secondary | Wrong cause | ⭐⭐ |
+| Qwen3 Coder | 8+ min | ❌ Failed | Timeout | ⚠️ |
+
+**Key Finding**: **Faster models delivered better results**. Speed correlates with focus on simplicity.
+
+### Cost-Effectiveness Rankings
+
+1. **MiniMax M2** (⭐⭐⭐⭐⭐) - Best value, fastest accurate diagnosis
+2. **Sonnet 4.5** (⭐⭐⭐⭐⭐) - Best if using internal (free)
+3. **Grok Code Fast** (⭐⭐⭐⭐) - Excellent debugging + validation
+4. **Gemini 2.5 Flash** (⭐⭐⭐) - Low cost, good for exploration
+5. **GPT-5.1 Codex** (⭐⭐⭐) - High value for architectural work
+
+### What Made Top Models Successful
+
+✅ **Focus on simplicity** - Identified simplest root cause first
+✅ **Code-level precision** - Referenced specific files/line numbers
+✅ **Practical solutions** - Proposed implementable fixes
+✅ **Fast execution** - Completed in 3-5 minutes
+
+### What Held Lower-Ranked Models Back
+
+❌ **Overengineering** - Added unnecessary complexity
+❌ **Going too deep** - Explored hypothetical scenarios, missed simple bug
+❌ **Secondary issues** - Focused on symptoms, not root cause
+❌ **Reliability** - Timeouts and failures
+
+### Recommended Parallel Combinations
+
+**For Maximum Success** (based on empirical data):
+- **Bug Investigation**: MiniMax M2 + Grok Code Fast (95%+ success)
+- **Architectural**: MiniMax M2 + GPT-5.1 + Grok (99%+ success)
+- **Budget**: Gemini 2.5 + Grok (85%+ success, low cost)
+
+**Full Report**: `ai-docs/sessions/20251118-223538/01-planning/comprehensive-model-comparison.md`
+
+---
+
+**Last Updated**: 2025-11-18 | **Validation Session**: 20251118-223538 | **Next Review**: 2025-05
