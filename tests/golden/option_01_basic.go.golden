@@ -30,7 +30,6 @@ func findUser(id int) Option {
 	}
 	return Option_None()
 }
-
 func main() {
 	result := findUser(42)
 	if result.IsSome() {

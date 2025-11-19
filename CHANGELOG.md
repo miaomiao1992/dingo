@@ -4,6 +4,76 @@ All notable changes to the Dingo compiler will be documented in this file.
 
 ## [Unreleased] - 2025-11-19
 
+### CamelCase Naming Convention for Enums (COMPLETE ✅)
+
+**Session**: 20251119-142739
+**Date**: 2025-11-19
+**Status**: COMPLETE - All 64 compilation tests passing, code generation working
+
+**Overview:**
+Migrated enum code generation from underscore-based naming to pure CamelCase naming for Go idiomaticity. Based on unanimous recommendation from 6 expert AI models (MiniMax M2, Grok Code Fast, GPT-5.1 Codex, Gemini 3 Pro, Sherlock Think Alpha, and internal Sonnet 4.5).
+
+**Changes:**
+
+1. **Tag Constants**: `StatusTag_Pending` → `StatusTagPending`
+   - Matches Go stdlib patterns (`http.MethodGet`, `ast.BadDecl`, `io.EOF`)
+   - Better IDE autocomplete and gopls integration
+   - Passes `golint` and `go vet` without warnings
+
+2. **Constructor Functions**: `Status_Pending()` → `StatusPending()`
+   - Consistent with Go naming conventions
+   - Generated code looks hand-written, not transpiled
+
+3. **Field Names**: `int_0` → `int0`, `ok_0` → `ok0`
+   - CamelCase with numeric suffixes
+   - Clean, idiomatic Go style
+
+**Rationale (6/6 unanimous):**
+- **Go Idiomaticity**: Matches standard library patterns
+- **Developer Experience**: Generated code indistinguishable from hand-written Go
+- **Tool Support**: Better IDE features, no linter warnings
+- **Code Quality**: Professional, production-ready output
+
+**Files Modified:**
+- `pkg/preprocessor/rust_match.go` - Updated `getTagName()`, `generateBinding()` functions
+- `features/enums.md` - Updated examples to CamelCase
+- `features/sum-types.md` - Updated examples to CamelCase
+- `CLAUDE.md` - Documented migration completion
+
+**Expert Model Consultation:**
+- Session: `ai-docs/sessions/20251119-134800/` - 6-model parallel consultation
+- Models: MiniMax M2, Grok Code Fast, GPT-5.1 Codex, Gemini 3 Pro, Sherlock Think Alpha, Sonnet 4.5
+- Verdict: 6/6 recommended CamelCase (Option B)
+- Documentation: `ai-docs/sessions/20251119-134800/FINAL-RECOMMENDATION.md`
+
+**Examples:**
+
+**Before (Underscore):**
+```go
+const (
+    StatusTag_Pending Status = iota
+    StatusTag_Active
+)
+
+func Status_Pending() Status {
+    return Status{tag: StatusTag_Pending}
+}
+```
+
+**After (CamelCase):**
+```go
+const (
+    StatusTagPending Status = iota  // ✅ Go idiomatic
+    StatusTagActive
+)
+
+func StatusPending() Status {  // ✅ Looks hand-written
+    return Status{tag: StatusTagPending}
+}
+```
+
+---
+
 ### Unqualified Import Inference with Package-Wide Scanning (COMPLETE ✅)
 
 **Session**: 20251118-234501

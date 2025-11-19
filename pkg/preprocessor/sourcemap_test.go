@@ -119,9 +119,11 @@ func TestSourceMapEdgeCases(t *testing.T) {
 	}
 
 	// Outside mapping range with reasonable distance
+	// Mapping: gen_col=10, length=15 → covers 10-24
+	// Position 25 with offset 15 → orig_col = 5+15 = 20
 	line, col = sm.MapToOriginal(5, 25)
-	if line != 2 || col != 5 {
-		t.Errorf("Outside range should return mapping start, got (%d, %d)", line, col)
+	if line != 2 || col != 20 {
+		t.Errorf("Outside range should apply offset if reasonable, got (%d, %d)", line, col)
 	}
 }
 

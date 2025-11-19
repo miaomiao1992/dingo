@@ -34,11 +34,15 @@ func classifyNumber(result Result) string {
 	case ResultTag_Ok:
 
 		x := __match_0.result_ok_0
-		"positive"
+		if x > 0 {
+			"positive"
+		}
 	case ResultTag_Ok:
 
 		x := __match_0.result_ok_0
-		"negative"
+		if x < 0 {
+			"negative"
+		}
 	case ResultTag_Ok:
 
 		_ := __match_0.result_ok_0
@@ -59,11 +63,15 @@ func validateAge(result Result) string {
 	case ResultTag_Ok:
 
 		age := __match_1.result_ok_0
-		"adult"
+		if age >= 18 && age < 65 {
+			"adult"
+		}
 	case ResultTag_Ok:
 
 		age := __match_1.result_ok_0
-		"senior"
+		if age >= 65 {
+			"senior"
+		}
 	case ResultTag_Ok:
 
 		_ := __match_1.result_ok_0
@@ -84,7 +92,9 @@ func checkLength(result Result) string {
 	case ResultTag_Ok:
 
 		n := __match_2.result_ok_0
-		"even"
+		if isEven(n) {
+			"even"
+		}
 	case ResultTag_Ok:
 
 		_ := __match_2.result_ok_0

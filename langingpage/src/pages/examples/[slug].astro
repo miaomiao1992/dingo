@@ -8,6 +8,7 @@ import { Image } from 'astro:assets';
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
 import { highlightMarkdownTokens } from '../../lib/markdownHighlight';
+import CommentSection from '../../components/react/CommentSection';
 
 export async function getStaticPaths() {
   const examples = await getCollection('golden-examples');
@@ -99,6 +100,10 @@ if (example.data.reasoning) {
             </div>
           </div>
         )}
+
+        <div className="px-8 pb-12">
+          <CommentSection client:only="react" slug={currentSlug} />
+        </div>
       </div>
     </div>
   </div>

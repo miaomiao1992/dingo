@@ -26,30 +26,34 @@ func (e Value) IsString() bool {
 	return e.tag == ValueTag_String
 }
 func describe(v Value) string {
+	var __match_result_0 interface{}
 
 	__match_0 := v
 	switch __match_0.tag {
 	case ValueTag_Int:
+		n := *__match_0.int_0
 
-		n := __match_0.value_int_0
-		"Positive number"
-	case ValueTag_Int:
+		if n > 0 {
+			__match_result_0 = "Positive number"
 
-		n := __match_0.value_int_0
-		"Negative number"
-	case ValueTag_Int:
+		} else if n < 0 {
+			__match_result_0 = "Negative number"
 
-		_ := __match_0.value_int_0
-		"Zero"
+		} else {
+			__match_result_0 = "Zero"
+		}
 	case ValueTag_String:
+		s := *__match_0.string_0
 
-		s := __match_0.value_string_0
-		"Long string"
-	case ValueTag_String:
+		if len(s) > 5 {
+			__match_result_0 = "Long string"
 
-		_ := __match_0.value_string_0
-		"Short string"
+		} else {
+			__match_result_0 = "Short string"
+		}
 	}
+	panic("unreachable: match is exhaustive")
+	return __match_result_0
 
 }
 func main() {

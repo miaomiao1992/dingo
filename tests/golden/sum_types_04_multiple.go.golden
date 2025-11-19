@@ -34,7 +34,6 @@ const (
 type Priority struct {
 	tag PriorityTag
 }
-
 func Priority_Low() Priority {
 	return Priority{tag: PriorityTag_Low}
 }
@@ -46,10 +45,4 @@ func (e Priority) IsLow() bool {
 }
 func (e Priority) IsHigh() bool {
 	return e.tag == PriorityTag_High
-}
-func checkTask(s Status, p Priority) string {
-	if s.IsPending() && p.IsHigh() {
-		return "urgent"
-	}
-	return "normal"
 }

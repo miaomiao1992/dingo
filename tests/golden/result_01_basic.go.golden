@@ -1,6 +1,8 @@
 package main
 
-import "errors"
+import (
+	"errors"
+)
 
 type ResultTag uint8
 
@@ -14,6 +16,7 @@ type Result struct {
 	ok_0  *float64
 	err_0 *error
 }
+
 func Result_Ok(arg0 float64) Result {
 	return Result{tag: ResultTag_Ok, ok_0: &arg0}
 }

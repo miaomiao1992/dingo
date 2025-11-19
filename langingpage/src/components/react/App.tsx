@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { CodeComparison } from './CodeComparison';
+import CommentSection from './CommentSection';
 import logoImage from '../../assets/dingo-logo.png';
 
 interface Example {
@@ -133,7 +134,7 @@ export default function App({ examples }: AppProps) {
           <img src={logoImage.src} alt="Dingo Logo" className="h-24 w-24 object-contain" />
           <h1 className="text-gray-900">Dingo</h1>
         </div>
-        
+
         {/* Fix #4: Add aria-label to nav */}
         <nav
           aria-label="Example categories navigation"
@@ -168,47 +169,45 @@ export default function App({ examples }: AppProps) {
                 <div
                   id={`category-${categoryId}`}
                   aria-hidden={!isExpanded}
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    isExpanded ? 'max-h-[2000px] opacity-100 mt-1' : 'max-h-0 opacity-0'
-                  }`}
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[2000px] opacity-100 mt-1' : 'max-h-0 opacity-0'
+                    }`}
                 >
                   <div className="space-y-1 pl-2">
-                      {categoryExamples.map((example) => {
-                        const isSelected = selectedId === example.id;
+                    {categoryExamples.map((example) => {
+                      const isSelected = selectedId === example.id;
 
-                        // Build complete class name for Tailwind (dynamic classes don't work)
-                        let buttonClasses = 'w-full text-left px-3 py-2.5 rounded-lg transition-all text-xs ';
+                      // Build complete class name for Tailwind (dynamic classes don't work)
+                      let buttonClasses = 'w-full text-left px-3 py-2.5 rounded-lg transition-all text-xs ';
 
-                        if (isSelected) {
-                          // Apply difficulty-based colors for selected items
-                          if (example.complexity === 'basic') {
-                            buttonClasses += 'bg-green-50 text-green-700';
-                          } else if (example.complexity === 'intermediate') {
-                            buttonClasses += 'bg-amber-50 text-amber-700';
-                          } else if (example.complexity === 'advanced') {
-                            buttonClasses += 'bg-red-50 text-red-700';
-                          } else {
-                            buttonClasses += 'bg-blue-50 text-blue-700';
-                          }
+                      if (isSelected) {
+                        // Apply difficulty-based colors for selected items
+                        if (example.complexity === 'basic') {
+                          buttonClasses += 'bg-green-50 text-green-700';
+                        } else if (example.complexity === 'intermediate') {
+                          buttonClasses += 'bg-amber-50 text-amber-700';
+                        } else if (example.complexity === 'advanced') {
+                          buttonClasses += 'bg-red-50 text-red-700';
                         } else {
-                          buttonClasses += 'text-gray-600 hover:bg-gray-50';
+                          buttonClasses += 'bg-blue-50 text-blue-700';
                         }
+                      } else {
+                        buttonClasses += 'text-gray-600 hover:bg-gray-50';
+                      }
 
-                        return (
-                          <button
-                            key={example.id}
-                            onClick={() => setSelectedId(example.id)}
-                            className={buttonClasses}
-                            title={example.summary || example.title}
-                            aria-label={`${example.title}${
-                              example.complexity ? `, ${example.complexity} complexity` : ''
+                      return (
+                        <button
+                          key={example.id}
+                          onClick={() => setSelectedId(example.id)}
+                          className={buttonClasses}
+                          title={example.summary || example.title}
+                          aria-label={`${example.title}${example.complexity ? `, ${example.complexity} complexity` : ''
                             }${isSelected ? ', currently selected' : ''}`}
-                            aria-current={isSelected ? 'true' : undefined}
-                          >
-                            <span className="leading-relaxed">{example.title}</span>
-                          </button>
-                        );
-                      })}
+                          aria-current={isSelected ? 'true' : undefined}
+                        >
+                          <span className="leading-relaxed">{example.title}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -239,7 +238,7 @@ export default function App({ examples }: AppProps) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
-        
+
         <div className="flex-1 overflow-auto pt-8">
           <CodeComparison
             beforeHtml={selectedExample.beforeHtml}
@@ -258,6 +257,11 @@ export default function App({ examples }: AppProps) {
                 <p className="text-gray-500 text-xs">No reasoning documentation available for this example.</p>
               )}
             </div>
+          </div>
+
+          {/* Comment Section */}
+          <div className="px-8 pb-12">
+            <CommentSection slug={selectedExample.slug || `example-${selectedExample.id}`} />
           </div>
         </div>
       </div>

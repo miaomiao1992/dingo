@@ -68,6 +68,7 @@ func handleResult(r Result_int_error) string {
 			},
 		}
 		ctx.BuildParentMap(file)
+		ctx.CurrentFile = file // PRIORITY 3 FIX: Plugin needs CurrentFile to find markers
 
 		// Step 4: Run type checker
 		typesInfo, err := runTypeChecker(t, fset, file)
@@ -154,6 +155,7 @@ func handleOption(o Option_string) string {
 			Logger:  &testLogger{t: t},
 		}
 		ctx.BuildParentMap(file)
+		ctx.CurrentFile = file // PRIORITY 3 FIX: Plugin needs CurrentFile to find markers
 
 		// Step 4: Create pipeline
 		registry := plugin.NewRegistry()
@@ -220,6 +222,7 @@ func getAge(valid bool) Option_int {
 			Logger:  &testLogger{t: t},
 		}
 		ctx.BuildParentMap(file)
+		ctx.CurrentFile = file // PRIORITY 3 FIX: Plugin needs CurrentFile to find markers
 
 		// Step 4: Run type checker
 		typesInfo, err := runTypeChecker(t, fset, file)
@@ -333,6 +336,7 @@ func process(r Result_string_error) Option_int {
 			Logger:  &testLogger{t: t},
 		}
 		ctx.BuildParentMap(file)
+		ctx.CurrentFile = file // PRIORITY 3 FIX: Plugin needs CurrentFile to find markers
 
 		// Step 4: Run type checker
 		typesInfo, err := runTypeChecker(t, fset, file)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -194,6 +195,7 @@ func (r *RustMatchProcessor) transformMatch(matchExpr string, originalLine int, 
 // Examples:
 //   "let x = match ..." -> (true, "x")
 //   "var result = match ..." -> (true, "result")
+//   "return match ..." -> (true, "__match_result_N") // Auto-generated name
 //   "match ..." -> (false, "")
 func (r *RustMatchProcessor) extractAssignmentVar(matchExpr string) (bool, string) {
 	// Get the text before "match" keyword
@@ -203,6 +205,13 @@ func (r *RustMatchProcessor) extractAssignmentVar(matchExpr string) (bool, strin
 	}
 
 	beforeMatch := strings.TrimSpace(matchExpr[:matchIdx])
+
+	// Check for "return match" pattern
+	if beforeMatch == "return" || strings.HasSuffix(beforeMatch, "return") {
+		// Generate temporary variable name for return context
+		varName := fmt.Sprintf("__match_result_%d", r.matchCounter)
+		return true, varName
+	}
 
 	// Check if there's an assignment operator before match
 	if !strings.Contains(beforeMatch, "=") {
@@ -299,26 +308,37 @@ func (r *RustMatchProcessor) parseArms(armsText string) ([]patternArm, error) {
 				i++
 			}
 			expr = strings.TrimSpace(text[start:i])
-		} else {
-			// Simple expression - find comma or end
-			start := i
-			for i < len(text) && text[i] != ',' {
+			// PRIORITY 3 FIX: Skip trailing comma after block expression
+			if i < len(text) && text[i] == ',' {
 				i++
 			}
-			expr = strings.TrimSpace(text[start:i])
-		}
-
-		// Skip comma if present
-		if i < len(text) && text[i] == ',' {
-			i++
+		} else {
+			// Simple expression - find comma or end (respecting strings and nesting)
+			start := i
+			if start >= len(text) {
+				return nil, fmt.Errorf("unexpected end of text after =>")
+			}
+			exprEnd := r.findExpressionEnd(text, start)
+			if exprEnd > start {
+				expr = strings.TrimSpace(text[start:exprEnd])
+				i = exprEnd
+				// Skip comma if present
+				if i < len(text) && text[i] == ',' {
+					i++
+				}
+			} else {
+				return nil, fmt.Errorf("invalid expression end at position %d", start)
+			}
 		}
 
 		// Extract binding from pattern (if present)
+		// FIX: Use proper paren matching to handle nested patterns like Result_Ok(Value_Int(n))
 		binding := ""
 		patternName := pattern
 		if strings.Contains(pattern, "(") {
 			start := strings.Index(pattern, "(")
-			end := strings.Index(pattern, ")")
+			// Find MATCHING closing paren (not just first one)
+			end := r.findMatchingCloseParen(pattern, start)
 			if end > start {
 				binding = strings.TrimSpace(pattern[start+1 : end])
 				patternName = pattern[:start]
@@ -340,34 +360,129 @@ func (r *RustMatchProcessor) parseArms(armsText string) ([]patternArm, error) {
 	return arms, nil
 }
 
+// findMatchingCloseParen finds the closing paren that matches the open paren at position start
+// Handles nested parens correctly: Result_Ok(Value_Int(n)) -> finds the final )
+func (r *RustMatchProcessor) findMatchingCloseParen(text string, start int) int {
+	if start >= len(text) || text[start] != '(' {
+		return -1
+	}
+
+	depth := 1
+	i := start + 1
+
+	for i < len(text) && depth > 0 {
+		if text[i] == '(' {
+			depth++
+		} else if text[i] == ')' {
+			depth--
+		}
+		if depth == 0 {
+			return i
+		}
+		i++
+	}
+
+	return -1 // No matching close paren
+}
+
+// findExpressionEnd finds the end of an expression, respecting string literals and nested structures
+// Returns the position of the delimiter (comma) or end of string
+// This correctly handles commas inside strings, parentheses, brackets, and braces
+func (r *RustMatchProcessor) findExpressionEnd(text string, start int) int {
+	i := start
+	inString := false
+	stringDelim := byte(0)
+	depth := 0 // Track nesting depth for (), [], {}
+
+	for i < len(text) {
+		ch := text[i]
+
+		// Handle string literals
+		if !inString && (ch == '"' || ch == '`') {
+			inString = true
+			stringDelim = ch
+			i++
+			continue
+		}
+		if inString {
+			if ch == stringDelim {
+				// Check if escaped
+				if i > 0 && text[i-1] == '\\' {
+					// Escaped quote, stay in string
+					i++
+					continue
+				}
+				// End of string
+				inString = false
+				stringDelim = 0
+			}
+			i++
+			continue
+		}
+
+		// Not in string - check for delimiters and nesting
+		switch ch {
+		case '(', '[', '{':
+			depth++
+		case ')', ']', '}':
+			depth--
+		case ',':
+			// Comma at depth 0 is the delimiter we're looking for
+			if depth == 0 {
+				return i
+			}
+		}
+
+		i++
+	}
+
+	// Reached end of text
+	return i
+}
+
 // splitPatternAndGuard splits a pattern arm into pattern and optional guard
-// Supports only 'if' guard keyword (Swift 'where' removed in Phase 4.2)
+// Supports both 'if' and 'where' guard keywords
 // Examples:
 //   "Ok(x) if x > 0" -> ("Ok(x)", "x > 0")
+//   "Ok(x) where x > 0" -> ("Ok(x)", "x > 0")
 //   "Ok(x)" -> ("Ok(x)", "")
 func (r *RustMatchProcessor) splitPatternAndGuard(patternAndGuard string) (pattern string, guard string) {
-	// Strategy: Look for guard keyword (" if ") that comes after a complete pattern
+	// Strategy: Look for guard keyword (" if " or " where ") that comes after a complete pattern
 	// Pattern formats:
 	//   - Ok(binding)   - ends with )
 	//   - None          - bare identifier
 	//   - _             - wildcard
 
-	// We need to find " if " (with surrounding spaces) that appears after the pattern
+	// We need to find " if " or " where " (with surrounding spaces) that appears after the pattern
 	// To avoid false matches like "diff" containing "if", we require the keyword
 	// to be surrounded by spaces
 
 	var guardPos int = -1
 	var guardKeywordLen int = 0
 
-	// Find " if "
-	idx := strings.Index(patternAndGuard, " if ")
+	// Try " where " first (Swift-style)
+	idx := strings.Index(patternAndGuard, " where ")
 	if idx != -1 {
-		// Found " if " - this could be the guard
+		// Found " where " - this could be the guard
 		// Validate it's after a complete pattern by checking what comes before
 		before := patternAndGuard[:idx]
 		if r.isCompletePattern(before) {
 			guardPos = idx
-			guardKeywordLen = 4 // len(" if ")
+			guardKeywordLen = 7 // len(" where ")
+		}
+	}
+
+	// If no " where ", try " if " (Rust-style)
+	if guardPos == -1 {
+		idx = strings.Index(patternAndGuard, " if ")
+		if idx != -1 {
+			// Found " if " - this could be the guard
+			// Validate it's after a complete pattern by checking what comes before
+			before := patternAndGuard[:idx]
+			if r.isCompletePattern(before) {
+				guardPos = idx
+				guardKeywordLen = 4 // len(" if ")
+			}
 		}
 	}
 
@@ -465,9 +580,13 @@ func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm,
 	})
 	outputLine++
 
-	// Generate case statements for each arm
-	for _, arm := range arms {
-		caseLines, caseMappings := r.generateCase(scrutineeVar, arm, originalLine, outputLine, isInAssignment, assignmentVar)
+	// Group arms by pattern to handle guards correctly
+	// Multiple guards on the same pattern become if-else chains within one case
+	groupedArms := r.groupArmsByPattern(arms)
+
+	// Generate case statements for each pattern group
+	for _, armGroup := range groupedArms {
+		caseLines, caseMappings := r.generateCaseWithGuards(scrutineeVar, armGroup, originalLine, outputLine, isInAssignment, assignmentVar)
 		buf.WriteString(caseLines)
 		mappings = append(mappings, caseMappings...)
 		outputLine += strings.Count(caseLines, "\n")
@@ -484,6 +603,32 @@ func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm,
 		Name:            "rust_match",
 	})
 	outputLine++
+
+	// PRIORITY 3 FIX: Add panic for exhaustiveness (Go doesn't know switch is exhaustive)
+	buf.WriteString("panic(\"unreachable: match is exhaustive\")\n")
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  1,
+		GeneratedLine:   outputLine,
+		GeneratedColumn: 1,
+		Length:          5,
+		Name:            "rust_match_panic",
+	})
+	outputLine++
+
+	// If in assignment context with auto-generated variable (return match), add return statement
+	if isInAssignment && assignmentVar != "" && strings.HasPrefix(assignmentVar, "__match_result_") {
+		buf.WriteString(fmt.Sprintf("return %s\n", assignmentVar))
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  1,
+			GeneratedLine:   outputLine,
+			GeneratedColumn: 1,
+			Length:          6, // "return"
+			Name:            "rust_match_return",
+		})
+		outputLine++
+	}
 
 	// DINGO_MATCH_END marker
 	buf.WriteString("// DINGO_MATCH_END\n")
@@ -513,14 +658,259 @@ func (r *RustMatchProcessor) inferMatchResultType(arms []patternArm) string {
 		// Result type - need to infer T and E types
 		// For now, return generic Result type placeholder
 		// TODO: Parse arm expressions to infer exact types
-		return "Result_int_error" // Simplified for now
+		return "ResultIntError" // Simplified for now
 	case "Some", "None":
 		// Option type - need to infer T type
-		return "Option_int" // Simplified for now
+		return "OptionInt" // Simplified for now
 	default:
 		// Custom enum or unknown
 		return "interface{}"
 	}
+}
+
+// armGroup represents a group of arms with the same pattern (different guards)
+type armGroup struct {
+	pattern string       // The pattern name (Ok, Err, Some, None, etc.)
+	arms    []patternArm // All arms with this pattern (may have different guards)
+}
+
+// groupArmsByPattern groups pattern arms by their pattern name
+// This allows multiple guards on the same pattern to become if-else chains
+func (r *RustMatchProcessor) groupArmsByPattern(arms []patternArm) []armGroup {
+	groups := make(map[string]*armGroup)
+	order := []string{} // Preserve order
+
+	for _, arm := range arms {
+		pattern := arm.pattern
+
+		if _, exists := groups[pattern]; !exists {
+			groups[pattern] = &armGroup{
+				pattern: pattern,
+				arms:    []patternArm{},
+			}
+			order = append(order, pattern)
+		}
+
+		groups[pattern].arms = append(groups[pattern].arms, arm)
+	}
+
+	// Return in original order
+	result := make([]armGroup, 0, len(order))
+	for _, pattern := range order {
+		result = append(result, *groups[pattern])
+	}
+
+	return result
+}
+
+// generateCaseWithGuards generates a case statement with optional if-else guard chains
+func (r *RustMatchProcessor) generateCaseWithGuards(scrutineeVar string, group armGroup, originalLine int, outputLine int, isInAssignment bool, assignmentVar string) (string, []Mapping) {
+	var buf bytes.Buffer
+	mappings := []Mapping{}
+
+	// Handle wildcard pattern
+	if group.pattern == "_" {
+		buf.WriteString("default:\n")
+		buf.WriteString("\t// DINGO_PATTERN: _\n")
+
+		// Variable Hoisting: Assign to result variable if in assignment context
+		if isInAssignment && assignmentVar != "" {
+			buf.WriteString(fmt.Sprintf("\t%s = %s\n", assignmentVar, group.arms[0].expression))
+		} else {
+			buf.WriteString(fmt.Sprintf("\t%s\n", group.arms[0].expression))
+		}
+
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  1,
+			GeneratedLine:   outputLine,
+			GeneratedColumn: 1,
+			Length:          1,
+			Name:            "rust_match_arm",
+		})
+		return buf.String(), mappings
+	}
+
+	// Generate case tag
+	tagName := r.getTagName(group.pattern)
+	buf.WriteString(fmt.Sprintf("case %s:\n", tagName))
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  1,
+		GeneratedLine:   outputLine,
+		GeneratedColumn: 1,
+		Length:          len(group.pattern),
+		Name:            "rust_match_arm",
+	})
+	outputLine++
+
+	// Extract binding from first arm
+	// PRIORITY 2 FIX: Handle simple nested patterns (one level deep)
+	firstArm := group.arms[0]
+
+	// Check if we have multiple arms with DIFFERENT bindings but NO guards
+	// This indicates nested pattern syntax like: Result_Ok(Value_Int(n)), Result_Ok(Value_String(s))
+	hasNestedPatterns := false
+	if len(group.arms) > 1 {
+		hasGuards := false
+		bindingsDiffer := false
+		for i, arm := range group.arms {
+			if arm.guard != "" {
+				hasGuards = true
+			}
+			if i > 0 && arm.binding != firstArm.binding && r.isNestedPatternBinding(arm.binding) {
+				bindingsDiffer = true
+			}
+		}
+		hasNestedPatterns = bindingsDiffer && !hasGuards
+	}
+
+	if hasNestedPatterns {
+		// NESTED PATTERN CASE: Generate nested switch
+		// Extract outer value and switch on inner patterns
+		fieldName := r.getFieldName(group.pattern)
+		intermediateVar := fmt.Sprintf("__%s_nested", group.pattern)
+		buf.WriteString(fmt.Sprintf("\t%s := *%s.%s\n", intermediateVar, scrutineeVar, fieldName))
+		buf.WriteString(fmt.Sprintf("\tswitch %s.tag {\n", intermediateVar))
+
+		// Group by inner pattern
+		innerGroups := make(map[string][]patternArm)
+		for _, arm := range group.arms {
+			innerPattern, innerBinding := r.parseNestedPattern(arm.binding)
+			innerGroups[innerPattern] = append(innerGroups[innerPattern], patternArm{
+				pattern:    innerPattern,
+				binding:    innerBinding,
+				guard:      arm.guard,
+				expression: arm.expression,
+			})
+		}
+
+		// Generate cases for each inner pattern
+		var sortedInner []string
+		for p := range innerGroups {
+			sortedInner = append(sortedInner, p)
+		}
+		sort.Strings(sortedInner)
+
+		for _, innerPattern := range sortedInner {
+			innerArms := innerGroups[innerPattern]
+			innerTag := r.getTagName(innerPattern)
+			buf.WriteString(fmt.Sprintf("\tcase %s:\n", innerTag))
+
+			for _, arm := range innerArms {
+				// Extract innermost binding
+				if arm.binding != "" && arm.binding != "_" {
+					bindingCode := r.generateBinding(intermediateVar, arm.pattern, arm.binding)
+					buf.WriteString(fmt.Sprintf("\t\t%s\n", bindingCode))
+				}
+
+				// Expression
+				if isInAssignment && assignmentVar != "" {
+					buf.WriteString(fmt.Sprintf("\t\t%s = %s\n", assignmentVar, arm.expression))
+				} else {
+					buf.WriteString(fmt.Sprintf("\t\t%s\n", arm.expression))
+				}
+			}
+		}
+
+		buf.WriteString("\t}\n")
+		outputLine += strings.Count(buf.String(), "\n")
+	} else {
+		// NORMAL CASE: Simple binding or guards on same pattern
+		if firstArm.binding != "" && firstArm.binding != "_" {
+			// Generate binding extraction with CORRECTED field name
+			bindingCode := r.generateBinding(scrutineeVar, group.pattern, firstArm.binding)
+			buf.WriteString(fmt.Sprintf("\t%s\n", bindingCode))
+			mappings = append(mappings, Mapping{
+				OriginalLine:    originalLine,
+				OriginalColumn:  1,
+				GeneratedLine:   outputLine,
+				GeneratedColumn: 1,
+				Length:          len(firstArm.binding),
+				Name:            "rust_match_binding",
+			})
+			outputLine++
+		}
+	}
+
+	// Generate if-else chain for guards (SKIP if nested patterns already handled)
+	if hasNestedPatterns {
+		// Nested patterns already generated, skip guard loop
+		return buf.String(), mappings
+	}
+
+	for i, arm := range group.arms {
+		// DINGO_PATTERN marker
+		patternStr := arm.pattern
+		if arm.binding != "" {
+			patternStr = fmt.Sprintf("%s(%s)", arm.pattern, arm.binding)
+		}
+		buf.WriteString(fmt.Sprintf("\t// DINGO_PATTERN: %s", patternStr))
+
+		// Add DINGO_GUARD marker if guard present
+		if arm.guard != "" {
+			buf.WriteString(fmt.Sprintf(" | DINGO_GUARD: %s", arm.guard))
+		}
+		buf.WriteString("\n")
+
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  1,
+			GeneratedLine:   outputLine,
+			GeneratedColumn: 1,
+			Length:          len(patternStr),
+			Name:            "rust_match_arm",
+		})
+		outputLine++
+
+		// Generate if/else if/else for guard
+		exprStr := arm.expression
+
+		if arm.guard != "" {
+			// Has guard: wrap in if statement
+			if i == 0 {
+				buf.WriteString(fmt.Sprintf("\tif %s {\n", arm.guard))
+			} else {
+				buf.WriteString(fmt.Sprintf("\t} else if %s {\n", arm.guard))
+			}
+
+			// Expression body (indented)
+			if isInAssignment && assignmentVar != "" {
+				buf.WriteString(fmt.Sprintf("\t\t%s = %s\n", assignmentVar, exprStr))
+			} else {
+				buf.WriteString(fmt.Sprintf("\t\t%s\n", exprStr))
+			}
+		} else {
+			// No guard: this is the else clause (or standalone if no other guards)
+			if i > 0 {
+				buf.WriteString("\t} else {\n")
+			}
+
+			// Expression body
+			indent := "\t"
+			if i > 0 {
+				indent = "\t\t" // Inside else block
+			}
+
+			if isInAssignment && assignmentVar != "" {
+				buf.WriteString(fmt.Sprintf("%s%s = %s\n", indent, assignmentVar, exprStr))
+			} else {
+				buf.WriteString(fmt.Sprintf("%s%s\n", indent, exprStr))
+			}
+
+			// Close else block if we had previous guards
+			if i > 0 {
+				buf.WriteString("\t}\n")
+			}
+		}
+	}
+
+	// Close the final if/else if chain if there were guards
+	if len(group.arms) > 0 && group.arms[len(group.arms)-1].guard != "" {
+		buf.WriteString("\t}\n")
+	}
+
+	return buf.String(), mappings
 }
 
 // generateCase generates a single case statement
@@ -607,25 +997,54 @@ func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, o
 	}
 
 	// Pattern arm expression (C7 FIX: Handle block expressions properly)
-	// Variable Hoisting: If in assignment context, assign to result variable
+	// GUARD TRANSFORMATION: Wrap body in if statement if guard present
 	exprStr := arm.expression
-	if strings.HasPrefix(exprStr, "{") && strings.HasSuffix(exprStr, "}") {
-		// Block expression: remove outer braces and preserve formatting
-		innerBlock := strings.TrimSpace(exprStr[1 : len(exprStr)-1])
-		formatted := r.formatBlockStatements(innerBlock)
-		for _, line := range strings.Split(formatted, "\n") {
-			if trimmed := strings.TrimSpace(line); trimmed != "" {
-				buf.WriteString(fmt.Sprintf("\t%s\n", trimmed))
+
+	if arm.guard != "" {
+		// GUARD CASE: Wrap expression in if statement
+		buf.WriteString(fmt.Sprintf("\tif %s {\n", arm.guard))
+
+		if strings.HasPrefix(exprStr, "{") && strings.HasSuffix(exprStr, "}") {
+			// Block expression: remove outer braces and preserve formatting
+			innerBlock := strings.TrimSpace(exprStr[1 : len(exprStr)-1])
+			formatted := r.formatBlockStatements(innerBlock)
+			for _, line := range strings.Split(formatted, "\n") {
+				if trimmed := strings.TrimSpace(line); trimmed != "" {
+					buf.WriteString(fmt.Sprintf("\t\t%s\n", trimmed))
+				}
+			}
+		} else {
+			// Simple expression
+			if isInAssignment && assignmentVar != "" {
+				// Variable Hoisting: Assign to result variable instead of returning
+				buf.WriteString(fmt.Sprintf("\t\t%s = %s\n", assignmentVar, exprStr))
+			} else {
+				// Not in assignment context: keep expression as-is
+				buf.WriteString(fmt.Sprintf("\t\t%s\n", exprStr))
 			}
 		}
+
+		buf.WriteString("\t}\n")
 	} else {
-		// Simple expression
-		if isInAssignment && assignmentVar != "" {
-			// Variable Hoisting: Assign to result variable instead of returning
-			buf.WriteString(fmt.Sprintf("\t%s = %s\n", assignmentVar, exprStr))
+		// NO GUARD: Normal case body
+		if strings.HasPrefix(exprStr, "{") && strings.HasSuffix(exprStr, "}") {
+			// Block expression: remove outer braces and preserve formatting
+			innerBlock := strings.TrimSpace(exprStr[1 : len(exprStr)-1])
+			formatted := r.formatBlockStatements(innerBlock)
+			for _, line := range strings.Split(formatted, "\n") {
+				if trimmed := strings.TrimSpace(line); trimmed != "" {
+					buf.WriteString(fmt.Sprintf("\t%s\n", trimmed))
+				}
+			}
 		} else {
-			// Not in assignment context: keep expression as-is
-			buf.WriteString(fmt.Sprintf("\t%s\n", exprStr))
+			// Simple expression
+			if isInAssignment && assignmentVar != "" {
+				// Variable Hoisting: Assign to result variable instead of returning
+				buf.WriteString(fmt.Sprintf("\t%s = %s\n", assignmentVar, exprStr))
+			} else {
+				// Not in assignment context: keep expression as-is
+				buf.WriteString(fmt.Sprintf("\t%s\n", exprStr))
+			}
 		}
 	}
 
@@ -642,25 +1061,25 @@ func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, o
 }
 
 // getTagName converts pattern name to Go tag constant name
-// Ok → ResultTagOk, Err → ResultTagErr, Some → OptionTagSome, None → OptionTagNone
+// Ok → ResultTag_Ok, Err → ResultTag_Err, Some → OptionTag_Some, None → OptionTag_None
 // Status_Pending → StatusTag_Pending (for custom enums)
 func (r *RustMatchProcessor) getTagName(pattern string) string {
 	switch pattern {
 	case "Ok":
-		return "ResultTagOk"
+		return "ResultTag_Ok"
 	case "Err":
-		return "ResultTagErr"
+		return "ResultTag_Err"
 	case "Some":
-		return "OptionTagSome"
+		return "OptionTag_Some"
 	case "None":
-		return "OptionTagNone"
+		return "OptionTag_None"
 	default:
 		// Custom enum variant: EnumName_Variant → EnumNameTag_Variant
-		// Example: Status_Pending → StatusTag_Pending
+		// Example: Value_Int → ValueTag_Int
 		if idx := strings.Index(pattern, "_"); idx > 0 {
 			enumName := pattern[:idx]
-			variantName := pattern[idx:] // includes the underscore
-			return enumName + "Tag" + variantName
+			variantName := pattern[idx+1:]
+			return enumName + "Tag_" + variantName
 		}
 		// Bare variant name (shouldn't happen in well-formed Dingo code)
 		return pattern + "Tag"
@@ -680,9 +1099,50 @@ func (r *RustMatchProcessor) generateBinding(scrutinee string, pattern string, b
 		// For Option<T>, Some value is stored in some_0 field (pointer to T)
 		return fmt.Sprintf("%s := *%s.some_0", binding, scrutinee)
 	default:
-		// Custom enum variant: assume field name is lowercased pattern name + _0
-		fieldName := strings.ToLower(pattern) + "_0"
+		// Custom enum variant: extract variant name and lowercase it
+		// Pattern may be "Value_Int" or just "Int"
+		// Field name should be "int_0" (lowercase with underscore)
+		variantName := pattern
+		if idx := strings.LastIndex(pattern, "_"); idx != -1 {
+			// Extract variant after last underscore: "Value_Int" -> "Int"
+			variantName = pattern[idx+1:]
+		}
+		fieldName := strings.ToLower(variantName) + "_0"
+
+		// Check if field is a pointer (most custom enum fields are pointers)
+		// For now, assume pointer dereference for custom enums with bindings
+		if binding != "_" {
+			return fmt.Sprintf("%s := *%s.%s", binding, scrutinee, fieldName)
+		}
 		return fmt.Sprintf("%s := %s.%s", binding, scrutinee, fieldName)
+	}
+}
+
+// generateTupleBinding generates binding extraction code for tuple patterns
+// BUG FIX #2: New function to extract tuple element values
+// Examples:
+//   elemVar="__match_0_elem0", variant="Ok", binding="x"
+//   -> "x := *__match_0_elem0.ok_0"
+func (r *RustMatchProcessor) generateTupleBinding(elemVar string, variant string, binding string) string {
+	switch variant {
+	case "Ok":
+		// For Result<T,E>, Ok value is stored in ok0 field (pointer to T)
+		return fmt.Sprintf("%s := *%s.ok0", binding, elemVar)
+	case "Err":
+		// For Result<T,E>, Err value is stored in err0 field (pointer to E)
+		return fmt.Sprintf("%s := *%s.err0", binding, elemVar)
+	case "Some":
+		// For Option<T>, Some value is stored in some0 field (pointer to T)
+		return fmt.Sprintf("%s := *%s.some0", binding, elemVar)
+	case "None":
+		// None has no value to extract
+		return ""
+	default:
+		// Custom enum variant: CamelCase field name without underscores
+		// Example: Status_Pending -> statuspending0
+		variantName := strings.ToLower(strings.ReplaceAll(variant, "_", ""))
+		fieldName := variantName + "0"
+		return fmt.Sprintf("%s := *%s.%s", binding, elemVar, fieldName)
 	}
 }
 
@@ -862,12 +1322,11 @@ func (r *RustMatchProcessor) parseTupleArms(armsText string) ([]tuplePatternArm,
 			}
 			expr = strings.TrimSpace(text[start:i])
 		} else {
-			// Simple expression
+			// Simple expression - find comma or end (respecting strings and nesting)
 			start := i
-			for i < len(text) && text[i] != ',' {
-				i++
-			}
-			expr = strings.TrimSpace(text[start:i])
+			exprEnd := r.findExpressionEnd(text, i)
+			expr = strings.TrimSpace(text[start:exprEnd])
+			i = exprEnd
 		}
 
 		// Skip comma
@@ -994,39 +1453,12 @@ func (r *RustMatchProcessor) generateTupleMatch(tupleElements []string, arms []t
 	})
 	outputLine++
 
-	// Line 3: switch on first element
-	buf.WriteString(fmt.Sprintf("switch %s.tag {\n", elemVars[0]))
-	mappings = append(mappings, Mapping{
-		OriginalLine:    originalLine,
-		OriginalColumn:  1,
-		GeneratedLine:   outputLine,
-		GeneratedColumn: 1,
-		Length:          5,
-		Name:            "rust_match",
-	})
-	outputLine++
-
-	// Generate cases (plugin will transform into nested switches)
-	// For now, we just generate flat cases with markers
-	// Plugin will detect DINGO_TUPLE_PATTERN and rewrite
-	for _, arm := range arms {
-		caseLines, caseMappings := r.generateTupleCase(elemVars, arm, originalLine, outputLine)
-		buf.WriteString(caseLines)
-		mappings = append(mappings, caseMappings...)
-		outputLine += strings.Count(caseLines, "\n")
-	}
-
-	// Closing brace
-	buf.WriteString("}\n")
-	mappings = append(mappings, Mapping{
-		OriginalLine:    originalLine,
-		OriginalColumn:  1,
-		GeneratedLine:   outputLine,
-		GeneratedColumn: 1,
-		Length:          1,
-		Name:            "rust_match",
-	})
-	outputLine++
+	// BUG FIX #2 & #4: Generate NESTED switches for tuple patterns
+	// This prevents duplicate case errors and properly handles all combinations
+	nestedSwitch, nestedMappings := r.generateNestedTupleSwitches(elemVars, arms, originalLine, outputLine)
+	buf.WriteString(nestedSwitch)
+	mappings = append(mappings, nestedMappings...)
+	outputLine += strings.Count(nestedSwitch, "\n")
 
 	// DINGO_MATCH_END marker
 	buf.WriteString("// DINGO_MATCH_END\n")
@@ -1056,8 +1488,206 @@ func (r *RustMatchProcessor) generateTuplePatternSummary(arms []tuplePatternArm)
 	return strings.Join(patterns, " | ")
 }
 
+// generateNestedTupleSwitches generates nested switch statements for tuple patterns
+// BUG FIX #2 & #4: Creates proper nested switches to avoid duplicate cases
+// Example for 2-tuple:
+//   switch elem0.tag {
+//   case Tag0:
+//     switch elem1.tag {
+//     case Tag1: ...
+//     }
+//   }
+func (r *RustMatchProcessor) generateNestedTupleSwitches(elemVars []string, arms []tuplePatternArm, originalLine int, outputLine int) (string, []Mapping) {
+	var buf bytes.Buffer
+	mappings := []Mapping{}
+
+	// Group arms by first element pattern
+	groupedArms := make(map[string][]tuplePatternArm)
+	for _, arm := range arms {
+		firstVariant := arm.patterns[0].variant
+		groupedArms[firstVariant] = append(groupedArms[firstVariant], arm)
+	}
+
+	// Generate outer switch on first element
+	buf.WriteString(fmt.Sprintf("switch %s.tag {\n", elemVars[0]))
+	outputLine++
+
+	// PRIORITY 1 FIX: Sort keys for deterministic output
+	// Collect variants and sort them (wildcards last)
+	var sortedVariants []string
+	for variant := range groupedArms {
+		sortedVariants = append(sortedVariants, variant)
+	}
+	sortVariantsInPlace(sortedVariants)
+
+	// Generate cases for each unique first element
+	for _, firstVariant := range sortedVariants {
+		matchingArms := groupedArms[firstVariant]
+		if firstVariant == "_" {
+			// Wildcard case
+			buf.WriteString("default:\n")
+		} else {
+			// Specific variant case
+			tagName := r.getTagName(firstVariant)
+			buf.WriteString(fmt.Sprintf("case %s:\n", tagName))
+		}
+		outputLine++
+
+		// If tuple has more than 1 element, generate nested switch
+		if len(elemVars) > 1 {
+			nestedCode, nestedMappings := r.generateNestedSwitchLevel(elemVars, matchingArms, 1, originalLine, outputLine, "\t")
+			buf.WriteString(nestedCode)
+			mappings = append(mappings, nestedMappings...)
+			outputLine += strings.Count(nestedCode, "\n")
+		} else {
+			// Single element tuple (shouldn't happen, but handle gracefully)
+			for _, arm := range matchingArms {
+				buf.WriteString(r.generateTupleArmBody(elemVars, arm, "\t"))
+				outputLine++
+			}
+		}
+	}
+
+	// Close outer switch
+	buf.WriteString("}\n")
+	outputLine++
+
+	// Add panic for exhaustiveness (Go doesn't know switch is exhaustive)
+	buf.WriteString("\tpanic(\"unreachable: match is exhaustive\")\n")
+	outputLine++
+
+	return buf.String(), mappings
+}
+
+// generateNestedSwitchLevel generates switch statement for tuple element at given depth
+// depth=1 means second element, depth=2 means third element, etc.
+func (r *RustMatchProcessor) generateNestedSwitchLevel(elemVars []string, arms []tuplePatternArm, depth int, originalLine int, outputLine int, indent string) (string, []Mapping) {
+	var buf bytes.Buffer
+	mappings := []Mapping{}
+
+	// Group arms by pattern at this depth
+	groupedArms := make(map[string][]tuplePatternArm)
+	for _, arm := range arms {
+		variant := arm.patterns[depth].variant
+		groupedArms[variant] = append(groupedArms[variant], arm)
+	}
+
+	// If this is the last element, generate arm bodies directly
+	if depth == len(elemVars)-1 {
+		// Last level - generate switch with arm bodies
+		buf.WriteString(fmt.Sprintf("%sswitch %s.tag {\n", indent, elemVars[depth]))
+		outputLine++
+
+		// PRIORITY 1 FIX: Sort keys for deterministic output
+		var sortedVariants []string
+		for variant := range groupedArms {
+			sortedVariants = append(sortedVariants, variant)
+		}
+		sortVariantsInPlace(sortedVariants)
+
+		for _, variant := range sortedVariants {
+			matchingArms := groupedArms[variant]
+			if variant == "_" {
+				buf.WriteString(fmt.Sprintf("%sdefault:\n", indent))
+			} else {
+				tagName := r.getTagName(variant)
+				buf.WriteString(fmt.Sprintf("%scase %s:\n", indent, tagName))
+			}
+			outputLine++
+
+			// Generate arm body (bindings + expression)
+			for _, arm := range matchingArms {
+				body := r.generateTupleArmBody(elemVars, arm, indent+"\t")
+				buf.WriteString(body)
+				outputLine += strings.Count(body, "\n")
+			}
+		}
+
+		buf.WriteString(fmt.Sprintf("%s}\n", indent))
+		outputLine++
+	} else {
+		// Not last level - generate switch with nested switches
+		buf.WriteString(fmt.Sprintf("%sswitch %s.tag {\n", indent, elemVars[depth]))
+		outputLine++
+
+		// PRIORITY 1 FIX: Sort keys for deterministic output
+		var sortedVariants []string
+		for variant := range groupedArms {
+			sortedVariants = append(sortedVariants, variant)
+		}
+		sortVariantsInPlace(sortedVariants)
+
+		for _, variant := range sortedVariants {
+			matchingArms := groupedArms[variant]
+			if variant == "_" {
+				buf.WriteString(fmt.Sprintf("%sdefault:\n", indent))
+			} else {
+				tagName := r.getTagName(variant)
+				buf.WriteString(fmt.Sprintf("%scase %s:\n", indent, tagName))
+			}
+			outputLine++
+
+			// Recurse to next depth
+			nestedCode, nestedMappings := r.generateNestedSwitchLevel(elemVars, matchingArms, depth+1, originalLine, outputLine, indent+"\t")
+			buf.WriteString(nestedCode)
+			mappings = append(mappings, nestedMappings...)
+			outputLine += strings.Count(nestedCode, "\n")
+		}
+
+		buf.WriteString(fmt.Sprintf("%s}\n", indent))
+		outputLine++
+	}
+
+	return buf.String(), mappings
+}
+
+// generateTupleArmBody generates the body of a tuple pattern arm (bindings + expression)
+func (r *RustMatchProcessor) generateTupleArmBody(elemVars []string, arm tuplePatternArm, indent string) string {
+	var buf bytes.Buffer
+
+	// Add DINGO_TUPLE_ARM marker
+	var patternStrs []string
+	for _, elem := range arm.patterns {
+		if elem.binding != "" {
+			patternStrs = append(patternStrs, fmt.Sprintf("%s(%s)", elem.variant, elem.binding))
+		} else {
+			patternStrs = append(patternStrs, elem.variant)
+		}
+	}
+	patternRepr := "(" + strings.Join(patternStrs, ", ") + ")"
+	buf.WriteString(fmt.Sprintf("%s// DINGO_TUPLE_ARM: %s", indent, patternRepr))
+	if arm.guard != "" {
+		buf.WriteString(fmt.Sprintf(" | DINGO_GUARD: %s", arm.guard))
+	}
+	buf.WriteString("\n")
+
+	// Generate variable bindings for all tuple elements
+	for i, elem := range arm.patterns {
+		if elem.binding != "" && elem.variant != "_" {
+			bindingCode := r.generateTupleBinding(elemVars[i], elem.variant, elem.binding)
+			if bindingCode != "" {
+				buf.WriteString(fmt.Sprintf("%s%s\n", indent, bindingCode))
+			}
+		}
+	}
+
+	// Add expression (with return statement for expression mode)
+	// BUG FIX: Add "return" for match expressions
+	// Check if expression is a block or simple expression
+	expr := strings.TrimSpace(arm.expression)
+	if strings.HasPrefix(expr, "{") && strings.HasSuffix(expr, "}") {
+		// Block expression - preserve as-is
+		buf.WriteString(fmt.Sprintf("%s%s\n", indent, expr))
+	} else {
+		// Simple expression - add return statement
+		buf.WriteString(fmt.Sprintf("%sreturn %s\n", indent, expr))
+	}
+
+	return buf.String()
+}
+
 // generateTupleCase generates code for one tuple pattern arm
-// This is a simplified placeholder - plugin will do the actual nested switch generation
+// BUG FIX #2: Generate variable bindings directly (don't delegate to plugin)
 func (r *RustMatchProcessor) generateTupleCase(elemVars []string, arm tuplePatternArm, originalLine int, outputLine int) (string, []Mapping) {
 	var buf bytes.Buffer
 	mappings := []Mapping{}
@@ -1111,11 +1741,27 @@ func (r *RustMatchProcessor) generateTupleCase(elemVars []string, arm tuplePatte
 	})
 	outputLine++
 
-	// Plugin will generate:
-	// 1. Bindings for all elements
-	// 2. Nested switches for remaining elements
-	// 3. Guard checks
-	// For now, just add expression
+	// BUG FIX #2: Generate variable bindings for ALL tuple elements
+	// This fixes the "undefined variable" errors in tuple patterns
+	for i, elem := range arm.patterns {
+		if elem.binding != "" && elem.variant != "_" {
+			// Generate binding: x := *__match_0_elem0.ok_0
+			bindingCode := r.generateTupleBinding(elemVars[i], elem.variant, elem.binding)
+			buf.WriteString(fmt.Sprintf("\t%s\n", bindingCode))
+
+			mappings = append(mappings, Mapping{
+				OriginalLine:    originalLine,
+				OriginalColumn:  1,
+				GeneratedLine:   outputLine,
+				GeneratedColumn: 1,
+				Length:          len(elem.binding),
+				Name:            "rust_match_binding",
+			})
+			outputLine++
+		}
+	}
+
+	// Now add expression (variables are now defined!)
 	buf.WriteString(fmt.Sprintf("\t%s\n", arm.expression))
 
 	mappings = append(mappings, Mapping{
@@ -1128,4 +1774,69 @@ func (r *RustMatchProcessor) generateTupleCase(elemVars []string, arm tuplePatte
 	})
 
 	return buf.String(), mappings
+}
+
+// isNestedPatternBinding checks if a binding is itself a pattern (e.g., "Value_Int(n)")
+func (r *RustMatchProcessor) isNestedPatternBinding(binding string) bool {
+	if binding == "" || binding == "_" {
+		return false
+	}
+	// Check if it has the form Constructor(...)
+	return strings.Contains(binding, "(") && strings.Contains(binding, ")")
+}
+
+// parseNestedPattern parses a nested pattern like "Value_Int(n)" into ("Value_Int", "n")
+func (r *RustMatchProcessor) parseNestedPattern(binding string) (pattern string, innerBinding string) {
+	if !strings.Contains(binding, "(") {
+		return "", ""
+	}
+
+	parenIdx := strings.Index(binding, "(")
+	closeIdx := r.findMatchingCloseParen(binding, parenIdx)
+
+	if closeIdx == -1 {
+		return "", ""
+	}
+
+	pattern = binding[:parenIdx]
+	innerBinding = strings.TrimSpace(binding[parenIdx+1 : closeIdx])
+	return pattern, innerBinding
+}
+
+// getFieldName returns the field name for a pattern (e.g., "Ok" -> "ok_0", "Err" -> "err_0")
+func (r *RustMatchProcessor) getFieldName(pattern string) string {
+	switch pattern {
+	case "Ok":
+		return "ok_0"
+	case "Err":
+		return "err_0"
+	case "Some":
+		return "some_0"
+	default:
+		// Custom enum variant: extract variant name after underscore
+		if idx := strings.LastIndex(pattern, "_"); idx != -1 {
+			variantName := pattern[idx+1:]
+			return strings.ToLower(variantName) + "_0"
+		}
+		return strings.ToLower(pattern) + "_0"
+	}
+}
+
+// sortVariantsInPlace sorts variant names in-place for deterministic code generation
+// PRIORITY 1 FIX: Ensures switch cases are generated in consistent order
+// Sorting rules:
+// 1. Named variants sorted alphabetically (Err, Ok, None, Some, etc.)
+// 2. Wildcard (_) always last (becomes default case)
+func sortVariantsInPlace(variants []string) {
+	sort.Slice(variants, func(i, j int) bool {
+		// Wildcards always go last
+		if variants[i] == "_" {
+			return false
+		}
+		if variants[j] == "_" {
+			return true
+		}
+		// Otherwise, sort alphabetically
+		return variants[i] < variants[j]
+	})
 }

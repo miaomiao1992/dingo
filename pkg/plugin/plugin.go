@@ -1,6 +1,7 @@
 // Package plugin provides the plugin system for code generation
 package plugin
 
+
 import (
 	"fmt"
 	"go/ast"

@@ -1,6 +1,8 @@
 package main
 
-import "errors"
+import (
+	"errors"
+)
 
 type ResultTag uint8
 
@@ -41,37 +43,46 @@ func validateUser(name string) Result {
 }
 func processUser(id int) Result {
 	user := fetchUser(id)
-	switch user.tag {
-	case ResultTag_Ok:
-		u := *user.ok_0
+
+	__match_0 := user
+	switch __match_0.tag {
+	case ResultTagOk:
+
+		u := *__match_0.ok_0
 		validated := validateUser(u)
-		switch validated.tag {
-		case ResultTag_Ok:
-			v := *validated.ok_0
+
+		__match_0 := validated
+		switch __match_0.tag {
+		case ResultTagOk:
+
+			v := *__match_0.ok_0
 			return Result_Ok(v)
-		case ResultTag_Err:
-			e := *validated.err_0
+		case ResultTagErr:
+
+			e := __match_0.err_0
 			return Result_Err(e)
-		default:
-			panic("unreachable: match should be exhaustive")
 		}
-	case ResultTag_Err:
-		e := *user.err_0
+
+	case ResultTagErr:
+
+		e := __match_0.err_0
 		return Result_Err(e)
-	default:
-		panic("unreachable: match should be exhaustive")
 	}
+
 }
 func main() {
 	result := processUser(42)
-	switch result.tag {
-	case ResultTag_Ok:
-		user := *result.ok_0
+
+	__match_1 := result
+	switch __match_1.tag {
+	case ResultTagOk:
+
+		user := *__match_1.ok_0
 		println("Success:", user)
-	case ResultTag_Err:
-		error := *result.err_0
+	case ResultTagErr:
+
+		error := __match_1.err_0
 		println("Error:", error)
-	default:
-		panic("unreachable: match should be exhaustive")
 	}
+
 }

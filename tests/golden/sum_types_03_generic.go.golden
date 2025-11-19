@@ -7,26 +7,20 @@ const (
 	OptionTag_None
 )
 
-type Option[T any] struct {
+type Option struct {
 	tag        OptionTag
 	some_value *T
 }
 
-func Option_Some[T any](value T) Option[T] {
-	return Option[T]{tag: OptionTag_Some, some_value: &value}
+func Option_Some(value T) Option {
+	return Option{tag: OptionTag_Some, some_value: &value}
 }
-func Option_None[T any]() Option[T] {
-	return Option[T]{tag: OptionTag_None}
+func Option_None() Option {
+	return Option{tag: OptionTag_None}
 }
-func (e Option[T]) IsSome() bool {
+func (e Option) IsSome() bool {
 	return e.tag == OptionTag_Some
 }
-func (e Option[T]) IsNone() bool {
+func (e Option) IsNone() bool {
 	return e.tag == OptionTag_None
-}
-func unwrapOr[T any](opt Option[T], defaultVal T) T {
-	if opt.IsSome() {
-		return *opt.some_value
-	}
-	return defaultVal
 }

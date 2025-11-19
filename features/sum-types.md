@@ -128,51 +128,51 @@ let response: HttpResponse = Ok("data")  // Infers Ok variant
 ### Go Output (Tagged Union Pattern)
 
 ```go
-// Transpiled sum type
+// Transpiled sum type (CamelCase naming - Go idiomatic)
 type HttpResponse struct {
     tag HttpResponseTag
-    ok_0 *string
-    serverError_code *int
-    serverError_message *string
-    redirect_0 *string
+    ok0 *string                  // CamelCase: ok0 (not ok_0)
+    serverErrorCode *int         // CamelCase: serverErrorCode (not serverError_code)
+    serverErrorMessage *string
+    redirect0 *string
 }
 
 type HttpResponseTag int
 const (
-    HttpResponseTag_Ok HttpResponseTag = iota
-    HttpResponseTag_NotFound
-    HttpResponseTag_ServerError
-    HttpResponseTag_Redirect
+    HttpResponseTagOk HttpResponseTag = iota  // CamelCase: HttpResponseTagOk
+    HttpResponseTagNotFound
+    HttpResponseTagServerError
+    HttpResponseTagRedirect
 )
 
 // Constructor functions
-func HttpResponse_Ok(body string) HttpResponse {
+func HttpResponseOk(body string) HttpResponse {  // CamelCase: HttpResponseOk
     return HttpResponse{
-        tag: HttpResponseTag_Ok,
-        ok_0: &body,
+        tag: HttpResponseTagOk,
+        ok0: &body,
     }
 }
 
-func HttpResponse_NotFound() HttpResponse {
+func HttpResponseNotFound() HttpResponse {
     return HttpResponse{
-        tag: HttpResponseTag_NotFound,
+        tag: HttpResponseTagNotFound,
     }
 }
 
 // Pattern match transpiles to switch on tag
 func handleResponse(resp HttpResponse) string {
     switch resp.tag {
-    case HttpResponseTag_Ok:
-        body := *resp.ok_0
+    case HttpResponseTagOk:
+        body := *resp.ok0
         return fmt.Sprintf("Success: %s", body)
-    case HttpResponseTag_NotFound:
+    case HttpResponseTagNotFound:
         return "404 Not Found"
-    case HttpResponseTag_ServerError:
-        code := *resp.serverError_code
-        message := *resp.serverError_message
+    case HttpResponseTagServerError:
+        code := *resp.serverErrorCode
+        message := *resp.serverErrorMessage
         return fmt.Sprintf("Error %d: %s", code, message)
-    case HttpResponseTag_Redirect:
-        url := *resp.redirect_0
+    case HttpResponseTagRedirect:
+        url := *resp.redirect0
         return fmt.Sprintf("Redirecting to %s", url)
     default:
         panic("unreachable: unhandled HttpResponse variant")

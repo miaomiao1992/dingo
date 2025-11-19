@@ -1,31 +1,31 @@
 package main
 
-import "errors"
-
-type ResultTag uint8
-
-const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+import (
+	"errors"
 )
 
-type Result struct {
-	tag   ResultTag
+const (
+	variantsTag_Ok variantsTag = iota
+	variantsTag_Err
+)
+
+type variants struct {
+	tag   variantsTag
 	ok_0  *Value
 	err_0 *error
 }
 
-func Result_Ok(arg0 Value) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+func variants_Ok(arg0 Value) variants {
+	return variants{tag: variantsTag_Ok, ok_0: &arg0}
 }
-func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+func variants_Err(arg0 error) variants {
+	return variants{tag: variantsTag_Err, err_0: &arg0}
 }
-func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+func (e variants) IsOk() bool {
+	return e.tag == variantsTag_Ok
 }
-func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+func (e variants) IsErr() bool {
+	return e.tag == variantsTag_Err
 }
 
 type ValueTag uint8
@@ -41,7 +41,6 @@ type Value struct {
 	int_0    *int
 	string_0 *string
 }
-
 func Value_Int(arg0 int) Value {
 	return Value{tag: ValueTag_Int, int_0: &arg0}
 }

@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 42,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 43,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 44,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 45,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 9,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 46,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 14,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 47,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 3,
+      "name": "rust_match_binding"
+    },
+    {
+      "generated_line": 48,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 30,
+      "name": "rust_match_expr"
+    },
+    {
+      "generated_line": 49,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 10,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 50,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 51,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match_binding"
+    },
+    {
+      "generated_line": 52,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 21,
+      "name": "rust_match_expr"
+    },
+    {
+      "generated_line": 53,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 54,
+      "generated_column": 1,
+      "original_line": 42,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    }
+  ]
+}

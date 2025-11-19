@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 15,
+      "generated_column": 15,
+      "original_line": 9,
+      "original_column": 15,
+      "length": 11,
+      "name": "unqualified:ReadFile"
+    },
+    {
+      "generated_line": 21,
+      "generated_column": 14,
+      "original_line": 15,
+      "original_column": 14,
+      "length": 12,
+      "name": "unqualified:Atoi"
+    },
+    {
+      "generated_line": 27,
+      "generated_column": 2,
+      "original_line": 21,
+      "original_column": 2,
+      "length": 10,
+      "name": "unqualified:Printf"
+    }
+  ]
+}

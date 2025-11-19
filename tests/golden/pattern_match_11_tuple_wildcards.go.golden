@@ -1,0 +1,92 @@
+package main
+
+import (
+	"errors"
+)
+
+type ResultTag uint8
+
+const (
+	ResultTag_Ok ResultTag = iota
+	ResultTag_Err
+)
+
+type Result struct {
+	tag   ResultTag
+	ok_0  *int
+	err_0 *error
+}
+
+func Result_Ok(arg0 int) Result {
+	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+}
+func Result_Err(arg0 error) Result {
+	return Result{tag: ResultTag_Err, err_0: &arg0}
+}
+func (e Result) IsOk() bool {
+	return e.tag == ResultTag_Ok
+}
+func (e Result) IsErr() bool {
+	return e.tag == ResultTag_Err
+}
+func analyzeResults(r1 Result, r2 Result, r3 Result) string {
+
+	__match_0_elem0, __match_0_elem1, __match_0_elem2 := r1, r2, r3
+
+	switch __match_0_elem0.tag {
+	case ResultTag_Err:
+		switch __match_0_elem1.tag {
+		default:
+			switch __match_0_elem2.tag {
+			default:
+
+				e := *__match_0_elem0.err0
+				return "First failed immediately: " + e.Error()
+			}
+		}
+	case ResultTag_Ok:
+		switch __match_0_elem1.tag {
+		case ResultTag_Ok:
+			switch __match_0_elem2.tag {
+			case ResultTag_Err:
+
+				_ := *__match_0_elem0.ok0
+				_ := *__match_0_elem1.ok0
+				e := *__match_0_elem2.err0
+				return "First two ok, third failed: " + e.Error()
+			case ResultTag_Ok:
+
+				x := *__match_0_elem0.ok0
+				y := *__match_0_elem1.ok0
+				z := *__match_0_elem2.ok0
+				return "All succeeded: sum = " + string(x+y+z)
+			}
+		}
+	default:
+		switch __match_0_elem1.tag {
+		case ResultTag_Err:
+			switch __match_0_elem2.tag {
+			default:
+
+				e := *__match_0_elem1.err0
+				return "Second failed: " + e.Error()
+			}
+		default:
+			switch __match_0_elem2.tag {
+			case ResultTag_Err:
+
+				e := *__match_0_elem2.err0
+				return "Third failed: " + e.Error()
+			}
+		}
+	}
+	panic("unreachable: match is exhaustive")
+
+}
+func main() {
+	r1 := Result_Ok(10)
+	r2 := Result_Err(errors.New("database error"))
+	r3 := Result_Ok(30)
+	result := analyzeResults(r1, r2, r3)
+	println(result)
+}

@@ -367,7 +367,7 @@ func (s *TypeInferenceService) InferType(expr ast.Expr) (types.Type, bool) {
 		return nil, false
 
 	default:
-		s.logger.Debug("InferType: unsupported expression type %T", expr)
+	s.logger.Debug("InferType: unsupported expression type %T", expr)
 		return nil, false
 	}
 }
@@ -656,7 +656,10 @@ func (s *TypeInferenceService) findFunctionReturnType(retStmt *ast.ReturnStmt) t
 
 		// Case 1: Named function
 		if funcDecl, ok := parent.(*ast.FuncDecl); ok {
-			return s.extractReturnTypeFromFuncType(funcDecl.Type, retStmt)
+			s.logger.Debug("findFunctionReturnType: found function declaration %s", funcDecl.Name.Name)
+			retType := s.extractReturnTypeFromFuncType(funcDecl.Type, retStmt)
+			s.logger.Debug("findFunctionReturnType: extracted return type: %v", retType)
+			return retType
 		}
 
 		// Case 2: Anonymous function
@@ -682,8 +685,31 @@ func (s *TypeInferenceService) extractReturnTypeFromFuncType(
 	// For now, assume single return value (extend for multi-return later)
 	if len(funcType.Results.List) > 0 {
 		resultField := funcType.Results.List[0]
-		if tv, ok := s.typesInfo.Types[resultField.Type]; ok && tv.Type != nil {
-			return tv.Type
+		s.logger.Debug("extractReturnTypeFromFuncType: result field type: %T", resultField.Type)
+
+		// PRIORITY 4 FIX: Try go/types first, then fall back to AST-based inference
+		if s.typesInfo != nil {
+			if tv, ok := s.typesInfo.Types[resultField.Type]; ok && tv.Type != nil {
+				s.logger.Debug("extractReturnTypeFromFuncType: go/types found type: %v", tv.Type)
+				// Only use go/types result if it's NOT invalid type
+				// (Option types won't be in go/types until they're generated)
+				if tv.Type.String() != "invalid type" {
+					return tv.Type
+				}
+				s.logger.Debug("extractReturnTypeFromFuncType: go/types returned invalid type, falling back to AST")
+			} else {
+				s.logger.Debug("extractReturnTypeFromFuncType: go/types did not have type info")
+			}
+		}
+
+		// Fallback: Extract type name from AST (for types not yet in go/types like Option_int)
+		// This handles cases where Option types haven't been generated yet
+		if ident, ok := resultField.Type.(*ast.Ident); ok {
+			// Simple identifier type (e.g., Option_int)
+			s.logger.Debug("extractReturnTypeFromFuncType: creating type from identifier: %s", ident.Name)
+			namedType := s.makeBasicType(ident.Name)
+			s.logger.Debug("extractReturnTypeFromFuncType: created type: %v (%T)", namedType, namedType)
+			return namedType
 		}
 	}
 

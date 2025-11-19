@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type OptionTag uint8
 
 const (
@@ -70,7 +74,6 @@ type Option_string struct {
 	tag    OptionTag
 	some_0 *string
 }
-
 func Option_string_Some(arg0 string) Option_string {
 	return Option_string{tag: OptionTag_Some, some_0: &arg0}
 }
@@ -129,7 +132,6 @@ type Option_float64 struct {
 	tag    OptionTag
 	some_0 *float64
 }
-
 func Option_float64_Some(arg0 float64) Option_float64 {
 	return Option_float64{tag: OptionTag_Some, some_0: &arg0}
 }
@@ -188,7 +190,6 @@ type Option_bool struct {
 	tag    OptionTag
 	some_0 *bool
 }
-
 func Option_bool_Some(arg0 bool) Option_bool {
 	return Option_bool{tag: OptionTag_Some, some_0: &arg0}
 }
@@ -243,67 +244,63 @@ func (o Option_bool) Filter(predicate func(bool) bool) Option_bool {
 	return Option_bool{tag: OptionTag_None}
 }
 
-type Option_interface{} struct {
+type Option_any struct {
 	tag    OptionTag
 	some_0 *interface{}
 }
-
-func Option_interface{}_Some(arg0 interface{}) Option_interface{} {
-	return Option_interface{}{tag: OptionTag_Some, some_0: &arg0}
+func Option_any_Some(arg0 interface{}) Option_any {
+	return Option_any{tag: OptionTag_Some, some_0: &arg0}
 }
-func Option_interface{}_None() Option_interface{} {
-	return Option_interface{}{tag: OptionTag_None}
+func Option_any_None() Option_any {
+	return Option_any{tag: OptionTag_None}
 }
-func (o Option_interface{}) IsSome() bool {
+func (o Option_any) IsSome() bool {
 	return o.tag == OptionTag_Some
 }
-func (o Option_interface{}) IsNone() bool {
+func (o Option_any) IsNone() bool {
 	return o.tag == OptionTag_None
 }
-func (o Option_interface{}) Unwrap() interface{} {
+func (o Option_any) Unwrap() interface{} {
 	if o.tag != OptionTag_Some {
 		panic("called Unwrap on None")
 	}
 	return *o.some_0
 }
-func (o Option_interface{}) UnwrapOr(defaultValue interface{}) interface{} {
+func (o Option_any) UnwrapOr(defaultValue interface{}) interface{} {
 	if o.tag == OptionTag_Some {
 		return *o.some_0
 	}
 	return defaultValue
 }
-func (o Option_interface{}) UnwrapOrElse(fn func() interface{}) interface{} {
+func (o Option_any) UnwrapOrElse(fn func() interface{}) interface{} {
 	if o.tag == OptionTag_Some {
 		return *o.some_0
 	}
 	return fn()
 }
-func (o Option_interface{}) Map(fn func(interface{}) interface{}) Option_interface{} {
+func (o Option_any) Map(fn func(interface{}) interface{}) Option_any {
 	if o.tag == OptionTag_None {
 		return o
 	}
 	mapped := fn(*o.some_0)
 	result := mapped.(interface{})
-	return Option_interface{}{tag: OptionTag_Some, some_0: &result}
+	return Option_any{tag: OptionTag_Some, some_0: &result}
 }
-func (o Option_interface{}) AndThen(fn func(interface{}) Option_interface{}) Option_interface{} {
+func (o Option_any) AndThen(fn func(interface{}) Option_any) Option_any {
 	if o.tag == OptionTag_None {
 		return o
 	}
 	return fn(*o.some_0)
 }
-func (o Option_interface{}) Filter(predicate func(interface{}) bool) Option_interface{} {
+func (o Option_any) Filter(predicate func(interface{}) bool) Option_any {
 	if o.tag == OptionTag_None {
 		return o
 	}
 	if predicate(*o.some_0) {
 		return o
 	}
-	return Option_interface{}{tag: OptionTag_None}
+	return Option_any{tag: OptionTag_None}
 }
-
-import "fmt"
-
 func main() {
 
 	intOpt := Some(42)

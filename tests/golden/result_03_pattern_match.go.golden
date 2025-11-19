@@ -1,6 +1,8 @@
 package main
 
-import "errors"
+import (
+	"errors"
+)
 
 type ResultTag uint8
 
@@ -34,16 +36,19 @@ func divide(a float64, b float64) Result {
 	return Result_Ok(a / b)
 }
 func handleResult(r Result) string {
-	// match r { ... } transpiles to if-else chain
-	if r.IsOk() {
-		val := *r.ok_0
-		return "Success: " + string(int(val))
+
+	__match_0 := r
+	switch __match_0.tag {
+	case ResultTag_Ok:
+
+		val := __match_0.result_ok_0
+		"Success: " + string(int(val))
+	case ResultTag_Err:
+
+		e := __match_0.result_err_0
+		"Error: " + e.Error()
 	}
-	if r.IsErr() {
-		e := *r.err_0
-		return "Error: " + e.Error()
-	}
-	panic("non-exhaustive match")
+
 }
 func main() {
 	result := divide(10.0, 2.0)

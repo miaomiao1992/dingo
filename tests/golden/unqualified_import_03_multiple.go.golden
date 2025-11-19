@@ -6,12 +6,6 @@ import (
 	"strconv"
 )
 
-import (
-	"fmt"
-	"os"
-	"strconv"
-)
-
 func processInput(path string, numStr string) {
 
 	data, err := os.ReadFile(path)

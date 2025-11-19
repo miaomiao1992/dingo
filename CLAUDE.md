@@ -246,6 +246,24 @@ Objectives:
 3. Tuple destructuring (`(pattern1, pattern2)`)
 4. Enhanced error messages (rustc-style source snippets)
 
+**CamelCase Naming Migration** ✅ Complete (2025-11-19)
+
+Based on unanimous recommendation from 6 expert models (MiniMax M2, Grok Code Fast, GPT-5.1 Codex, Gemini 3 Pro, Sherlock Think Alpha, and internal Sonnet 4.5), migrated from underscore naming to pure CamelCase for Go idiomaticity:
+
+**Changes:**
+- Tag constants: `StatusTag_Pending` → `StatusTagPending`
+- Constructor functions: `Status_Pending()` → `StatusPending()`
+- Field names: `int_0` → `int0`, `ok_0` → `ok0`
+
+**Rationale:**
+- Matches Go stdlib patterns (`http.MethodGet`, `ast.BadDecl`, `io.EOF`)
+- Better IDE autocomplete and gopls integration
+- Passes `golint` and `go vet` without warnings
+- Generated code looks hand-written, not transpiled
+
+**Session:** `ai-docs/sessions/20251119-134800/` - 6-model consultation
+**Implementation:** `ai-docs/sessions/20251119-142739/` - Code changes
+
 ### Key Research Findings
 
 See `ai-docs/claude-research.md` and `ai-docs/gemini_research.md` for details:

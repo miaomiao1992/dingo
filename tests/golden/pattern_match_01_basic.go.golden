@@ -31,19 +31,22 @@ func (e Status) IsComplete() bool {
 	return e.tag == StatusTag_Complete
 }
 func getStatusMessage(s Status) string {
+	var __match_result_0 interface{}
 
 	__match_0 := s
 	switch __match_0.tag {
 	case StatusTag_Pending:
 
-		"Waiting to start"
+		__match_result_0 = "Waiting to start"
 	case StatusTag_Active:
 
-		"Currently running"
+		__match_result_0 = "Currently running"
 	case StatusTag_Complete:
 
-		"Finished"
+		__match_result_0 = "Finished"
 	}
+	panic("unreachable: match is exhaustive")
+	return __match_result_0
 
 }
 func main() {

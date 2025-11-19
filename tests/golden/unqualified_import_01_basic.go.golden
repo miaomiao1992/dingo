@@ -4,8 +4,6 @@ import (
 	"os"
 )
 
-import "os"
-
 func readConfig(path string) []byte {
 	data, err := os.ReadFile(path)
 	if err != nil {

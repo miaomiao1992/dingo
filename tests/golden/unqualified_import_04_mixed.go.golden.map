@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 15,
+      "generated_column": 15,
+      "original_line": 11,
+      "original_column": 15,
+      "length": 11,
+      "name": "unqualified:ReadFile"
+    },
+    {
+      "generated_line": 26,
+      "generated_column": 2,
+      "original_line": 22,
+      "original_column": 2,
+      "length": 10,
+      "name": "unqualified:Printf"
+    }
+  ]
+}

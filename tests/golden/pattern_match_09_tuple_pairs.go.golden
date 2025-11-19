@@ -1,0 +1,72 @@
+package main
+
+import (
+	"errors"
+)
+
+type ResultTag uint8
+
+const (
+	ResultTag_Ok ResultTag = iota
+	ResultTag_Err
+)
+
+type Result struct {
+	tag   ResultTag
+	ok_0  *int
+	err_0 *error
+}
+
+func Result_Ok(arg0 int) Result {
+	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+}
+func Result_Err(arg0 error) Result {
+	return Result{tag: ResultTag_Err, err_0: &arg0}
+}
+func (e Result) IsOk() bool {
+	return e.tag == ResultTag_Ok
+}
+func (e Result) IsErr() bool {
+	return e.tag == ResultTag_Err
+}
+func processResults(r1 Result, r2 Result) string {
+
+	__match_0_elem0, __match_0_elem1 := r1, r2
+
+	switch __match_0_elem0.tag {
+	case ResultTag_Err:
+		switch __match_0_elem1.tag {
+		case ResultTag_Err:
+
+			e1 := *__match_0_elem0.err0
+			e2 := *__match_0_elem1.err0
+			return "Both failed: " + e1.Error() + ", " + e2.Error()
+		case ResultTag_Ok:
+
+			e := *__match_0_elem0.err0
+			y := *__match_0_elem1.ok0
+			return "First failed: " + e.Error() + ", second succeeded: " + string(y)
+		}
+	case ResultTag_Ok:
+		switch __match_0_elem1.tag {
+		case ResultTag_Err:
+
+			x := *__match_0_elem0.ok0
+			e := *__match_0_elem1.err0
+			return "First succeeded: " + string(x) + ", second failed: " + e.Error()
+		case ResultTag_Ok:
+
+			x := *__match_0_elem0.ok0
+			y := *__match_0_elem1.ok0
+			return "Both succeeded: " + string(x) + ", " + string(y)
+		}
+	}
+	panic("unreachable: match is exhaustive")
+
+}
+func main() {
+	r1 := Result_Ok(42)
+	r2 := Result_Err(errors.New("network error"))
+	result := processResults(r1, r2)
+	println(result)
+}

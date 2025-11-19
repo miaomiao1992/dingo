@@ -1,7 +1,3 @@
-// Test: None constant context inference
-// Feature: None type inference from context
-// Description: Tests that None constants infer their types from surrounding context
-
 package main
 
 // Test 1: Return statement context
@@ -30,7 +26,7 @@ func (e Option) IsNone() bool {
 	return e.tag == OptionTag_None
 }
 func getAge() Option {
-	return Option_None() // Inferred as Option[int] from return type
+	return Option_None()
 }
 
 // Test 2: Function call parameter context
@@ -38,7 +34,7 @@ func processAge(age Option) {
 	println("Processing age")
 }
 func main() {
-	processAge(Option_None()) // Inferred as Option[int] from parameter type
+	processAge(Option_None())
 	explicitType()
 	assignmentContext()
 	user := createUser()
@@ -54,7 +50,7 @@ func explicitType() {
 // Test 4: Assignment to typed variable
 func assignmentContext() {
 	var age Option
-	age = Option_None() // Inferred from variable type
+	age = Option_None()
 	println("age is None")
 }
 
@@ -66,12 +62,6 @@ type User struct {
 func createUser() User {
 	return User{
 		name: "Alice",
-		age:  Option_None(), // Inferred as Option[int] from field type
+		age:  Option_None(),
 	}
 }
-
-// ERROR CASE: This should fail compilation
-// Uncomment to test error handling
-// fn ambiguousNone() {
-//     x := None  // ERROR: cannot infer type for None constant
-// }

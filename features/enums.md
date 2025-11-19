@@ -132,28 +132,28 @@ enum Status {
 ```
 
 ```go
-// Transpiled Go
+// Transpiled Go (CamelCase naming - Go idiomatic)
 type Status int
 
 const (
-    Status_Pending Status = iota
-    Status_Approved
-    Status_Rejected
+    StatusPending Status = iota  // CamelCase: StatusPending (not Status_Pending)
+    StatusApproved
+    StatusRejected
 )
 
-var __Status_all = []Status{
-    Status_Pending,
-    Status_Approved,
-    Status_Rejected,
+var __StatusAll = []Status{
+    StatusPending,
+    StatusApproved,
+    StatusRejected,
 }
 
 func (s Status) String() string {
     switch s {
-    case Status_Pending:
+    case StatusPending:
         return "Pending"
-    case Status_Approved:
+    case StatusApproved:
         return "Approved"
-    case Status_Rejected:
+    case StatusRejected:
         return "Rejected"
     default:
         return fmt.Sprintf("Status(%d)", s)
@@ -162,7 +162,7 @@ func (s Status) String() string {
 
 // Validation function (used in tests/asserts)
 func (s Status) isValid() bool {
-    return s >= Status_Pending && s <= Status_Rejected
+    return s >= StatusPending && s <= StatusRejected
 }
 ```
 

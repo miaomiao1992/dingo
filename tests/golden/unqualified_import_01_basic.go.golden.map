@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 10,
+      "generated_column": 15,
+      "original_line": 8,
+      "original_column": 15,
+      "length": 11,
+      "name": "unqualified:ReadFile"
+    }
+  ]
+}

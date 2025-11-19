@@ -20,7 +20,7 @@ func validateEmail(email string) (string, error) {
 	return email, nil
 }
 func fetchUser(id int) (*User, error) {
-	// Simulate DB lookup
+
 	if id <= 0 {
 		return nil, errors.New("invalid user ID")
 	}
@@ -31,14 +31,14 @@ func fetchUser(id int) (*User, error) {
 // Notice: Zero manual error checks!
 func getUserData(id int, email string) (*User, error) {
 	__tmp0, __err0 := validateEmail(email)
-	// dingo:s:1
+
 	if __err0 != nil {
 		return nil, __err0
 	}
 	// dingo:e:1
 	var validEmail = __tmp0
 	__tmp1, __err1 := fetchUser(id)
-	// dingo:s:1
+
 	if __err1 != nil {
 		return nil, __err1
 	}

@@ -6,12 +6,6 @@ import (
 	"os"
 )
 
-import (
-	"errors"
-	"fmt"
-	"os"
-)
-
 func validateFile(path string) error {
 
 	data, err := os.ReadFile(path)

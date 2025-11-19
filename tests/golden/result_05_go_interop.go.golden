@@ -5,10 +5,6 @@ import (
 	"strconv"
 )
 
-// Test: Result type interoperating with Go (T, error) functions
-// Feature: Result type + Go interop
-// Complexity: intermediate
-
 type ResultTag uint8
 
 const (
@@ -35,7 +31,7 @@ func (e Result) IsErr() bool {
 	return e.tag == ResultTag_Err
 }
 func convertToInt(s string) Result {
-	// Calling Go stdlib function that returns (int, error)
+
 	val, err := strconv.Atoi(s)
 	if err != nil {
 		return Result_Err(err)

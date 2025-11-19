@@ -11,6 +11,7 @@ import {
   type Auth,
   type UserCredential
 } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 // Firebase configuration from environment variables
 // Uses PUBLIC_ prefix to expose to client-side (Astro requirement)
@@ -26,6 +27,7 @@ const firebaseConfig = {
 // Lazy initialization - only initialize when actually used (browser-only)
 let app: ReturnType<typeof initializeApp> | null = null;
 let _auth: Auth | null = null;
+let _db: Firestore | null = null;
 
 function getFirebaseApp() {
   if (!app && typeof window !== 'undefined') {
@@ -44,6 +46,19 @@ export const auth: Auth = new Proxy({} as Auth, {
       }
     }
     return _auth ? (_auth as any)[prop] : undefined;
+  }
+});
+
+// Initialize Firebase Firestore (lazy)
+export const db: Firestore = new Proxy({} as Firestore, {
+  get(_target, prop) {
+    if (!_db && typeof window !== 'undefined') {
+      const app = getFirebaseApp();
+      if (app) {
+        _db = getFirestore(app);
+      }
+    }
+    return _db ? (_db as any)[prop] : undefined;
   }
 });
 

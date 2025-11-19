@@ -1,0 +1,83 @@
+package main
+
+import (
+	"errors"
+)
+
+type ResultTag uint8
+
+const (
+	ResultTag_Ok ResultTag = iota
+	ResultTag_Err
+)
+
+type Result struct {
+	tag   ResultTag
+	ok_0  *string
+	err_0 *error
+}
+
+func Result_Ok(arg0 string) Result {
+	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+}
+func Result_Err(arg0 error) Result {
+	return Result{tag: ResultTag_Err, err_0: &arg0}
+}
+func (e Result) IsOk() bool {
+	return e.tag == ResultTag_Ok
+}
+func (e Result) IsErr() bool {
+	return e.tag == ResultTag_Err
+}
+func parseConfig(host Result, port Result, timeout Result) string {
+
+	__match_0_elem0, __match_0_elem1, __match_0_elem2 := host, port, timeout
+
+	switch __match_0_elem0.tag {
+	case ResultTag_Err:
+		switch __match_0_elem1.tag {
+		default:
+			switch __match_0_elem2.tag {
+			default:
+
+				e := *__match_0_elem0.err0
+				return "Invalid host: " + e.Error()
+			}
+		}
+	case ResultTag_Ok:
+		switch __match_0_elem1.tag {
+		case ResultTag_Err:
+			switch __match_0_elem2.tag {
+			default:
+
+				h := *__match_0_elem0.ok0
+				e := *__match_0_elem1.err0
+				return "Host " + h + " but invalid port: " + e.Error()
+			}
+		case ResultTag_Ok:
+			switch __match_0_elem2.tag {
+			case ResultTag_Err:
+
+				h := *__match_0_elem0.ok0
+				p := *__match_0_elem1.ok0
+				e := *__match_0_elem2.err0
+				return "Config: " + h + ":" + p + " (default timeout, error: " + e.Error() + ")"
+			case ResultTag_Ok:
+
+				h := *__match_0_elem0.ok0
+				p := *__match_0_elem1.ok0
+				t := *__match_0_elem2.ok0
+				return "Config: " + h + ":" + p + " timeout=" + t
+			}
+		}
+	}
+	panic("unreachable: match is exhaustive")
+
+}
+func main() {
+	h := Result_Ok("localhost")
+	p := Result_Ok("8080")
+	t := Result_Err(errors.New("timeout not specified"))
+	config := parseConfig(h, p, t)
+	println(config)
+}

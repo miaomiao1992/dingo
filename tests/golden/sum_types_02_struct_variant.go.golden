@@ -33,12 +33,3 @@ func (e Shape) IsCircle() bool {
 func (e Shape) IsRectangle() bool {
 	return e.tag == ShapeTag_Rectangle
 }
-func area(s Shape) float64 {
-	if s.IsCircle() {
-		return 3.14 * (*s.circle_radius) * (*s.circle_radius)
-	}
-	if s.IsRectangle() {
-		return (*s.rectangle_width) * (*s.rectangle_height)
-	}
-	return 0.0
-}

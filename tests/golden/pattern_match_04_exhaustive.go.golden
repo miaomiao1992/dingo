@@ -41,22 +41,24 @@ func (e Color) IsRGB() bool {
 	return e.tag == ColorTag_RGB
 }
 func colorToHex(c Color) string {
+	var __match_result_0 interface{}
 
 	__match_0 := c
 	switch __match_0.tag {
-	case ColorTag_Red:
+	case ColorTagRed:
 
-		"#FF0000"
-	case ColorTag_Green:
+		__match_result_0 = "#FF0000"
+	case ColorTagGreen:
 
-		"#00FF00"
-	case ColorTag_Blue:
+		__match_result_0 = "#00FF00"
+	case ColorTagBlue:
 
-		"#0000FF"
-	case ColorTag_RGB{r, g, b}:
+		__match_result_0 = "#0000FF"
+	case ColorTagRGB{r, g, b}:
 
-		"#" + toHex(r) + toHex(g) + toHex(b)
+		__match_result_0 = "#" + toHex(r) + toHex(g) + toHex(b)
 	}
+	return __match_result_0
 
 }
 func toHex(n int) string {

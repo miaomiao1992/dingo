@@ -32,19 +32,23 @@ func findUser(id int) Option {
 }
 func getUserOrDefault(id int) string {
 	user := findUser(id)
-	switch user.tag {
-	case OptionTag_Some:
-		name := *user.some_0
+
+	__match_0 := user
+	switch __match_0.tag {
+	case OptionTagSome:
+
+		name := *__match_0.some_0
 		return name
-	case OptionTag_None:
+	case OptionTagNone:
+
 		return "Anonymous"
-	default:
-		panic("unreachable: match should be exhaustive")
 	}
+
 }
 func main() {
 	name1 := getUserOrDefault(42)
 	println("User 1:", name1)
+
 	name2 := getUserOrDefault(-1)
 	println("User 2:", name2)
 }
