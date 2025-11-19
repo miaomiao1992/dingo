@@ -1,0 +1,20 @@
+Golden File Regeneration Status
+
+SUCCESS: 6/13 files regenerated
+FAILED: 7/13 files (syntax errors in .dingo source)
+
+Updated Files:
+- pattern_match_01_basic.go.golden
+- pattern_match_02_guards.go.golden
+- pattern_match_03_nested.go.golden
+- pattern_match_09_tuple_pairs.go.golden
+- pattern_match_10_tuple_triples.go.golden
+- pattern_match_11_tuple_wildcards.go.golden
+
+Test Results:
+- Pattern Match: 6/13 passing (46%)
+- Overall Suite: 94/102 passing (92.2%)
+- Improvement: +6 tests from baseline
+
+Next Action Required:
+Fix 7 .dingo source files with "no pattern arms found" errors to reach 99% target.

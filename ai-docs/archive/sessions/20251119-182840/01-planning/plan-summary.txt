@@ -1,0 +1,15 @@
+# Final Plan Summary: Where Guard Preprocessor Bug Fix
+
+## Approach
+Five-step implementation: (1) Fix nested pattern detection by removing `&& !hasGuards` condition, (2) Add 2-level depth validation with new helper functions, (3) Implement multi-level guard support for both outer and inner patterns with if-else-if chains, (4) Create new simple test `pattern_match_13_nested_guards_simple.dingo` for regression prevention, (5) Validate all 104 tests pass.
+
+## Key Technical Decisions
+- Multi-level guard support: Distinguish outer vs inner guards via binding analysis (references innermost binding → inner, otherwise → outer)
+- Depth validation: Paren-counting algorithm enforces 2-level maximum with clear error messages
+- Code generation: Reuse existing guard chain pattern (if-else-if) adapted for nested switches with careful indentation tracking
+
+## Implementation Complexity
+Medium-High: ~150 lines across 6 new helper functions, 3.5 hours implementation + 1 hour testing. Core changes in `rust_match.go:generateCaseWithGuards` (lines 773-981), particularly nested pattern case generation (lines 836-883).
+
+## Expected Outcome
+Test count: 102/103 → 104/104 passing. Fixes `pattern_match_06_guards_nested`, adds `pattern_match_13_nested_guards_simple`, maintains all existing functionality with zero regressions.

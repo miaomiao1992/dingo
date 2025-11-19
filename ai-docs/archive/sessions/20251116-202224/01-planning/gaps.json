@@ -1,0 +1,167 @@
+[
+  {
+    "question": "What syntax style should we use for match arms?",
+    "rationale": "Multiple languages use different separators between pattern and body. Rust uses `=>`, Kotlin uses `->`, Scala uses `:`. We need to choose one that fits Dingo's aesthetic and doesn't conflict with existing syntax (we already use `->` for type annotations in some proposals).",
+    "options": [
+      "=> (Rust-style, recommended)",
+      "-> (Swift/TypeScript-style)",
+      ": (Kotlin/Scala-style)"
+    ],
+    "impact": "Parser implementation, user ergonomics",
+    "recommendation": "Use `=>` to avoid conflict with potential future arrow function syntax `() -> T`"
+  },
+  {
+    "question": "Should we allow trailing commas in enum variant lists?",
+    "rationale": "Trailing commas make diffs cleaner and prevent syntax errors when adding new variants. Go allows them in composite literals and slices.",
+    "options": [
+      "Allow (recommended for better diffs)",
+      "Forbid (stricter syntax)"
+    ],
+    "impact": "Parser complexity (minimal), developer experience",
+    "recommendation": "Allow trailing commas - consistent with Go and modern languages"
+  },
+  {
+    "question": "How should we handle exhaustiveness checking for match expressions?",
+    "rationale": "Need to decide whether non-exhaustive matches should be compile errors or warnings, and whether wildcard `_` should always be allowed.",
+    "options": [
+      "Error on missing cases, allow wildcard (Rust-style, recommended)",
+      "Warning on missing cases, suggest wildcard",
+      "Error on missing cases, forbid wildcard (force explicit handling)"
+    ],
+    "impact": "Type safety guarantees, user experience",
+    "recommendation": "Error on missing cases but allow `_` wildcard - strictness with escape hatch"
+  },
+  {
+    "question": "Should we generate helper methods on enum types?",
+    "rationale": "Rust generates `is_ok()`, `is_err()`, etc. for Result/Option. We could do the same for all enum types. Question is whether this should be automatic or opt-in via derive/impl.",
+    "options": [
+      "Auto-generate Is* methods for all variants (e.g., shape.IsCircle())",
+      "Only generate for standard types (Result, Option)",
+      "Never auto-generate, require explicit impl blocks",
+      "Provide derive syntax: `#[derive(Checks)]` (future feature)"
+    ],
+    "impact": "Generated code size, API surface, user expectations",
+    "recommendation": "Auto-generate Is* methods for better Go interop and ergonomics"
+  },
+  {
+    "question": "What naming convention should we use for generated Go code?",
+    "rationale": "Need consistent naming for tag enums, tag constants, and union struct fields. This affects both generated code readability and potential name conflicts.",
+    "options": [
+      "Prefix everything with enum name: `ShapeTag`, `ShapeTag_Circle`, `shape.circle_radius`",
+      "Use shorter names: `shape_tag`, `Tag_Circle`, `shape.radius`",
+      "Use package-based naming: `Tag`, `Circle`, `circle_radius` (may conflict)"
+    ],
+    "impact": "Generated code readability, name conflict potential",
+    "recommendation": "Prefix with enum name for clarity and conflict avoidance"
+  },
+  {
+    "question": "How should we optimize memory layout for enum variants?",
+    "rationale": "Different strategies have different tradeoffs. Always using pointers is simple but wastes space for small types. Value optimization is efficient but complex.",
+    "options": [
+      "Always use pointers (simplest, MVP approach)",
+      "Small value optimization for types <= 16 bytes (pack into union)",
+      "Smart optimization based on variant analysis (most complex)"
+    ],
+    "impact": "Memory overhead, implementation complexity, performance",
+    "recommendation": "Start with always-pointers for MVP, add optimizations in Phase 6"
+  },
+  {
+    "question": "Should generic enum types use Go 1.18+ generics or custom monomorphization?",
+    "rationale": "Go generics are stable and idiomatic, but monomorphization (generating separate types per instantiation) could enable better optimizations and works with older Go versions.",
+    "options": [
+      "Use Go generics (requires Go 1.18+, recommended)",
+      "Custom monomorphization (works with Go 1.17+)",
+      "Support both with compiler flag"
+    ],
+    "impact": "Go version requirements, optimization potential, complexity",
+    "recommendation": "Use Go generics - they're stable and this is a new project"
+  },
+  {
+    "question": "How should we handle the pattern destructuring syntax?",
+    "rationale": "For tuple-style variants like `Some(T)`, we need to decide how users bind the inner value in patterns. Multiple syntaxes are possible.",
+    "options": [
+      "Parentheses for tuples, braces for structs: `Some(x)` vs `Error{code}`",
+      "Always use braces with indices: `Some{0: x}`",
+      "Allow both syntaxes"
+    ],
+    "impact": "Parser complexity, user ergonomics, learning curve",
+    "recommendation": "Parentheses for tuples, braces for structs - matches declaration syntax"
+  },
+  {
+    "question": "Where should Result<T, E> and Option<T> be defined?",
+    "rationale": "These are fundamental types that should be available by default. Need to decide if they're built into the compiler, in a standard prelude, or imported explicitly.",
+    "options": [
+      "Built-in types (compiler knows about them)",
+      "Standard prelude (auto-imported, defined in dingo/std)",
+      "Explicit import required (import 'dingo/result')"
+    ],
+    "impact": "User experience, compiler complexity, flexibility",
+    "recommendation": "Standard prelude - defined as normal enums but auto-imported"
+  },
+  {
+    "question": "Should we support pattern guards with `if` or `when` keyword?",
+    "rationale": "Pattern guards allow conditional matching. Rust uses `if`, Scala uses `if`, Swift uses `where`. Need to choose keyword.",
+    "options": [
+      "if (Rust-style, familiar)",
+      "when (Kotlin-style, distinct from regular if)",
+      "where (Swift-style)"
+    ],
+    "impact": "Syntax familiarity, potential confusion with regular if statements",
+    "recommendation": "Use `if` - most familiar and consistent with conditional logic"
+  },
+  {
+    "question": "How should we handle recursive enum types (e.g., for AST nodes)?",
+    "rationale": "Recursive enums like `enum Expr { Literal(int), Binary{left: Expr, right: Expr} }` create infinite size types. Need strategy for handling.",
+    "options": [
+      "Require explicit Box/pointer: `Binary{left: Box<Expr>, right: Box<Expr>}`",
+      "Auto-detect recursion and insert pointers (complex)",
+      "Forbid recursive enums in MVP, add later"
+    ],
+    "impact": "Type system complexity, user ergonomics, MVP scope",
+    "recommendation": "Forbid in MVP, plan for Box<T> in future - keeps initial scope manageable"
+  },
+  {
+    "question": "Should match expressions be statements or expressions?",
+    "rationale": "Rust match is an expression (returns a value), Go switch is a statement. This affects how match can be used in code.",
+    "options": [
+      "Expression (can be used in assignments, return values)",
+      "Statement (like Go switch)",
+      "Both (complex)"
+    ],
+    "impact": "Syntax design, transpilation strategy, user expectations",
+    "recommendation": "Expression - more powerful, consistent with Rust/Swift, enables functional style"
+  },
+  {
+    "question": "How should we handle unreachable match arms?",
+    "rationale": "If user has `Some(x)` followed by wildcard `_`, the wildcard makes Some unreachable. Should this be an error, warning, or allowed?",
+    "options": [
+      "Warning (inform user but allow)",
+      "Error (strict checking)",
+      "Silent (ignore, no benefit to user)"
+    ],
+    "impact": "Code quality, user experience, compiler complexity",
+    "recommendation": "Warning for MVP - helps users but not blocking"
+  },
+  {
+    "question": "Should we emit DINGO:GENERATED markers for enum-generated code?",
+    "rationale": "Consistent with error propagation plugin. Markers help with debugging and editor folding, but add noise to generated code.",
+    "options": [
+      "Yes, consistent with existing plugins (recommended)",
+      "No, keep generated code clean",
+      "Make it configurable via compiler flag"
+    ],
+    "impact": "Generated code readability, debugging experience, consistency",
+    "recommendation": "Yes - consistency with error propagation plugin, good for debugging"
+  },
+  {
+    "question": "Should enum variants be namespaced or global?",
+    "rationale": "In Rust, variants require enum prefix: `Result::Ok`. In some languages, variants are in scope: just `Ok`. Affects ergonomics vs clarity.",
+    "options": [
+      "Require prefix: `Result::Ok(value)` or `Result.Ok(value)`",
+      "Allow unqualified if unambiguous: `Ok(value)` (import style)",
+      "Always unqualified (global namespace)"
+    ],
+    "impact": "Name conflicts, code clarity, import complexity",
+    "recommendation": "Require prefix for construction, consider allowing unqualified in patterns (TBD)"
+  }
+]

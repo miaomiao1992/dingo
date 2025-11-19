@@ -21,16 +21,16 @@ func TestPatternMatchPlugin_ExhaustiveResult(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_string) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x)
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	case ResultTagErr:
 		// DINGO_PATTERN: Err(e)
-		e := __match_0.err_0
+		e := scrutinee.err
 		return 0
 	}
 	// DINGO_MATCH_END
@@ -78,12 +78,12 @@ func TestPatternMatchPlugin_NonExhaustiveResult(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_string) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x)
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	}
 	// DINGO_MATCH_END
@@ -134,12 +134,12 @@ func TestPatternMatchPlugin_ExhaustiveOption(t *testing.T) {
 	src := `package main
 
 func handleOption(opt Option_int) int {
-	__match_0 := opt
+	scrutinee := opt
 	// DINGO_MATCH_START: opt
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case OptionTagSome:
 		// DINGO_PATTERN: Some(x)
-		x := *__match_0.some_0
+		x := *scrutinee.some
 		return x
 	case OptionTagNone:
 		// DINGO_PATTERN: None
@@ -180,12 +180,12 @@ func TestPatternMatchPlugin_NonExhaustiveOption(t *testing.T) {
 	src := `package main
 
 func handleOption(opt Option_int) int {
-	__match_0 := opt
+	scrutinee := opt
 	// DINGO_MATCH_START: opt
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case OptionTagSome:
 		// DINGO_PATTERN: Some(x)
-		x := *__match_0.some_0
+		x := *scrutinee.some
 		return x
 	}
 	// DINGO_MATCH_END
@@ -236,12 +236,12 @@ func TestPatternMatchPlugin_WildcardCoversAll(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_string) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x)
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	default:
 		// DINGO_PATTERN: _
@@ -439,25 +439,25 @@ func TestPatternMatchPlugin_MultipleMatches(t *testing.T) {
 
 func test(r1 Result_int_string, r2 Result_int_string) {
 	// First match - non-exhaustive
-	__match_0 := r1
+	scrutinee := r1
 	// DINGO_MATCH_START: r1
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x)
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 	}
 	// DINGO_MATCH_END
 
 	// Second match - exhaustive
-	__match_1 := r2
+	scrutinee1 := r2
 	// DINGO_MATCH_START: r2
-	switch __match_1.tag {
+	switch scrutinee1.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(y)
-		y := *__match_1.ok_0
+		y := *scrutinee1.ok
 	case ResultTagErr:
 		// DINGO_PATTERN: Err(e)
-		e := __match_1.err_0
+		e := scrutinee1.err
 	}
 	// DINGO_MATCH_END
 }
@@ -505,16 +505,16 @@ func TestPatternMatchPlugin_Transform_AddsPanic(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_string) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x)
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	case ResultTagErr:
 		// DINGO_PATTERN: Err(e)
-		e := __match_0.err_0
+		e := scrutinee.err
 		return 0
 	}
 	// DINGO_MATCH_END
@@ -617,12 +617,12 @@ func TestPatternMatchPlugin_Transform_WildcardNoPanic(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_string) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x)
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	default:
 		// DINGO_PATTERN: _
@@ -682,20 +682,20 @@ func TestPatternMatchPlugin_GuardParsing(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_int) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x)
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return 0
 	case ResultTagErr:
 		// DINGO_PATTERN: Err(e)
-		e := __match_0.err_0
+		e := scrutinee.err
 		return -1
 	}
 	// DINGO_MATCH_END
@@ -751,16 +751,16 @@ func TestPatternMatchPlugin_GuardTransformation(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_int) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	case ResultTagErr:
 		// DINGO_PATTERN: Err(e)
-		e := __match_0.err_0
+		e := scrutinee.err
 		return -1
 	}
 	// DINGO_MATCH_END
@@ -833,24 +833,24 @@ func TestPatternMatchPlugin_MultipleGuards(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_int) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x == 0
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return 0
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x)
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x
 	case ResultTagErr:
 		// DINGO_PATTERN: Err(e)
-		e := __match_0.err_0
+		e := scrutinee.err
 		return -1
 	}
 	// DINGO_MATCH_END
@@ -912,16 +912,16 @@ func TestPatternMatchPlugin_ComplexGuardExpression(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_int) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0 && x < 100
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	case ResultTagErr:
 		// DINGO_PATTERN: Err(e)
-		e := __match_0.err_0
+		e := scrutinee.err
 		return -1
 	}
 	// DINGO_MATCH_END
@@ -970,16 +970,16 @@ func TestPatternMatchPlugin_InvalidGuardSyntax(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_int) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > @ invalid
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	case ResultTagErr:
 		// DINGO_PATTERN: Err(e)
-		e := __match_0.err_0
+		e := scrutinee.err
 		return -1
 	}
 	// DINGO_MATCH_END
@@ -1036,12 +1036,12 @@ func TestPatternMatchPlugin_GuardExhaustivenessIgnored(t *testing.T) {
 	src := `package main
 
 func handleResult(result Result_int_int) int {
-	__match_0 := result
+	scrutinee := result
 	// DINGO_MATCH_START: result
-	switch __match_0.tag {
+	switch scrutinee.tag {
 	case ResultTagOk:
 		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0
-		x := *__match_0.ok_0
+		x := *scrutinee.ok
 		return x * 2
 	}
 	// DINGO_MATCH_END

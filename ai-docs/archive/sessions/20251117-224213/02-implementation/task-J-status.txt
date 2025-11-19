@@ -1,0 +1,13 @@
+COMPLETED
+
+Task J: Add tests for the new --multi-value-return compiler flag
+
+Summary:
+- Created pkg/preprocessor/config_test.go with 10 comprehensive test functions
+- Fixed build error in existing preprocessor_test.go (removed invalid SourceMap fields)
+- All tests pass successfully (0.189s execution time)
+- Test coverage: DefaultConfig(), ValidateMultiValueReturnMode(), full mode (2 tests), single mode (4 tests), nil config, assignments
+
+Test Results: ✅ PASS (10/10 tests)
+Files Created: 1 (config_test.go - 209 lines)
+Files Modified: 1 (preprocessor_test.go - fixed build error)

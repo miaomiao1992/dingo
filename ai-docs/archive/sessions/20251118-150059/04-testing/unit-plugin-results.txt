@@ -1,0 +1,39 @@
+=== RUN   TestContext_ReportError
+--- PASS: TestContext_ReportError (0.00s)
+=== RUN   TestContext_GetErrors_Empty
+--- PASS: TestContext_GetErrors_Empty (0.00s)
+=== RUN   TestContext_ClearErrors
+--- PASS: TestContext_ClearErrors (0.00s)
+=== RUN   TestContext_NextTempVar
+--- PASS: TestContext_NextTempVar (0.00s)
+=== RUN   TestContext_NextTempVar_UniqueNames
+--- PASS: TestContext_NextTempVar_UniqueNames (0.00s)
+=== RUN   TestContext_ErrorsWithLocation
+--- PASS: TestContext_ErrorsWithLocation (0.00s)
+=== RUN   TestContext_BuildParentMap
+--- PASS: TestContext_BuildParentMap (0.00s)
+=== RUN   TestContext_GetParent_NilMap
+--- PASS: TestContext_GetParent_NilMap (0.00s)
+=== RUN   TestContext_GetParent_VariousNodeTypes
+=== RUN   TestContext_GetParent_VariousNodeTypes/AssignStmt_parent_is_BlockStmt
+=== RUN   TestContext_GetParent_VariousNodeTypes/IfStmt_parent_is_BlockStmt
+=== RUN   TestContext_GetParent_VariousNodeTypes/ForStmt_parent_is_BlockStmt
+=== RUN   TestContext_GetParent_VariousNodeTypes/StructType_parent_is_TypeSpec
+--- PASS: TestContext_GetParent_VariousNodeTypes (0.00s)
+    --- PASS: TestContext_GetParent_VariousNodeTypes/AssignStmt_parent_is_BlockStmt (0.00s)
+    --- PASS: TestContext_GetParent_VariousNodeTypes/IfStmt_parent_is_BlockStmt (0.00s)
+    --- PASS: TestContext_GetParent_VariousNodeTypes/ForStmt_parent_is_BlockStmt (0.00s)
+    --- PASS: TestContext_GetParent_VariousNodeTypes/StructType_parent_is_TypeSpec (0.00s)
+=== RUN   TestContext_WalkParents
+--- PASS: TestContext_WalkParents (0.00s)
+=== RUN   TestContext_WalkParents_StopsEarly
+--- PASS: TestContext_WalkParents_StopsEarly (0.00s)
+=== RUN   TestContext_WalkParents_NilMap
+--- PASS: TestContext_WalkParents_NilMap (0.00s)
+=== RUN   TestContext_BuildParentMap_EmptyFile
+--- PASS: TestContext_BuildParentMap_EmptyFile (0.00s)
+=== RUN   TestContext_BuildParentMap_LargeFile
+--- PASS: TestContext_BuildParentMap_LargeFile (0.00s)
+PASS
+coverage: 52.9% of statements
+ok  	github.com/MadAppGang/dingo/pkg/plugin	0.406s	coverage: 52.9% of statements

@@ -1,0 +1,1 @@
+Review the files in `pkg/config/` for correctness, error handling, and adherence to Go best practices. Summarize your findings regarding configuration parsing, validation, and overall design.

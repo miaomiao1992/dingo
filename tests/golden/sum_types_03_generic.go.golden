@@ -3,8 +3,8 @@ package main
 type OptionTag uint8
 
 const (
-	OptionTag_Some OptionTag = iota
-	OptionTag_None
+	OptionTagSome OptionTag = iota
+	OptionTagNone
 )
 
 type Option struct {
@@ -13,14 +13,14 @@ type Option struct {
 }
 
 func Option_Some(value T) Option {
-	return Option{tag: OptionTag_Some, some_value: &value}
+	return Option{tag: OptionTagSome, some_value: &value}
 }
 func Option_None() Option {
-	return Option{tag: OptionTag_None}
+	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
-	return e.tag == OptionTag_Some
+	return e.tag == OptionTagSome
 }
 func (e Option) IsNone() bool {
-	return e.tag == OptionTag_None
+	return e.tag == OptionTagNone
 }

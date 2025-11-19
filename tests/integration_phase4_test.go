@@ -255,25 +255,25 @@ func getAge(valid bool) Option_int {
 			t.Errorf("Expected None to infer type from return, but got errors: %v", ctx.GetErrors())
 		}
 
-		// Step 8: Verify None was transformed to Option_int{tag: OptionTag_None} (C6 FIX)
+		// Step 8: Verify None was transformed to Option_int{tag: OptionTagNone} (C6 FIX)
 		noneFound := false
 		ast.Inspect(transformed, func(n ast.Node) bool {
-			// Look for Option_int{tag: OptionTag_None, some_0: nil} composite literal
+			// Look for Option_int{tag: OptionTagNone, some: nil} composite literal
 			if comp, ok := n.(*ast.CompositeLit); ok {
 				if ident, ok := comp.Type.(*ast.Ident); ok {
 					if ident.Name == "Option_int" {
-						// Check for tag: OptionTag_None
+						// Check for tag: OptionTagNone
 						hasTag := false
 						hasSome := false
 						for _, elt := range comp.Elts {
 							if kv, ok := elt.(*ast.KeyValueExpr); ok {
 								if key, ok := kv.Key.(*ast.Ident); ok {
 									if key.Name == "tag" {
-										if val, ok := kv.Value.(*ast.Ident); ok && val.Name == "OptionTag_None" {
+										if val, ok := kv.Value.(*ast.Ident); ok && val.Name == "OptionTagNone" {
 											hasTag = true
 										}
 									}
-									if key.Name == "some_0" {
+									if key.Name == "some" {
 										hasSome = true
 									}
 								}
@@ -290,7 +290,7 @@ func getAge(valid bool) Option_int {
 		})
 
 		if !noneFound {
-			t.Error("Expected None to be transformed to Option_int{tag: OptionTag_None, some_0: nil}, but not found")
+			t.Error("Expected None to be transformed to Option_int{tag: OptionTagNone, some: nil}, but not found")
 		}
 
 		t.Log("✓ None context inference test passed")
@@ -394,11 +394,11 @@ func process(r Result_string_error) Option_int {
 						if kv, ok := elt.(*ast.KeyValueExpr); ok {
 							if key, ok := kv.Key.(*ast.Ident); ok {
 								if key.Name == "tag" {
-									if val, ok := kv.Value.(*ast.Ident); ok && val.Name == "OptionTag_None" {
+									if val, ok := kv.Value.(*ast.Ident); ok && val.Name == "OptionTagNone" {
 										hasTag = true
 									}
 								}
-								if key.Name == "some_0" {
+								if key.Name == "some" {
 									hasSome = true
 								}
 							}

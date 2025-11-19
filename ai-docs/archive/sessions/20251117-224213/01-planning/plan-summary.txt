@@ -1,0 +1,18 @@
+FINAL IMPLEMENTATION PLAN SUMMARY
+==================================
+
+SCOPE (6 items):
+  1. FIX: Source map offset bug (1-line change: >= to >)
+  2. VERIFY + TEST: Multi-value returns (already fixed, add edge cases)
+  3. VERIFY + TEST: Import collision prevention (already fixed, add negative tests)
+  4. ADD: Comprehensive negative test suite (12+ tests across 4 groups)
+  5. NEW FEATURE: Compiler flag --multi-value-return={full|single}
+  6. NEW DOCS: Preprocessor architecture README + ordering policy
+
+RISK: LOW (only 1 code fix + 1 opt-in feature, rest is tests/docs)
+
+TIME: 4-6 hours (with parallelization: 4 hours, sequential: 6.5 hours)
+
+FILES:
+  - Final Plan: /Users/jack/mag/dingo/ai-docs/sessions/20251117-224213/01-planning/final-plan.md
+  - This Summary: /Users/jack/mag/dingo/ai-docs/sessions/20251117-224213/01-planning/plan-summary.txt

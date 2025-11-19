@@ -1,0 +1,25 @@
+# Phase 4 Final Plan Summary
+
+## Core Decisions
+- **Dual Syntax Support**: Rust-like (default) + Swift-like via dingo.toml configuration
+- **Strict Exhaustiveness**: Compile errors for non-exhaustive matches (no warnings)
+- **Context-Aware Matching**: Expression mode (type-checked) if assigned/returned, statement mode otherwise
+- **Conservative None Inference**: Infers from return/assign/call/field context, errors on ambiguity
+- **Enhanced Errors**: rustc-style source snippets with suggestions
+
+## Timeline
+- **Phase 4.1 (weeks 1-2)**: MVP - Basic pattern matching for Result/Option/Enum with Rust syntax
+- **Phase 4.2 (weeks 3-4)**: Advanced - Guards, Swift syntax, tuples, enhanced errors
+
+## Key Architecture
+- Configuration system (dingo.toml) for syntax selection
+- AST parent map built unconditionally for context inference
+- Two preprocessors (RustMatchProcessor, SwiftMatchProcessor) generate identical markers
+- PatternMatchPlugin validates exhaustiveness and compiles patterns
+- NoneContextPlugin infers None types from surrounding context via parent walking
+
+## Deliverables
+- 10+ golden tests covering both syntaxes
+- Dual syntax support with <5% code duplication
+- Performance target: <10ms parent map, <1ms exhaustiveness check
+- Complete documentation (features/, docs/errors.md)

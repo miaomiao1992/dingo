@@ -1,0 +1,27 @@
+# Phase V: LSP Foundation - Plan Summary
+
+## Approach
+Three-layer gopls proxy architecture: VSCode ↔ dingo-lsp ↔ gopls. Position translation via source maps enables full IDE support with ~1200 LOC.
+
+## Timeline
+10 days (2 weeks): Core proxy (3d) → LSP methods (2d) → File watching (2d) → VSCode extension (2d) → Polish (1d)
+
+## Key Decisions Incorporated
+1. Source maps: Stable format + version checking for Phase 4 compatibility
+2. Transpilation: Configurable auto-transpile on save (default: enabled)
+3. File watching: Hybrid workspace monitoring (.dingo files only, 500ms debounce)
+4. Error reporting: Both LSP diagnostics (inline) and notifications (system errors)
+5. Distribution: .vsix package for iteration 1, marketplace later
+
+## Deliverables
+- LSP server binary (dingo-lsp): ~1200 LOC
+- VSCode extension: Syntax highlighting + LSP client
+- Tests: 80%+ coverage (unit + integration)
+- Documentation: Installation, troubleshooting, architecture
+
+## Success Criteria
+- Autocomplete <100ms latency
+- Go-to-definition, hover, diagnostics work correctly
+- Auto-transpile on save (configurable)
+- Position translation 100% accurate
+- No crashes on malformed input

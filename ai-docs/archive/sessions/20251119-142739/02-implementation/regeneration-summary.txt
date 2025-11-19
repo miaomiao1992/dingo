@@ -1,0 +1,25 @@
+Golden Test Regeneration Summary
+
+Status: Success (with expected failures)
+Regenerated: 38/66 files successfully (57.6%)
+Failed: 28/66 files (42.4% - all expected, unimplemented features)
+
+CamelCase Migration Complete:
+- All working tests now use Ok/Err/Some/None (CamelCase)
+- Pattern matching transformations updated
+- Type inference logic updated
+- Helper method generation updated
+
+100% Success Categories:
+- Error propagation: 9/9 tests
+- Sum types: 6/6 tests
+- Unqualified imports: 4/4 tests
+
+Expected Failures:
+- 18 tests: Phase 5+ features (lambdas, ternary, null coalesce, safe nav, tuples)
+- 5 tests: Phase 4.2 features (tuple patterns, nested patterns)
+- 5 tests: Syntax edge cases (chaining, advanced match)
+
+Next: Run full test suite to confirm 38 regenerated tests pass
+
+Details: ai-docs/sessions/20251119-142739/02-implementation/golden-regeneration.md

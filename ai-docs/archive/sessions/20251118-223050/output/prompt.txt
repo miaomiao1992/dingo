@@ -1,0 +1,14 @@
+You are a Go tooling expert. Summarize how established Go projects organize source files versus generated outputs, focusing on:
+- protoc-generated gRPC stubs (google.golang.org/grpc, buf.build, grpc-go examples)
+- templ (github.com/a-h/templ)
+- sqlc (github.com/sqlc-dev/sqlc)
+- ent (entgo.io/ent)
+- wire (github.com/google/wire)
+
+For each ecosystem, describe:
+1. Where original schema/source files live (directories, module placement).
+2. Where generated Go files are emitted and how they coexist with hand-written code.
+3. go.mod / module boundary considerations when committing generated code.
+4. Tooling ergonomics (makefiles, go:generate directives, buf.gen.yaml, etc.).
+
+Provide concrete repo examples with URLs and cite directory paths (e.g., cmd/server, internal/gen). Highlight common idiomatic patterns for separating source inputs (proto, templ, sql, schema) from generated Go packages. Limit response to ~500 words. Ensure citations reference real repositories and paths.

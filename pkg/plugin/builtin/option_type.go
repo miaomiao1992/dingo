@@ -19,7 +19,7 @@ import (
 //
 //	type Option_T struct {
 //	    tag     OptionTag
-//	    some_0  *T        // Pointer for zero-value safety
+//	    some    *T        // Pointer for zero-value safety
 //	}
 //
 // The plugin also generates:
@@ -190,19 +190,19 @@ func (p *OptionTypePlugin) handleNoneExpression(ident *ast.Ident) {
 	}
 
 	// Create the replacement CompositeLit
-	// None → Option_T{tag: OptionTag_None}
+	// None → Option_T{tag: OptionTagNone}
 	replacement := &ast.CompositeLit{
 		Type: ast.NewIdent(optionTypeName),
 		Elts: []ast.Expr{
 			&ast.KeyValueExpr{
 				Key:   ast.NewIdent("tag"),
-				Value: ast.NewIdent("OptionTag_None"),
+				Value: ast.NewIdent("OptionTagNone"),
 			},
-			// No some_0 field for None variant
+			// No some field for None variant
 		},
 	}
 
-	p.ctx.Logger.Debug("Transforming None → %s{tag: OptionTag_None}", optionTypeName)
+	p.ctx.Logger.Debug("Transforming None → %s{tag: OptionTagNone}", optionTypeName)
 	p.ctx.Logger.Debug("Generated replacement AST: %v", replacement)
 
 	// Note: Actual AST replacement happens in the Transform phase
@@ -265,19 +265,19 @@ func (p *OptionTypePlugin) handleSomeConstructor(call *ast.CallExpr) {
 	}
 
 	// Transform the call to a struct literal
-	p.ctx.Logger.Debug("Transforming Some(%s) → %s{tag: OptionTag_Some, some_0: <addressable-value>}", valueType, optionTypeName)
+	p.ctx.Logger.Debug("Transforming Some(%s) → %s{tag: OptionTagSome, some: <addressable-value>}", valueType, optionTypeName)
 
 	// Create the replacement CompositeLit
-	// Some(value) → Option_T{tag: OptionTag_Some, some_0: &value or IIFE}
+	// Some(value) → Option_T{tag: OptionTagSome, some: &value or IIFE}
 	replacement := &ast.CompositeLit{
 		Type: ast.NewIdent(optionTypeName),
 		Elts: []ast.Expr{
 			&ast.KeyValueExpr{
 				Key:   ast.NewIdent("tag"),
-				Value: ast.NewIdent("OptionTag_Some"),
+				Value: ast.NewIdent("OptionTagSome"),
 			},
 			&ast.KeyValueExpr{
-				Key:   ast.NewIdent("some_0"),
+				Key:   ast.NewIdent("some"),
 				Value: valueExpr,
 			},
 		},
@@ -333,7 +333,7 @@ func (p *OptionTypePlugin) emitOptionDeclaration(valueType, optionTypeName strin
 								Names: []*ast.Ident{
 									{
 										NamePos: token.NoPos, // Prevent comment grabbing
-										Name:    "some_0",
+										Name:    "some",
 									},
 								},
 								Type: p.typeToAST(valueType, true), // Pointer
@@ -375,7 +375,7 @@ func (p *OptionTypePlugin) emitOptionTagEnum() {
 	}
 	p.pendingDecls = append(p.pendingDecls, tagTypeDecl)
 
-	// const ( OptionTag_Some OptionTag = iota; OptionTag_None )
+	// const ( OptionTagSome OptionTag = iota; OptionTagNone )
 	tagConstDecl := &ast.GenDecl{
 		Tok: token.CONST,
 		Specs: []ast.Spec{
@@ -383,7 +383,7 @@ func (p *OptionTypePlugin) emitOptionTagEnum() {
 				Names: []*ast.Ident{
 					{
 						NamePos: token.NoPos, // Prevent comment grabbing
-						Name:    "OptionTag_Some",
+						Name:    "OptionTagSome",
 					},
 				},
 				Type: &ast.Ident{
@@ -401,7 +401,7 @@ func (p *OptionTypePlugin) emitOptionTagEnum() {
 				Names: []*ast.Ident{
 					{
 						NamePos: token.NoPos, // Prevent comment grabbing
-						Name:    "OptionTag_None",
+						Name:    "OptionTagNone",
 					},
 				},
 			},
@@ -416,7 +416,7 @@ func (p *OptionTypePlugin) emitSomeConstructor(optionTypeName, valueType string)
 	valueTypeAST := p.typeToAST(valueType, false)
 
 	// func Option_T_Some(arg0 T) Option_T {
-	//     return Option_T{tag: OptionTag_Some, some_0: &arg0}
+	//     return Option_T{tag: OptionTagSome, some: &arg0}
 	// }
 	constructorFunc := &ast.FuncDecl{
 		Name: &ast.Ident{
@@ -476,14 +476,14 @@ func (p *OptionTypePlugin) emitSomeConstructor(optionTypeName, valueType string)
 									},
 									Value: &ast.Ident{
 										NamePos: token.NoPos, // Prevent comment grabbing
-										Name:    "OptionTag_Some",
+										Name:    "OptionTagSome",
 									},
 								},
 								&ast.KeyValueExpr{
 									Colon: token.NoPos, // Prevent comment grabbing
 									Key: &ast.Ident{
 										NamePos: token.NoPos, // Prevent comment grabbing
-										Name:    "some_0",
+										Name:    "some",
 									},
 									Value: &ast.UnaryExpr{
 										OpPos: token.NoPos, // Prevent comment grabbing
@@ -510,7 +510,7 @@ func (p *OptionTypePlugin) emitNoneConstructor(optionTypeName, valueType string)
 	funcName := fmt.Sprintf("%s_None", optionTypeName)
 
 	// func Option_T_None() Option_T {
-	//     return Option_T{tag: OptionTag_None}
+	//     return Option_T{tag: OptionTagNone}
 	// }
 	constructorFunc := &ast.FuncDecl{
 		Name: &ast.Ident{
@@ -559,7 +559,7 @@ func (p *OptionTypePlugin) emitNoneConstructor(optionTypeName, valueType string)
 									},
 									Value: &ast.Ident{
 										NamePos: token.NoPos, // Prevent comment grabbing
-										Name:    "OptionTag_None",
+										Name:    "OptionTagNone",
 									},
 								},
 							},
@@ -600,7 +600,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 						&ast.BinaryExpr{
 							X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
 							Op: token.EQL,
-							Y:  ast.NewIdent("OptionTag_Some"),
+							Y:  ast.NewIdent("OptionTagSome"),
 						},
 					},
 				},
@@ -634,7 +634,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 						&ast.BinaryExpr{
 							X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
 							Op: token.EQL,
-							Y:  ast.NewIdent("OptionTag_None"),
+							Y:  ast.NewIdent("OptionTagNone"),
 						},
 					},
 				},
@@ -667,7 +667,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 					Cond: &ast.BinaryExpr{
 						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
 						Op: token.NEQ,
-						Y:  ast.NewIdent("OptionTag_Some"),
+						Y:  ast.NewIdent("OptionTagSome"),
 					},
 					Body: &ast.BlockStmt{
 						List: []ast.Stmt{
@@ -688,7 +688,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 				&ast.ReturnStmt{
 					Results: []ast.Expr{
 						&ast.StarExpr{
-							X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+							X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some")},
 						},
 					},
 				},
@@ -729,14 +729,14 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 					Cond: &ast.BinaryExpr{
 						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
 						Op: token.EQL,
-						Y:  ast.NewIdent("OptionTag_Some"),
+						Y:  ast.NewIdent("OptionTagSome"),
 					},
 					Body: &ast.BlockStmt{
 						List: []ast.Stmt{
 							&ast.ReturnStmt{
 								Results: []ast.Expr{
 									&ast.StarExpr{
-										X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+										X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some")},
 									},
 								},
 							},
@@ -790,14 +790,14 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 					Cond: &ast.BinaryExpr{
 						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
 						Op: token.EQL,
-						Y:  ast.NewIdent("OptionTag_Some"),
+						Y:  ast.NewIdent("OptionTagSome"),
 					},
 					Body: &ast.BlockStmt{
 						List: []ast.Stmt{
 							&ast.ReturnStmt{
 								Results: []ast.Expr{
 									&ast.StarExpr{
-										X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+										X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some")},
 									},
 								},
 							},
@@ -861,7 +861,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 					Cond: &ast.BinaryExpr{
 						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
 						Op: token.EQL,
-						Y:  ast.NewIdent("OptionTag_None"),
+						Y:  ast.NewIdent("OptionTagNone"),
 					},
 					Body: &ast.BlockStmt{
 						List: []ast.Stmt{
@@ -879,7 +879,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 							Fun: ast.NewIdent("fn"),
 							Args: []ast.Expr{
 								&ast.StarExpr{
-									X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+									X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some")},
 								},
 							},
 						},
@@ -902,10 +902,10 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 							Elts: []ast.Expr{
 								&ast.KeyValueExpr{
 									Key:   ast.NewIdent("tag"),
-									Value: ast.NewIdent("OptionTag_Some"),
+									Value: ast.NewIdent("OptionTagSome"),
 								},
 								&ast.KeyValueExpr{
-									Key: ast.NewIdent("some_0"),
+									Key: ast.NewIdent("some"),
 									Value: &ast.UnaryExpr{
 										Op: token.AND,
 										X:  ast.NewIdent("result"),
@@ -963,7 +963,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 					Cond: &ast.BinaryExpr{
 						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
 						Op: token.EQL,
-						Y:  ast.NewIdent("OptionTag_None"),
+						Y:  ast.NewIdent("OptionTagNone"),
 					},
 					Body: &ast.BlockStmt{
 						List: []ast.Stmt{
@@ -979,7 +979,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 							Fun: ast.NewIdent("fn"),
 							Args: []ast.Expr{
 								&ast.StarExpr{
-									X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+									X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some")},
 								},
 							},
 						},
@@ -1033,7 +1033,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 					Cond: &ast.BinaryExpr{
 						X:  &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("tag")},
 						Op: token.EQL,
-						Y:  ast.NewIdent("OptionTag_None"),
+						Y:  ast.NewIdent("OptionTagNone"),
 					},
 					Body: &ast.BlockStmt{
 						List: []ast.Stmt{
@@ -1048,7 +1048,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 						Fun: ast.NewIdent("predicate"),
 						Args: []ast.Expr{
 							&ast.StarExpr{
-								X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some_0")},
+								X: &ast.SelectorExpr{X: ast.NewIdent("o"), Sel: ast.NewIdent("some")},
 							},
 						},
 					},
@@ -1067,7 +1067,7 @@ func (p *OptionTypePlugin) emitOptionHelperMethods(optionTypeName, valueType str
 							Elts: []ast.Expr{
 								&ast.KeyValueExpr{
 									Key:   ast.NewIdent("tag"),
-									Value: ast.NewIdent("OptionTag_None"),
+									Value: ast.NewIdent("OptionTagNone"),
 								},
 							},
 						},

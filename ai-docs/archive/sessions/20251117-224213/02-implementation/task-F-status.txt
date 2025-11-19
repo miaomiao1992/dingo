@@ -1,0 +1,14 @@
+COMPLETE
+
+Test Function: TestSourceMapOffsetBeforeImports
+File: /Users/jack/mag/dingo/pkg/preprocessor/preprocessor_test.go
+Lines: 740-796
+
+Test Result: PASS
+- Line 1 (< importInsertionLine): NOT shifted ✓
+- Line 2 (= importInsertionLine): NOT shifted ✓ [CRITICAL BOUNDARY]
+- Line 3 (> importInsertionLine): Shifted correctly ✓
+- Line 4 (> importInsertionLine): Shifted correctly ✓
+
+Validates: Task A fix (>= to > change in adjustMappingsForImports)
+Prevents: Regression of CRITICAL-1 source map offset bug

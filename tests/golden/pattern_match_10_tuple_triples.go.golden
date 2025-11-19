@@ -7,66 +7,66 @@ import (
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
 	tag   ResultTag
-	ok_0  *string
-	err_0 *error
+	ok  *string
+	err *error
 }
 
 func Result_Ok(arg0 string) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 func parseConfig(host Result, port Result, timeout Result) string {
 
-	__match_0_elem0, __match_0_elem1, __match_0_elem2 := host, port, timeout
+	elem0, elem1, elem2 := host, port, timeout
 
-	switch __match_0_elem0.tag {
-	case ResultTag_Err:
-		switch __match_0_elem1.tag {
+	switch elem0.tag {
+	case ResultTagErr:
+		switch elem1.tag {
 		default:
-			switch __match_0_elem2.tag {
+			switch elem2.tag {
 			default:
 
-				e := *__match_0_elem0.err0
+				e := *elem0.err
 				return "Invalid host: " + e.Error()
 			}
 		}
-	case ResultTag_Ok:
-		switch __match_0_elem1.tag {
-		case ResultTag_Err:
-			switch __match_0_elem2.tag {
+	case ResultTagOk:
+		switch elem1.tag {
+		case ResultTagErr:
+			switch elem2.tag {
 			default:
 
-				h := *__match_0_elem0.ok0
-				e := *__match_0_elem1.err0
+				h := *elem0.ok
+				e := *elem1.err
 				return "Host " + h + " but invalid port: " + e.Error()
 			}
-		case ResultTag_Ok:
-			switch __match_0_elem2.tag {
-			case ResultTag_Err:
+		case ResultTagOk:
+			switch elem2.tag {
+			case ResultTagErr:
 
-				h := *__match_0_elem0.ok0
-				p := *__match_0_elem1.ok0
-				e := *__match_0_elem2.err0
+				h := *elem0.ok
+				p := *elem1.ok
+				e := *elem2.err
 				return "Config: " + h + ":" + p + " (default timeout, error: " + e.Error() + ")"
-			case ResultTag_Ok:
+			case ResultTagOk:
 
-				h := *__match_0_elem0.ok0
-				p := *__match_0_elem1.ok0
-				t := *__match_0_elem2.ok0
+				h := *elem0.ok
+				p := *elem1.ok
+				t := *elem2.ok
 				return "Config: " + h + ":" + p + " timeout=" + t
 			}
 		}

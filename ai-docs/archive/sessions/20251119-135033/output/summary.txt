@@ -1,0 +1,27 @@
+# Pattern Match Preprocessor Investigation
+
+## Executive Summary
+- Pattern matching preprocessing is failing because the regex that extracts `match` arms (`matchExprPattern` in `pkg/preprocessor/rust_match.go`) does not allow newline characters inside the `{ ... }` block.  After the recent guard/tuple work the arms are now always multi-line, so the regex stops before the closing brace and `parseArms` receives an empty string, triggering "no pattern arms found".
+
+## Root Cause Analysis
+1. `matchExprPattern = regexp.MustCompile(`(?s)match\s+([^{]+)\s*\{(.+)\}`)` uses `.+` to capture the arms section. Because `.` is greedy but not backtracking across balanced braces, it captures the **rest of the file** up to EOF instead of the closest `}`.
+2. When the captured substring is the entire remainder of the file, `collectMatchExpression` still returns the right chunk, but `transformMatch` trims the scrutinee and arms via regex, leaving trailing braces/commas.  For simple cases (single-line arms) there happened to be no extra characters so older tests passed; new guard/tuple cases insert newlines and nested braces, so the greedy capture becomes empty once `parseArms` trims whitespace (only `}` remains), resulting in `len(arms)==0` and the reported error.
+3. Evidence: `pkg/preprocessor/rust_match.go:20-21`, `parseArms` failure at lines 253-347, and failing golden test `tests/golden/pattern_match_01_simple.dingo` which now hits this path.
+
+## Code Investigation
+- `collectMatchExpression` (pkg/preprocessor/rust_match.go:110-145) correctly slices balanced braces; the bug comes later when `matchExprPattern` re-parses the already assembled string and greedily consumes everything after the first `{`.
+- `parseArms` (pkg/preprocessor/rust_match.go:253-347) now gets inputs like `"\n}"` (only the closing brace) so it never enters the loop and returns the "no pattern arms found" error.
+- Tuple/guard changes increased multi-line nesting, amplifying the regex bug because arms now routinely contain `}` braces, which let the greedy `.+` run past the real end.
+
+## Recommended Fix
+1. Replace the regex-based splitting with a brace-aware parser: after `collectMatchExpression` succeeds, slice directly using indexes instead of re-running `matchExprPattern`. Example approach:
+   - Find the first `{` and matching closing `}` via a simple depth counter (we already know the chunk is balanced).
+   - `scrutinee := strings.TrimSpace(matchExpr[len("match"):openIdx])`
+   - `armsText := matchExpr[openIdx+1:closeIdx]`
+2. Add tests that cover multi-line arms with guards and nested braces (`pkg/preprocessor/rust_match_test.go` already has cases—add one that fails today).
+3. Optionally keep `matchExprPattern` only for guard rails (single-line matches), but guard multi-line parsing with deterministic slicing.
+
+## Testing Strategy
+1. Unit: Add regression to `TestRustMatchProcessor_ParseArmsWithGuards` ensuring multi-line arms parse.
+2. Golden: Re-run `go test ./tests -run TestGoldenFiles/pattern_match_01_simple` plus the rest of pattern-match suite.
+3. Integration: Full `go test ./tests` once parser fix lands.

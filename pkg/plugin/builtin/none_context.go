@@ -89,7 +89,7 @@ func (p *NoneContextPlugin) Process(node ast.Node) error {
 	ast.Inspect(node, func(n ast.Node) bool {
 		if ident, ok := n.(*ast.Ident); ok && ident.Name == "None" {
 			// Skip if this is a None tag enum constant (already handled by OptionTypePlugin)
-			// Check if parent is a SelectorExpr (e.g., OptionTag_None)
+			// Check if parent is a SelectorExpr (e.g., OptionTagNone)
 			if p.ctx != nil {
 				parent := p.ctx.GetParent(ident)
 				if _, ok := parent.(*ast.SelectorExpr); ok {
@@ -134,7 +134,7 @@ func (p *NoneContextPlugin) Transform(node ast.Node) (ast.Node, error) {
 			}
 
 			// Replace None with typed Option zero value
-			// Option_T{tag: OptionTag_None, some_0: nil}
+			// Option_T{tag: OptionTagNone, some: nil}
 			replacement := p.createNoneValue(optionType)
 			cursor.Replace(replacement)
 		}
@@ -215,7 +215,7 @@ func (p *NoneContextPlugin) inferNoneType(noneIdent *ast.Ident) (string, error) 
 			}
 
 		case *ast.CaseClause:
-			// Context: case OptionTag_None: None (in match expression)
+			// Context: case OptionTagNone: None (in match expression)
 			// Infer from other arms in the same switch statement
 			if p.ctx.Logger != nil {
 				p.ctx.Logger.Debug("NoneContextPlugin: Found CaseClause parent, attempting match arm type inference")
@@ -399,7 +399,7 @@ func (p *NoneContextPlugin) findFieldType(noneIdent *ast.Ident, compLit *ast.Com
 }
 
 // findMatchArmType infers type from other arms in a match expression (switch statement)
-// Example: case OptionTag_Some: Some(x*2)  →  case OptionTag_None: None should infer Option_int
+// Example: case OptionTagSome: Some(x*2)  →  case OptionTagNone: None should infer Option_int
 func (p *NoneContextPlugin) findMatchArmType(noneIdent *ast.Ident, caseClause *ast.CaseClause) (string, error) {
 	// Walk up to find the containing switch statement
 	var switchStmt *ast.SwitchStmt
@@ -627,16 +627,16 @@ func (p *NoneContextPlugin) containsNode(tree ast.Node, target ast.Node) bool {
 
 // createNoneValue creates an Option_T zero value for None
 func (p *NoneContextPlugin) createNoneValue(optionTypeName string) ast.Expr {
-	// Generate: Option_T{tag: OptionTag_None, some_0: nil}
+	// Generate: Option_T{tag: OptionTagNone, some: nil}
 	return &ast.CompositeLit{
 		Type: &ast.Ident{Name: optionTypeName},
 		Elts: []ast.Expr{
 			&ast.KeyValueExpr{
 				Key:   &ast.Ident{Name: "tag"},
-				Value: &ast.Ident{Name: "OptionTag_None"},
+				Value: &ast.Ident{Name: "OptionTagNone"},
 			},
 			&ast.KeyValueExpr{
-				Key:   &ast.Ident{Name: "some_0"},
+				Key:   &ast.Ident{Name: "some"},
 				Value: &ast.Ident{Name: "nil"},
 			},
 		},

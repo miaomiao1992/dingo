@@ -1,0 +1,24 @@
+✓ Using cached models (last updated: 2025-11-19)
+
+Available OpenRouter Models (last updated: 2025-11-19):
+
+  Model                          Provider    Pricing     Context  Capabilities
+  ──────────────────────────────────────────────────────────────────────────────────────
+  x-ai/grok-4-fast               X-ai       $0.35/1M   2000K   🔧 🧠 👁️ 
+  openrouter/auto                Openrouter varies     2000K           
+  google/gemini-3-pro-preview    Google     $7.00/1M   1048K   🔧 🧠 👁️ 
+  moonshotai/kimi-linear-48b-... Moonshotai $0.55/1M   1048K           
+  meta-llama/llama-4-maverick    Meta-llama $0.38/1M   1048K   🔧    👁️ 
+  openai/gpt-4.1                 Openai     $5.00/1M   1047K   🔧    👁️ 
+  minimax/minimax-01             Minimax    $0.65/1M   1000K         👁️ 
+  amazon/nova-premier-v1         Amazon     $7.50/1M   1000K   🔧    👁️ 
+  qwen/qwen-plus-2025-07-28      Qwen       $0.80/1M   1000K   🔧      
+
+  Capabilities: 🔧 Tools  🧠 Reasoning  👁️  Vision
+
+Set default with: export CLAUDISH_MODEL=<model>
+               or: export ANTHROPIC_MODEL=<model>
+Or use: claudish --model <model> ...
+
+Force update: claudish --list-models --force-update
+

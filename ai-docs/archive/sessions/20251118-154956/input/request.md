@@ -1,0 +1,1 @@
+Analyze parser architecture for Dingo transpiler. Current approach uses regex preprocessors to convert Dingo syntax to valid Go, then go/parser. Should we: 1) Keep regex preprocessor approach? 2) Switch to tree-sitter or participle? 3) Extend go/parser somehow? 4) Hybrid approach? Consider TypeScript and Borgo precedents. What's your recommendation?

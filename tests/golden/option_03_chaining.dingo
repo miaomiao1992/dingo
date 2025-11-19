@@ -30,7 +30,7 @@ func processValue(opt Option) Option {
 func main() {
 	result := processValue(getValue(10))
 	if result.IsSome() {
-		println("Result:", *result.some_0)
+		println("Result:", *result.some)
 	} else {
 		println("None")
 	}

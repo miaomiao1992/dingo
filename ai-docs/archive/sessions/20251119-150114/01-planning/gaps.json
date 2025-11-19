@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What is the priority for Phase V completion - should we target v1.0 with just Phase V.1 (100% tests + validated source maps), or wait for full Phase V (debugging + package management)?",
+    "rationale": "This decision affects the timeline and scope. Phase V.1 can be done in 3 weeks, while full Phase V needs 10-16 weeks. The 7 failing pattern match tests are blocking 100% pass rate, which should be a v1.0 quality gate."
+  },
+  {
+    "question": "For the package management strategy - do you prefer transpile-on-publish (publish .go files to go.mod) or .dingo-in-mod (publish .dingo files, require tooling)? Or the recommended hybrid approach (libraries use transpile-on-publish, applications use .dingo-in-mod)?",
+    "rationale": "This is a critical ecosystem decision that affects how Dingo packages are distributed and consumed. The hybrid approach provides the best of both worlds but requires documenting two workflows."
+  },
+  {
+    "question": "Should debugging support (Delve integration, DAP middleware) be a v1.0 requirement or a v1.1 feature? It's a 6-8 week effort but significantly improves production readiness.",
+    "rationale": "Debugging is high-value for production use but complex to implement. We could ship v1.0 with 'debug the generated Go code' as a workaround and add full Dingo debugging in v1.1."
+  },
+  {
+    "question": "The CI/CD pipeline exists but could use enhancements (performance tracking, golden test diff visualization). Should these be done before v1.0 or can they be iterative improvements post-release?",
+    "rationale": "Current CI works and runs on every PR. Enhancements would improve developer experience but aren't blocking. Could prioritize fixing the 7 failing tests first, then enhance CI."
+  },
+  {
+    "question": "For the 7 failing pattern match tests - should we investigate if these are test expectation issues (update golden files) or actual bugs in the pattern match implementation? All failures are in guards and exhaustiveness checking.",
+    "rationale": "Pattern matching was recently completed in Phase 4.2. The failures might be test expectations that need updating rather than bugs. Need to investigate before estimating fix time."
+  }
+]

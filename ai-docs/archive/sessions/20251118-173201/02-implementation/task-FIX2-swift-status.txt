@@ -1,0 +1,20 @@
+PARTIAL SUCCESS: 2/4 passing (50%)
+
+Passing Tests:
+✅ swift_match_01_basic
+✅ swift_match_02_guards
+
+Failing Tests:
+❌ swift_match_03_nested - Complex nesting parsing issue
+❌ swift_match_04_equivalence - Expression context not supported
+
+Core Integration: COMPLETE
+- Parser.ParseComments fix applied (all tests now preserve markers)
+- Marker order fixed (matches Rust preprocessor)
+- Unit tests: 13/13 passing
+
+Blocked By:
+- Expression context support (plugin-level AST awareness needed)
+- Complex nested switch parsing (preprocessor enhancement needed)
+
+Recommendation: Document as "basic Swift syntax supported, advanced features pending"

@@ -3,57 +3,57 @@ package main
 type ValueTag uint8
 
 const (
-	ValueTag_Int ValueTag = iota
-	ValueTag_String
+	ValueTagInt ValueTag = iota
+	ValueTagString
 )
 
 type Value struct {
 	tag      ValueTag
-	int_0    *int
-	string_0 *string
+	int    *int
+	string *string
 }
 
 func Value_Int(arg0 int) Value {
-	return Value{tag: ValueTag_Int, int_0: &arg0}
+	return Value{tag: ValueTagInt, int: &arg0}
 }
 func Value_String(arg0 string) Value {
-	return Value{tag: ValueTag_String, string_0: &arg0}
+	return Value{tag: ValueTagString, string: &arg0}
 }
 func (e Value) IsInt() bool {
-	return e.tag == ValueTag_Int
+	return e.tag == ValueTagInt
 }
 func (e Value) IsString() bool {
-	return e.tag == ValueTag_String
+	return e.tag == ValueTagString
 }
 func describe(v Value) string {
-	var __match_result_0 interface{}
+	var result interface{}
 
-	__match_0 := v
-	switch __match_0.tag {
-	case ValueTag_Int:
-		n := *__match_0.int_0
+	scrutinee := v
+	switch scrutinee.tag {
+	case ValueTagInt:
+		n := *scrutinee.int
 
 		if n > 0 {
-			__match_result_0 = "Positive number"
+			result = "Positive number"
 
 		} else if n < 0 {
-			__match_result_0 = "Negative number"
+			result = "Negative number"
 
 		} else {
-			__match_result_0 = "Zero"
+			result = "Zero"
 		}
-	case ValueTag_String:
-		s := *__match_0.string_0
+	case ValueTagString:
+		s := *scrutinee.string
 
 		if len(s) > 5 {
-			__match_result_0 = "Long string"
+			result = "Long string"
 
 		} else {
-			__match_result_0 = "Short string"
+			result = "Short string"
 		}
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_0
+	return result
 
 }
 func main() {

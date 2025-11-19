@@ -1,0 +1,20 @@
+# Unqualified Import Inference - Implementation Summary
+
+## Approach
+Two-tier mapping system (qualified + unqualified) with AST pre-scan for local function detection. Comprehensive stdlib coverage (~500 functions, 40 packages).
+
+## Key Decisions
+- **Ambiguity**: Conservative errors (force qualification for Open, Get, etc.)
+- **Local Functions**: AST pre-scan builds exclusion list (no false transforms)
+- **Transformation**: Preprocessor stage (ReadFile → os.ReadFile + import injection)
+- **Registry**: Automated generation from stdlib, manually curated ambiguities
+
+## Implementation Phases
+1. **Day 1**: Create stdlib registry + local scanner
+2. **Day 2**: Implement transformation processor + pipeline integration
+3. **Day 3**: Ambiguity detection + edge case handling
+4. **Day 4**: Comprehensive testing + documentation
+
+## Timeline: 4 days
+## Files: 6 new, 3 modified, 8 test files
+## Risk: Low (backward compatible, conservative errors)

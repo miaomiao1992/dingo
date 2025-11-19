@@ -1,0 +1,17 @@
+Error Propagation Implementation Plan - Summary
+
+Timeline: 3-4 weeks (expanded from 2-3 weeks)
+
+Key Features:
+- Configurable syntax: Support all three options (?, !, try) via dingo.toml configuration
+- Source maps: VLQ-based source mapping for .dingo error messages from day one
+- Real-world validation: Comprehensive testing with Go stdlib (http, database/sql, os, io, json)
+- Production-ready: Full type validation, error translation, documentation
+
+Architecture Highlights:
+- Unified AST with syntax-specific parsers (factory pattern)
+- Source map integration using github.com/go-sourcemap/sourcemap library
+- Configuration precedence: CLI flags > project config > user config > defaults
+- Comprehensive testing: 80% unit, 15% integration (stdlib), 5% end-to-end
+
+Next Steps: Review critical decisions (default syntax, source map format), spike source map library validation, begin Week 1 implementation

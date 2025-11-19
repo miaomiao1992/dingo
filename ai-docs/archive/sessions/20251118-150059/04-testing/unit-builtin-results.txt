@@ -1,0 +1,532 @@
+=== RUN   TestIsAddressable_Identifiers
+=== RUN   TestIsAddressable_Identifiers/simple_identifier
+=== RUN   TestIsAddressable_Identifiers/identifier_user
+=== RUN   TestIsAddressable_Identifiers/identifier_name
+--- PASS: TestIsAddressable_Identifiers (0.00s)
+    --- PASS: TestIsAddressable_Identifiers/simple_identifier (0.00s)
+    --- PASS: TestIsAddressable_Identifiers/identifier_user (0.00s)
+    --- PASS: TestIsAddressable_Identifiers/identifier_name (0.00s)
+=== RUN   TestIsAddressable_Selectors
+=== RUN   TestIsAddressable_Selectors/field_selector
+=== RUN   TestIsAddressable_Selectors/package_selector
+=== RUN   TestIsAddressable_Selectors/nested_selector
+--- PASS: TestIsAddressable_Selectors (0.00s)
+    --- PASS: TestIsAddressable_Selectors/field_selector (0.00s)
+    --- PASS: TestIsAddressable_Selectors/package_selector (0.00s)
+    --- PASS: TestIsAddressable_Selectors/nested_selector (0.00s)
+=== RUN   TestIsAddressable_IndexExpressions
+=== RUN   TestIsAddressable_IndexExpressions/array_index
+=== RUN   TestIsAddressable_IndexExpressions/map_index
+=== RUN   TestIsAddressable_IndexExpressions/literal_index
+--- PASS: TestIsAddressable_IndexExpressions (0.00s)
+    --- PASS: TestIsAddressable_IndexExpressions/array_index (0.00s)
+    --- PASS: TestIsAddressable_IndexExpressions/map_index (0.00s)
+    --- PASS: TestIsAddressable_IndexExpressions/literal_index (0.00s)
+=== RUN   TestIsAddressable_Dereferences
+=== RUN   TestIsAddressable_Dereferences/simple_dereference
+=== RUN   TestIsAddressable_Dereferences/nested_dereference
+--- PASS: TestIsAddressable_Dereferences (0.00s)
+    --- PASS: TestIsAddressable_Dereferences/simple_dereference (0.00s)
+    --- PASS: TestIsAddressable_Dereferences/nested_dereference (0.00s)
+=== RUN   TestIsAddressable_ParenExpressions
+=== RUN   TestIsAddressable_ParenExpressions/parenthesized_identifier_(addressable)
+=== RUN   TestIsAddressable_ParenExpressions/parenthesized_literal_(not_addressable)
+=== RUN   TestIsAddressable_ParenExpressions/double_parenthesized_identifier
+--- PASS: TestIsAddressable_ParenExpressions (0.00s)
+    --- PASS: TestIsAddressable_ParenExpressions/parenthesized_identifier_(addressable) (0.00s)
+    --- PASS: TestIsAddressable_ParenExpressions/parenthesized_literal_(not_addressable) (0.00s)
+    --- PASS: TestIsAddressable_ParenExpressions/double_parenthesized_identifier (0.00s)
+=== RUN   TestIsAddressable_Literals
+=== RUN   TestIsAddressable_Literals/integer_literal
+=== RUN   TestIsAddressable_Literals/string_literal
+=== RUN   TestIsAddressable_Literals/float_literal
+=== RUN   TestIsAddressable_Literals/boolean_literal_(true)
+--- PASS: TestIsAddressable_Literals (0.00s)
+    --- PASS: TestIsAddressable_Literals/integer_literal (0.00s)
+    --- PASS: TestIsAddressable_Literals/string_literal (0.00s)
+    --- PASS: TestIsAddressable_Literals/float_literal (0.00s)
+    --- PASS: TestIsAddressable_Literals/boolean_literal_(true) (0.00s)
+=== RUN   TestIsAddressable_CompositeLiterals
+=== RUN   TestIsAddressable_CompositeLiterals/struct_literal
+=== RUN   TestIsAddressable_CompositeLiterals/slice_literal
+=== RUN   TestIsAddressable_CompositeLiterals/map_literal
+--- PASS: TestIsAddressable_CompositeLiterals (0.00s)
+    --- PASS: TestIsAddressable_CompositeLiterals/struct_literal (0.00s)
+    --- PASS: TestIsAddressable_CompositeLiterals/slice_literal (0.00s)
+    --- PASS: TestIsAddressable_CompositeLiterals/map_literal (0.00s)
+=== RUN   TestIsAddressable_FunctionCalls
+=== RUN   TestIsAddressable_FunctionCalls/simple_function_call
+=== RUN   TestIsAddressable_FunctionCalls/method_call
+--- PASS: TestIsAddressable_FunctionCalls (0.00s)
+    --- PASS: TestIsAddressable_FunctionCalls/simple_function_call (0.00s)
+    --- PASS: TestIsAddressable_FunctionCalls/method_call (0.00s)
+=== RUN   TestIsAddressable_BinaryExpressions
+=== RUN   TestIsAddressable_BinaryExpressions/addition
+=== RUN   TestIsAddressable_BinaryExpressions/multiplication
+--- PASS: TestIsAddressable_BinaryExpressions (0.00s)
+    --- PASS: TestIsAddressable_BinaryExpressions/addition (0.00s)
+    --- PASS: TestIsAddressable_BinaryExpressions/multiplication (0.00s)
+=== RUN   TestIsAddressable_UnaryExpressions
+=== RUN   TestIsAddressable_UnaryExpressions/negation
+=== RUN   TestIsAddressable_UnaryExpressions/logical_not
+--- PASS: TestIsAddressable_UnaryExpressions (0.00s)
+    --- PASS: TestIsAddressable_UnaryExpressions/negation (0.00s)
+    --- PASS: TestIsAddressable_UnaryExpressions/logical_not (0.00s)
+=== RUN   TestIsAddressable_TypeAssertions
+=== RUN   TestIsAddressable_TypeAssertions/type_assertion
+--- PASS: TestIsAddressable_TypeAssertions (0.00s)
+    --- PASS: TestIsAddressable_TypeAssertions/type_assertion (0.00s)
+=== RUN   TestIsAddressable_NilExpression
+--- PASS: TestIsAddressable_NilExpression (0.00s)
+=== RUN   TestWrapInIIFE_BasicStructure
+--- PASS: TestWrapInIIFE_BasicStructure (0.00s)
+=== RUN   TestWrapInIIFE_MultipleCalls
+--- PASS: TestWrapInIIFE_MultipleCalls (0.00s)
+=== RUN   TestMaybeWrapForAddressability_Addressable
+--- PASS: TestMaybeWrapForAddressability_Addressable (0.00s)
+=== RUN   TestMaybeWrapForAddressability_NonAddressable
+--- PASS: TestMaybeWrapForAddressability_NonAddressable (0.00s)
+=== RUN   TestParseTypeString_SimpleTypes
+=== RUN   TestParseTypeString_SimpleTypes/int
+=== RUN   TestParseTypeString_SimpleTypes/string
+=== RUN   TestParseTypeString_SimpleTypes/error
+=== RUN   TestParseTypeString_SimpleTypes/User
+=== RUN   TestParseTypeString_SimpleTypes/MyCustomType
+--- PASS: TestParseTypeString_SimpleTypes (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/int (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/string (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/error (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/User (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/MyCustomType (0.00s)
+=== RUN   TestParseTypeString_EmptyType
+--- PASS: TestParseTypeString_EmptyType (0.00s)
+=== RUN   TestFormatExprForDebug
+=== RUN   TestFormatExprForDebug/nil_expression
+=== RUN   TestFormatExprForDebug/identifier
+=== RUN   TestFormatExprForDebug/integer_literal
+=== RUN   TestFormatExprForDebug/string_literal
+=== RUN   TestFormatExprForDebug/selector
+=== RUN   TestFormatExprForDebug/function_call
+=== RUN   TestFormatExprForDebug/binary_expression
+=== RUN   TestFormatExprForDebug/unary_expression
+=== RUN   TestFormatExprForDebug/star_expression
+=== RUN   TestFormatExprForDebug/index_expression
+--- PASS: TestFormatExprForDebug (0.00s)
+    --- PASS: TestFormatExprForDebug/nil_expression (0.00s)
+    --- PASS: TestFormatExprForDebug/identifier (0.00s)
+    --- PASS: TestFormatExprForDebug/integer_literal (0.00s)
+    --- PASS: TestFormatExprForDebug/string_literal (0.00s)
+    --- PASS: TestFormatExprForDebug/selector (0.00s)
+    --- PASS: TestFormatExprForDebug/function_call (0.00s)
+    --- PASS: TestFormatExprForDebug/binary_expression (0.00s)
+    --- PASS: TestFormatExprForDebug/unary_expression (0.00s)
+    --- PASS: TestFormatExprForDebug/star_expression (0.00s)
+    --- PASS: TestFormatExprForDebug/index_expression (0.00s)
+=== RUN   TestFormatExprForDebug_CompositeLiteral
+--- PASS: TestFormatExprForDebug_CompositeLiteral (0.00s)
+=== RUN   TestEdgeCase_AddressableComplexCases
+=== RUN   TestEdgeCase_AddressableComplexCases/slice_expression_(not_addressable)
+=== RUN   TestEdgeCase_AddressableComplexCases/function_literal_(not_addressable)
+=== RUN   TestEdgeCase_AddressableComplexCases/array_type_expression_(not_addressable)
+=== RUN   TestEdgeCase_AddressableComplexCases/struct_type_expression_(not_addressable)
+--- PASS: TestEdgeCase_AddressableComplexCases (0.00s)
+    --- PASS: TestEdgeCase_AddressableComplexCases/slice_expression_(not_addressable) (0.00s)
+    --- PASS: TestEdgeCase_AddressableComplexCases/function_literal_(not_addressable) (0.00s)
+    --- PASS: TestEdgeCase_AddressableComplexCases/array_type_expression_(not_addressable) (0.00s)
+    --- PASS: TestEdgeCase_AddressableComplexCases/struct_type_expression_(not_addressable) (0.00s)
+=== RUN   TestWrapInIIFE_TypePreservation
+=== RUN   TestWrapInIIFE_TypePreservation/int
+=== RUN   TestWrapInIIFE_TypePreservation/string
+=== RUN   TestWrapInIIFE_TypePreservation/error
+=== RUN   TestWrapInIIFE_TypePreservation/User
+=== RUN   TestWrapInIIFE_TypePreservation/MyCustomType
+--- PASS: TestWrapInIIFE_TypePreservation (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/int (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/string (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/error (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/User (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/MyCustomType (0.00s)
+=== RUN   TestWrapInIIFE_ValidGoCode
+--- PASS: TestWrapInIIFE_ValidGoCode (0.00s)
+=== RUN   TestIsAddressable_Comprehensive
+=== RUN   TestIsAddressable_Comprehensive/addressable_identifier
+=== RUN   TestIsAddressable_Comprehensive/addressable_selector
+=== RUN   TestIsAddressable_Comprehensive/addressable_index
+=== RUN   TestIsAddressable_Comprehensive/addressable_dereference
+=== RUN   TestIsAddressable_Comprehensive/addressable_paren_ident
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_int_literal
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_string_literal
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_composite_lit
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_function_call
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_binary_expr
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_unary_expr
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_type_assert
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_paren_literal
+=== RUN   TestIsAddressable_Comprehensive/edge_nil
+=== RUN   TestIsAddressable_Comprehensive/edge_slice_expr
+=== RUN   TestIsAddressable_Comprehensive/edge_func_lit
+=== RUN   TestIsAddressable_Comprehensive/edge_array_type
+--- PASS: TestIsAddressable_Comprehensive (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_identifier (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_selector (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_index (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_dereference (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_paren_ident (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_int_literal (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_string_literal (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_composite_lit (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_function_call (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_binary_expr (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_unary_expr (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_type_assert (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_paren_literal (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/edge_nil (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/edge_slice_expr (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/edge_func_lit (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/edge_array_type (0.00s)
+=== RUN   TestNoneContextPlugin_Discovery
+--- PASS: TestNoneContextPlugin_Discovery (0.00s)
+=== RUN   TestNoneContextPlugin_ReturnContext
+    none_context_test.go:90: Type checking warning (expected): test.go:16:9: undefined: None
+--- PASS: TestNoneContextPlugin_ReturnContext (0.00s)
+=== RUN   TestNoneContextPlugin_StructFieldContext
+    none_context_test.go:167: Type checking warning (expected): test.go:4:9: undefined: OptionTag
+    none_context_test.go:195: Type inference failed (expected without full go/types): no valid type context found
+    none_context_test.go:196: Skipping struct field inference test - requires full go/types integration
+--- SKIP: TestNoneContextPlugin_StructFieldContext (0.00s)
+=== RUN   TestNoneContextPlugin_NoContext
+--- PASS: TestNoneContextPlugin_NoContext (0.00s)
+=== RUN   TestNoneContextPlugin_ExplicitTypeAnnotation
+--- PASS: TestNoneContextPlugin_ExplicitTypeAnnotation (0.00s)
+=== RUN   TestNoneContextPlugin_Transform
+--- PASS: TestNoneContextPlugin_Transform (0.00s)
+=== RUN   TestNoneContextPlugin_GetTypeName
+=== RUN   TestNoneContextPlugin_GetTypeName/simple_identifier
+=== RUN   TestNoneContextPlugin_GetTypeName/string_type
+--- PASS: TestNoneContextPlugin_GetTypeName (0.00s)
+    --- PASS: TestNoneContextPlugin_GetTypeName/simple_identifier (0.00s)
+    --- PASS: TestNoneContextPlugin_GetTypeName/string_type (0.00s)
+=== RUN   TestNoneContextPlugin_ExtractOptionType
+=== RUN   TestNoneContextPlugin_ExtractOptionType/already_transformed
+=== RUN   TestNoneContextPlugin_ExtractOptionType/Option_string
+--- PASS: TestNoneContextPlugin_ExtractOptionType (0.00s)
+    --- PASS: TestNoneContextPlugin_ExtractOptionType/already_transformed (0.00s)
+    --- PASS: TestNoneContextPlugin_ExtractOptionType/Option_string (0.00s)
+=== RUN   TestNoneContextPlugin_CreateNoneValue
+--- PASS: TestNoneContextPlugin_CreateNoneValue (0.00s)
+=== RUN   TestInferTypeFromExpr_WithGoTypes
+=== RUN   TestInferTypeFromExpr_WithGoTypes/int_literal
+=== RUN   TestInferTypeFromExpr_WithGoTypes/string_literal
+=== RUN   TestInferTypeFromExpr_WithGoTypes/float_literal
+=== RUN   TestInferTypeFromExpr_WithGoTypes/rune_literal
+--- PASS: TestInferTypeFromExpr_WithGoTypes (0.00s)
+    --- PASS: TestInferTypeFromExpr_WithGoTypes/int_literal (0.00s)
+    --- PASS: TestInferTypeFromExpr_WithGoTypes/string_literal (0.00s)
+    --- PASS: TestInferTypeFromExpr_WithGoTypes/float_literal (0.00s)
+    --- PASS: TestInferTypeFromExpr_WithGoTypes/rune_literal (0.00s)
+=== RUN   TestHandleSomeConstructor_Addressability
+=== RUN   TestHandleSomeConstructor_Addressability/literal_(non-addressable)
+=== RUN   TestHandleSomeConstructor_Addressability/identifier_(addressable)
+=== RUN   TestHandleSomeConstructor_Addressability/string_literal_(non-addressable)
+--- PASS: TestHandleSomeConstructor_Addressability (0.00s)
+    --- PASS: TestHandleSomeConstructor_Addressability/literal_(non-addressable) (0.00s)
+    --- PASS: TestHandleSomeConstructor_Addressability/identifier_(addressable) (0.00s)
+    --- PASS: TestHandleSomeConstructor_Addressability/string_literal_(non-addressable) (0.00s)
+=== RUN   TestInferNoneTypeFromContext
+--- PASS: TestInferNoneTypeFromContext (0.00s)
+=== RUN   TestDesanitizeTypeName
+=== RUN   TestDesanitizeTypeName/simple_type
+=== RUN   TestDesanitizeTypeName/pointer_type
+=== RUN   TestDesanitizeTypeName/slice_type
+=== RUN   TestDesanitizeTypeName/nested_pointer
+--- PASS: TestDesanitizeTypeName (0.00s)
+    --- PASS: TestDesanitizeTypeName/simple_type (0.00s)
+    --- PASS: TestDesanitizeTypeName/pointer_type (0.00s)
+    --- PASS: TestDesanitizeTypeName/slice_type (0.00s)
+    --- PASS: TestDesanitizeTypeName/nested_pointer (0.00s)
+=== RUN   TestSanitizeTypeName
+=== RUN   TestSanitizeTypeName/simple_type
+=== RUN   TestSanitizeTypeName/pointer_type
+=== RUN   TestSanitizeTypeName/slice_type
+=== RUN   TestSanitizeTypeName/map_type
+--- PASS: TestSanitizeTypeName (0.00s)
+    --- PASS: TestSanitizeTypeName/simple_type (0.00s)
+    --- PASS: TestSanitizeTypeName/pointer_type (0.00s)
+    --- PASS: TestSanitizeTypeName/slice_type (0.00s)
+    --- PASS: TestSanitizeTypeName/map_type (0.00s)
+=== RUN   TestHandleNoneExpression_ErrorReporting
+--- PASS: TestHandleNoneExpression_ErrorReporting (0.00s)
+=== RUN   TestPatternMatchPlugin_Name
+--- PASS: TestPatternMatchPlugin_Name (0.00s)
+=== RUN   TestPatternMatchPlugin_ExhaustiveResult
+--- PASS: TestPatternMatchPlugin_ExhaustiveResult (0.00s)
+=== RUN   TestPatternMatchPlugin_NonExhaustiveResult
+--- PASS: TestPatternMatchPlugin_NonExhaustiveResult (0.00s)
+=== RUN   TestPatternMatchPlugin_ExhaustiveOption
+--- PASS: TestPatternMatchPlugin_ExhaustiveOption (0.00s)
+=== RUN   TestPatternMatchPlugin_NonExhaustiveOption
+--- PASS: TestPatternMatchPlugin_NonExhaustiveOption (0.00s)
+=== RUN   TestPatternMatchPlugin_WildcardCoversAll
+--- PASS: TestPatternMatchPlugin_WildcardCoversAll (0.00s)
+=== RUN   TestPatternMatchPlugin_GetAllVariants
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Result_type
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Result_T_E_type
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Option_type
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Option_T_type
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Unknown_type
+--- PASS: TestPatternMatchPlugin_GetAllVariants (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Result_type (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Result_T_E_type (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Option_type (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Option_T_type (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Unknown_type (0.00s)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Ok(x)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Err(e)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Some(v)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/None
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/_
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Active(id)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Pending
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/_Ok(x)_
+--- PASS: TestPatternMatchPlugin_ExtractConstructorName (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Ok(x) (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Err(e) (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Some(v) (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/None (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/_ (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Active(id) (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Pending (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/_Ok(x)_ (0.00s)
+=== RUN   TestPatternMatchPlugin_IsExpressionMode
+--- PASS: TestPatternMatchPlugin_IsExpressionMode (0.00s)
+=== RUN   TestPatternMatchPlugin_MultipleMatches
+--- PASS: TestPatternMatchPlugin_MultipleMatches (0.00s)
+=== RUN   TestPatternMatchPlugin_Transform_AddsPanic
+--- PASS: TestPatternMatchPlugin_Transform_AddsPanic (0.00s)
+=== RUN   TestPatternMatchPlugin_Transform_WildcardNoPanic
+--- PASS: TestPatternMatchPlugin_Transform_WildcardNoPanic (0.00s)
+=== RUN   TestTypeDeclaration_BasicResultIntError
+--- PASS: TestTypeDeclaration_BasicResultIntError (0.00s)
+=== RUN   TestTypeDeclaration_ComplexPointerTypes
+--- PASS: TestTypeDeclaration_ComplexPointerTypes (0.00s)
+=== RUN   TestTypeDeclaration_ComplexSliceTypes
+--- PASS: TestTypeDeclaration_ComplexSliceTypes (0.00s)
+=== RUN   TestTypeDeclaration_TypeNameSanitization
+=== RUN   TestTypeDeclaration_TypeNameSanitization/simple
+=== RUN   TestTypeDeclaration_TypeNameSanitization/pointer
+=== RUN   TestTypeDeclaration_TypeNameSanitization/slice
+=== RUN   TestTypeDeclaration_TypeNameSanitization/map
+=== RUN   TestTypeDeclaration_TypeNameSanitization/package_qualified
+=== RUN   TestTypeDeclaration_TypeNameSanitization/nested_pointer_slice
+=== RUN   TestTypeDeclaration_TypeNameSanitization/multiple_dots
+=== RUN   TestTypeDeclaration_TypeNameSanitization/array
+--- PASS: TestTypeDeclaration_TypeNameSanitization (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/simple (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/pointer (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/slice (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/map (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/package_qualified (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/nested_pointer_slice (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/multiple_dots (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/array (0.00s)
+=== RUN   TestTypeDeclaration_MultipleResultTypesInSameFile
+--- PASS: TestTypeDeclaration_MultipleResultTypesInSameFile (0.00s)
+=== RUN   TestConstructor_OkWithIntLiteral
+--- PASS: TestConstructor_OkWithIntLiteral (0.00s)
+=== RUN   TestConstructor_OkWithStringLiteral
+--- PASS: TestConstructor_OkWithStringLiteral (0.00s)
+=== RUN   TestConstructor_ErrWithErrorValue
+--- PASS: TestConstructor_ErrWithErrorValue (0.00s)
+=== RUN   TestConstructor_OkWithVariousTypes
+=== RUN   TestConstructor_OkWithVariousTypes/int_literal
+=== RUN   TestConstructor_OkWithVariousTypes/float_literal
+=== RUN   TestConstructor_OkWithVariousTypes/string_literal
+=== RUN   TestConstructor_OkWithVariousTypes/rune_literal
+--- PASS: TestConstructor_OkWithVariousTypes (0.00s)
+    --- PASS: TestConstructor_OkWithVariousTypes/int_literal (0.00s)
+    --- PASS: TestConstructor_OkWithVariousTypes/float_literal (0.00s)
+    --- PASS: TestConstructor_OkWithVariousTypes/string_literal (0.00s)
+    --- PASS: TestConstructor_OkWithVariousTypes/rune_literal (0.00s)
+=== RUN   TestConstructor_OkWithIdentifier
+--- PASS: TestConstructor_OkWithIdentifier (0.00s)
+=== RUN   TestConstructor_OkWithFunctionCall
+--- PASS: TestConstructor_OkWithFunctionCall (0.00s)
+=== RUN   TestConstructor_InvalidOkNoArgs
+--- PASS: TestConstructor_InvalidOkNoArgs (0.00s)
+=== RUN   TestConstructor_InvalidErrNoArgs
+--- PASS: TestConstructor_InvalidErrNoArgs (0.00s)
+=== RUN   TestHelperMethods_IsOkGeneration
+--- PASS: TestHelperMethods_IsOkGeneration (0.00s)
+=== RUN   TestHelperMethods_IsErrGeneration
+--- PASS: TestHelperMethods_IsErrGeneration (0.00s)
+=== RUN   TestHelperMethods_UnwrapGeneration
+--- PASS: TestHelperMethods_UnwrapGeneration (0.00s)
+=== RUN   TestHelperMethods_UnwrapOrGeneration
+--- PASS: TestHelperMethods_UnwrapOrGeneration (0.00s)
+=== RUN   TestHelperMethods_UnwrapErrGeneration
+--- PASS: TestHelperMethods_UnwrapErrGeneration (0.00s)
+=== RUN   TestHelperMethods_MapGeneration
+--- PASS: TestHelperMethods_MapGeneration (0.00s)
+=== RUN   TestHelperMethods_MapErrGeneration
+--- PASS: TestHelperMethods_MapErrGeneration (0.00s)
+=== RUN   TestHelperMethods_FilterGeneration
+--- PASS: TestHelperMethods_FilterGeneration (0.00s)
+=== RUN   TestHelperMethods_AndThenGeneration
+--- PASS: TestHelperMethods_AndThenGeneration (0.00s)
+=== RUN   TestHelperMethods_OrElseGeneration
+--- PASS: TestHelperMethods_OrElseGeneration (0.00s)
+=== RUN   TestHelperMethods_AndGeneration
+--- PASS: TestHelperMethods_AndGeneration (0.00s)
+=== RUN   TestHelperMethods_OrGeneration
+--- PASS: TestHelperMethods_OrGeneration (0.00s)
+=== RUN   TestIntegration_CompleteResultWorkflow
+--- PASS: TestIntegration_CompleteResultWorkflow (0.00s)
+=== RUN   TestIntegration_MultipleResultTypesCoexist
+--- PASS: TestIntegration_MultipleResultTypesCoexist (0.00s)
+=== RUN   TestIntegration_NoDuplicateResultTagEnum
+--- PASS: TestIntegration_NoDuplicateResultTagEnum (0.00s)
+=== RUN   TestIntegration_ClearAndReuse
+--- PASS: TestIntegration_ClearAndReuse (0.00s)
+=== RUN   TestIntegration_ContextNotInitialized
+--- PASS: TestIntegration_ContextNotInitialized (0.00s)
+=== RUN   TestEdgeCase_PluginName
+--- PASS: TestEdgeCase_PluginName (0.00s)
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/simple_ident
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/pointer
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/slice
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/array_with_length
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/selector
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/nested_pointer
+--- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/simple_ident (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/pointer (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/slice (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/array_with_length (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/selector (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/nested_pointer (0.00s)
+=== RUN   TestEdgeCase_TypeToASTVariations
+=== RUN   TestEdgeCase_TypeToASTVariations/simple_type_non-pointer
+=== RUN   TestEdgeCase_TypeToASTVariations/simple_type_as_pointer
+=== RUN   TestEdgeCase_TypeToASTVariations/pointer_type_non-pointer
+=== RUN   TestEdgeCase_TypeToASTVariations/slice_type
+--- PASS: TestEdgeCase_TypeToASTVariations (0.00s)
+    --- PASS: TestEdgeCase_TypeToASTVariations/simple_type_non-pointer (0.00s)
+    --- PASS: TestEdgeCase_TypeToASTVariations/simple_type_as_pointer (0.00s)
+    --- PASS: TestEdgeCase_TypeToASTVariations/pointer_type_non-pointer (0.00s)
+    --- PASS: TestEdgeCase_TypeToASTVariations/slice_type (0.00s)
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/int_literal
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/float_literal
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/string_literal
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/char_literal
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/identifier
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/function_call
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/nil_expression
+--- PASS: TestEdgeCase_InferTypeFromExprEdgeCases (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/int_literal (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/float_literal (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/string_literal (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/char_literal (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/identifier (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/function_call (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/nil_expression (0.00s)
+=== RUN   TestEdgeCase_EmptyPendingDeclarations
+--- PASS: TestEdgeCase_EmptyPendingDeclarations (0.00s)
+=== RUN   TestEdgeCase_ProcessNonResultTypes
+--- PASS: TestEdgeCase_ProcessNonResultTypes (0.00s)
+=== RUN   TestEdgeCase_ConstructorWithMultipleArgs
+--- PASS: TestEdgeCase_ConstructorWithMultipleArgs (0.00s)
+=== RUN   TestEdgeCase_ResultTagConstValues
+--- PASS: TestEdgeCase_ResultTagConstValues (0.00s)
+=== RUN   TestInferType_BasicLiterals
+=== RUN   TestInferType_BasicLiterals/int_literal
+=== RUN   TestInferType_BasicLiterals/float_literal
+=== RUN   TestInferType_BasicLiterals/string_literal
+=== RUN   TestInferType_BasicLiterals/rune_literal
+--- PASS: TestInferType_BasicLiterals (0.00s)
+    --- PASS: TestInferType_BasicLiterals/int_literal (0.00s)
+    --- PASS: TestInferType_BasicLiterals/float_literal (0.00s)
+    --- PASS: TestInferType_BasicLiterals/string_literal (0.00s)
+    --- PASS: TestInferType_BasicLiterals/rune_literal (0.00s)
+=== RUN   TestInferType_BuiltinIdents
+=== RUN   TestInferType_BuiltinIdents/true
+=== RUN   TestInferType_BuiltinIdents/false
+=== RUN   TestInferType_BuiltinIdents/nil
+--- PASS: TestInferType_BuiltinIdents (0.00s)
+    --- PASS: TestInferType_BuiltinIdents/true (0.00s)
+    --- PASS: TestInferType_BuiltinIdents/false (0.00s)
+    --- PASS: TestInferType_BuiltinIdents/nil (0.00s)
+=== RUN   TestInferType_PointerExpression
+--- PASS: TestInferType_PointerExpression (0.00s)
+=== RUN   TestInferType_NilExpression
+--- PASS: TestInferType_NilExpression (0.00s)
+=== RUN   TestInferType_UnsupportedExpression
+--- PASS: TestInferType_UnsupportedExpression (0.00s)
+=== RUN   TestTypeToString_BasicTypes
+=== RUN   TestTypeToString_BasicTypes/int
+=== RUN   TestTypeToString_BasicTypes/string
+=== RUN   TestTypeToString_BasicTypes/bool
+=== RUN   TestTypeToString_BasicTypes/float64
+=== RUN   TestTypeToString_BasicTypes/byte
+--- PASS: TestTypeToString_BasicTypes (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/int (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/string (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/bool (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/float64 (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/byte (0.00s)
+=== RUN   TestTypeToString_UntypedConstants
+=== RUN   TestTypeToString_UntypedConstants/untyped_int
+=== RUN   TestTypeToString_UntypedConstants/untyped_float
+=== RUN   TestTypeToString_UntypedConstants/untyped_string
+=== RUN   TestTypeToString_UntypedConstants/untyped_bool
+=== RUN   TestTypeToString_UntypedConstants/untyped_rune
+=== RUN   TestTypeToString_UntypedConstants/untyped_nil
+--- PASS: TestTypeToString_UntypedConstants (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_int (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_float (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_string (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_bool (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_rune (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_nil (0.00s)
+=== RUN   TestTypeToString_CompositeTypes
+=== RUN   TestTypeToString_CompositeTypes/pointer_to_int
+=== RUN   TestTypeToString_CompositeTypes/slice_of_byte
+=== RUN   TestTypeToString_CompositeTypes/array_of_int
+=== RUN   TestTypeToString_CompositeTypes/map[string]int
+=== RUN   TestTypeToString_CompositeTypes/chan_int
+=== RUN   TestTypeToString_CompositeTypes/chan<-_string
+=== RUN   TestTypeToString_CompositeTypes/<-chan_bool
+--- PASS: TestTypeToString_CompositeTypes (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/pointer_to_int (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/slice_of_byte (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/array_of_int (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/map[string]int (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/chan_int (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/chan<-_string (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/<-chan_bool (0.00s)
+=== RUN   TestTypeToString_EmptyInterface
+--- PASS: TestTypeToString_EmptyInterface (0.00s)
+=== RUN   TestTypeToString_NestedPointers
+--- PASS: TestTypeToString_NestedPointers (0.00s)
+=== RUN   TestTypeToString_NilType
+--- PASS: TestTypeToString_NilType (0.00s)
+=== RUN   TestInferType_WithGoTypes
+--- PASS: TestInferType_WithGoTypes (0.00s)
+=== RUN   TestSetTypesInfo
+--- PASS: TestSetTypesInfo (0.00s)
+=== RUN   TestInferType_FallbackWithoutGoTypes
+--- PASS: TestInferType_FallbackWithoutGoTypes (0.00s)
+=== RUN   TestInferType_PartialGoTypesInfo
+--- PASS: TestInferType_PartialGoTypesInfo (0.00s)
+=== RUN   TestInferType_EmptyTypesInfo
+--- PASS: TestInferType_EmptyTypesInfo (0.00s)
+=== RUN   TestTypeToString_ComplexSignature
+    type_inference_test.go:545: Function signature: func(x int, y string) bool, error
+--- PASS: TestTypeToString_ComplexSignature (0.00s)
+=== RUN   TestInferType_InvalidToken
+--- PASS: TestInferType_InvalidToken (0.00s)
+PASS
+coverage: 61.9% of statements
+ok  	github.com/MadAppGang/dingo/pkg/plugin/builtin	0.405s	coverage: 61.9% of statements

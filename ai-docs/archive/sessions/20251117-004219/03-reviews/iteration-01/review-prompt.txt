@@ -1,0 +1,136 @@
+# Code Review Request: Dingo Transpiler - Four New Language Features
+
+## Project Context
+
+Dingo is a meta-language for Go (similar to TypeScript for JavaScript) that transpiles .dingo files to idiomatic .go files. The project emphasizes:
+- Zero runtime overhead - generates clean Go code
+- Full Go ecosystem compatibility
+- Readable, hand-written-quality output
+- Configuration-driven behavior
+
+## Features Implemented
+
+This review covers four new language features recently implemented:
+
+1. **Safe Navigation Operator (?.)** - Nil-safe field access with smart/always-Option modes
+2. **Null Coalescing Operator (??)** - Works with Option<T> and optionally Go pointers (*T)
+3. **Ternary Operator (? :)** - Standard/explicit precedence modes
+4. **Lambda Functions** - Rust-style |x| expr and Arrow-style (x) => expr
+
+## Configuration System
+
+All features are controlled by a new configuration system (dingo.toml):
+- lambda_syntax: "rust" | "arrow" | "both"
+- safe_navigation_unwrap: "always_option" | "smart"
+- null_coalescing_pointers: boolean
+- operator_precedence: "standard" | "explicit"
+
+## Files to Review
+
+### Core Plugin Implementations
+1. pkg/plugin/builtin/safe_navigation.go - Safe navigation (?.) plugin
+2. pkg/plugin/builtin/null_coalescing.go - Null coalescing (??) plugin
+3. pkg/plugin/builtin/ternary.go - Ternary (? :) plugin
+4. pkg/plugin/builtin/lambda.go - Lambda functions plugin
+
+### Configuration
+5. pkg/config/config.go - Configuration system with validation
+
+### Integration
+6. pkg/plugin/builtin/builtin.go - Plugin registry
+7. pkg/ast/ast.go - AST node definitions
+8. dingo.toml - Project configuration
+
+### Tests
+9. tests/golden/safe_nav_01_basic.dingo - Safe nav test input
+10. tests/golden/safe_nav_01_basic.go.golden - Expected output
+11. tests/golden/null_coalesce_01_basic.dingo - Null coalesce test input
+12. tests/golden/null_coalesce_01_basic.go.golden - Expected output
+13. tests/golden/ternary_01_basic.dingo - Ternary test input
+14. tests/golden/ternary_01_basic.go.golden - Expected output
+15. tests/golden/lambda_01_rust_style.dingo - Lambda test input
+16. tests/golden/lambda_01_rust_style.go.golden - Expected output
+
+## Review Criteria
+
+Please evaluate the implementation on:
+
+### 1. Correctness
+- Do the transformations correctly implement the feature specifications?
+- Are edge cases handled properly (nil values, chaining, type mismatches)?
+- Does configuration switching work correctly?
+
+### 2. Go Best Practices
+- Does the code follow Go idioms and conventions?
+- Are error handling patterns idiomatic?
+- Is the use of go/ast appropriate?
+- Are there any reinventions of standard library functionality?
+
+### 3. Code Quality
+- Is the code simple and readable?
+- Are function responsibilities clear and focused?
+- Is naming self-documenting?
+- Are there unnecessary abstractions or complexity?
+
+### 4. Architecture
+- Does the plugin architecture make sense?
+- Is the configuration system well-designed?
+- Are plugins properly decoupled?
+- Is the AST design appropriate?
+
+### 5. Type Safety & IIFE Pattern
+- Is the IIFE (Immediately-Invoked Function Expression) pattern used correctly?
+- Are type inference hooks in place (even if not fully implemented)?
+- Does the code prepare for future go/types integration?
+
+### 6. Testability
+- Are the implementations testable?
+- Are dependencies properly managed?
+- Can plugins be tested in isolation?
+
+### 7. Known Limitations
+The implementation notes these limitations:
+- Parser integration incomplete (lexer/grammar not updated)
+- Type inference basic (needs go/types integration)
+- Precedence checking prepared but not enforced
+- Arrow lambda syntax prepared but not parsed
+
+Are these limitations acceptable for this iteration, or do they pose risks?
+
+## Output Format
+
+Please provide your review structured as:
+
+### CRITICAL Issues
+Issues that must be fixed before merging (correctness, bugs, major design flaws)
+
+### IMPORTANT Issues
+Issues that should be addressed (maintainability, best practices, missing validations)
+
+### MINOR Issues
+Nice-to-haves (style, naming, minor optimizations)
+
+### STRENGTHS
+What the code does well
+
+### RECOMMENDATIONS
+Specific actionable improvements with code examples where helpful
+
+---
+
+## Key Implementation Details
+
+### Transformation Strategy
+All operators use IIFE pattern for expression-level transformations:
+- user?.name → func() T { if user != nil { return user.Name }; return nil }()
+- opt ?? default → func() T { if opt.IsSome() { return opt.Unwrap() }; return default }()
+
+### Configuration Access
+Plugins access config through ctx.DingoConfig:
+```go
+if cfg, ok := ctx.DingoConfig.(*config.Config); ok {
+    mode := cfg.Features.SafeNavigationUnwrap
+}
+```
+
+Please review the implementation with these Go transpiler requirements in mind. Focus on correctness, maintainability, and Go best practices.

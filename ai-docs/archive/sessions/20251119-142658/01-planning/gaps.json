@@ -1,0 +1,54 @@
+{
+  "questions": [],
+  "clarifications_needed": [],
+  "assumptions": [
+    {
+      "assumption": "AST parent tracking is already implemented and functional",
+      "rationale": "Previous session notes mention it was implemented in Phase 4.1 with <10ms performance",
+      "impact": "Required for Priority 4 (return statement type inference)",
+      "validation": "Check pkg/plugin/builtin/ for parent tracking utilities"
+    },
+    {
+      "assumption": "Pattern match plugin uses Go maps for case generation",
+      "rationale": "Non-determinism suggests map iteration order issue",
+      "impact": "Priority 1 fix may need different approach if assumption wrong",
+      "validation": "Inspect pkg/plugin/builtin/pattern_match.go to confirm"
+    },
+    {
+      "assumption": "Integration test failures are independent issues",
+      "rationale": "Each test covers different features/combinations",
+      "impact": "Can fix tests individually vs needing unified solution",
+      "validation": "Agent C investigation in Phase 1 will confirm"
+    },
+    {
+      "assumption": "Preprocessor bugs are localized to rust_match.go",
+      "rationale": "Error messages point to comma parsing in pattern expressions",
+      "impact": "Fix scope limited to one file vs multi-file refactor",
+      "validation": "Debug sessions will confirm root cause location"
+    }
+  ],
+  "risks_identified": [
+    {
+      "risk": "Preprocessor bugs may require full rewrite",
+      "probability": "Low-Medium",
+      "mitigation": "Start with targeted fixes, escalate to rewrite only if necessary"
+    },
+    {
+      "risk": "Some integration tests may auto-resolve after Priority 1 & 2",
+      "probability": "Medium-High",
+      "mitigation": "Re-run all integration tests after each priority completion to track progress"
+    },
+    {
+      "risk": "Return statement type inference may require go/types enhancements",
+      "probability": "Low",
+      "mitigation": "Existing type inference infrastructure should be sufficient; may need minor extensions"
+    }
+  ],
+  "open_items": [],
+  "notes": [
+    "All 4 priorities have clear root causes from previous session",
+    "Parallelization strategy maximizes implementation speed",
+    "Total estimated time: 11-16 hours to achieve 98-100% test passing",
+    "No blocking questions - ready to proceed with implementation"
+  ]
+}

@@ -1,0 +1,1 @@
+Root cause identified: Nested patterns with guards trigger buggy code path that skips guard generation, resulting in undefined variables. Fix: Remove "!hasGuards" condition (line 832) and add guard support to nested switch generation (lines 862-880). Estimated complexity: Medium (30 lines of code, 2-3 hours).

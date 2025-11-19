@@ -1,0 +1,19 @@
+# LSP Diagnostic Source Mapping Investigation
+
+## Root Cause
+The error propagation preprocessor (pkg/preprocessor/error_prop.go:337-455) records every line generated for the `?` operator under a single `error_prop` source-map entry anchored to the operator token. The first generated line (`__tmpN, __errN := ReadFile(path)`) therefore has no mapping segment that covers the callee portion (`ReadFile`). When gopls flags the undefined symbol at the start column of that assignment, the translator’s `MapToOriginal` fallback selects the only available entry for that generated line—the `error_prop` one—so diagnostics point back to the `?` instead of the function.
+
+## Explanation
+1. `ErrorPropProcessor` expands `expr?` into a four-line block and records a mapping for each generated line, but all mappings reuse the original column span of the `?` token. There is no distinct segment describing the callee span inside the assignment.
+2. gopls reports undefined-function errors at the generated assignment’s first column (the identifier `__tmpN`). Because no mapping starts near that column, `SourceMap.MapToOriginal` falls through to the “closest column” rule, which chooses the `error_prop` mapping (anchored at the operator column) as the best match.
+3. `Translator.TranslateDiagnostics` simply forwards that translated range to the IDE, causing the highlight to land on the `?` operator in the .dingo file.
+
+## Fix Design
+- Update `ErrorPropProcessor` to emit granular mapping segments for the generated assignment line: one covering the left-hand temp identifiers (mapping to the `expr` span) and another covering the callee invocation (`ReadFile(path)`), so diagnostics targeting the callee have a precise original location.
+- Alternatively (or additionally) tag mapping entries with roles (e.g., `error_prop_callee`) and teach `MapToOriginal` to prioritize those when diagnostics fall on the first generated line.
+- Review other preprocessors that expand single expressions into multi-line blocks to ensure they also emit fine-grained mappings.
+
+## Test Strategy
+1. Add unit tests in `pkg/preprocessor/sourcemap_test.go` (or a new file) that feed synthetic mappings for an error-prop expansion and verify columns 0..calleeLen on the assignment line map back to the callee span rather than the operator.
+2. Add/extend integration golden tests in `tests/golden/error_prop_01_simple` to include source maps, then simulate a diagnostic via a targeted LSP test (pkg/lsp) asserting the translated diagnostic range equals the `ReadFile` span.
+3. Run existing LSP translation/unit tests to ensure no regressions in other diagnostic mappings.

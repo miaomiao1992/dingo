@@ -190,9 +190,9 @@ func main() {
     let result = divide(10.0, 2.0)
 
     if result.IsOk() {
-        println("Result:", *result.ok_0)
+        println("Result:", *result.ok)
     } else {
-        println("Error:", result.err_0.Error())
+        println("Error:", result.err.Error())
     }
 }
 ```

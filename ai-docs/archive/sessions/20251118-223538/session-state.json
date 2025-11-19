@@ -1,0 +1,9 @@
+{
+  "session_id": "20251118-223538",
+  "phase": "complete",
+  "iteration": 1,
+  "review_iterations": 0,
+  "test_iterations": 1,
+  "status": "success",
+  "issue_type": "lsp_source_mapping_bug"
+}

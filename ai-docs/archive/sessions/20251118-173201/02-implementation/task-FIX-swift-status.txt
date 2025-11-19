@@ -1,0 +1,16 @@
+PARTIAL: 2/4 golden tests compiling (swift_match_02_guards, swift_match_03_nested)
+
+Core Swift preprocessor bugs FIXED:
+✅ Multi-line case arm processing (regex → manual brace tracking)
+✅ Indented case delimiter detection (handles \t and spaces)
+✅ Nested switch brace-depth tracking
+✅ Test framework config loading integration
+
+Unit Tests: 13/13 PASSING (no regressions)
+
+Remaining Issues (out of scope):
+- Expression context (let x = switch...) needs plugin IIFE transformation
+- Test 04 missing config file
+- Marker preservation in plugin pipeline
+
+Swift preprocessor is NOW FUNCTIONAL for statement-context switches.

@@ -1,0 +1,102 @@
+[
+  {
+    "question": "What is the preferred pattern matching syntax style for Dingo?",
+    "rationale": "The plan proposes Rust-like syntax (Ok(x) => expr), but other languages use different styles. Kotlin uses 'when' with smart casts, Swift uses 'switch case .variant(let x)'. The syntax choice affects user experience and learning curve. Should we stick with Rust-like syntax since we're already using Result<T,E> and Option<T> which are Rust-inspired?",
+    "options": [
+      "Rust-like: match value { Ok(x) => expr, Err(e) => expr } (RECOMMENDED)",
+      "Kotlin-like: when (value) { is Ok -> expr, is Err -> expr }",
+      "Swift-like: switch value { case .ok(let x): expr }"
+    ],
+    "impact": "Affects preprocessor implementation, user documentation, and migration from other languages"
+  },
+  {
+    "question": "Should exhaustiveness checking be an error or a warning by default?",
+    "rationale": "Non-exhaustive matches can lead to runtime panics. Rust makes it a compile error (strict), Kotlin makes it a warning (lenient). Strict checking prevents bugs but may frustrate beginners. The plan proposes error by default with '_' wildcard as escape hatch. Is this the right balance?",
+    "options": [
+      "Compile error (strict, Rust-style) - Prevents bugs, requires explicit wildcard (RECOMMENDED)",
+      "Compile warning (lenient, Kotlin-style) - More flexible, allows gradual migration",
+      "Configurable flag (let users choose strictness level)"
+    ],
+    "impact": "Affects user experience, debugging difficulty, and migration path from Go code"
+  },
+  {
+    "question": "What should happen when None cannot be type-inferred from context?",
+    "rationale": "The plan proposes context-based inference (return type, assignment, call args), but some cases may be ambiguous or lack context. Example: 'let x = None; someFunc(x)' - is type inferred from assignment or call? Should we be conservative (error) or liberal (pick one)?",
+    "options": [
+      "Error and require explicit type annotation (conservative, RECOMMENDED)",
+      "Use closest context (assignment > return > call) with precedence rules",
+      "Infer as Option<interface{}> and let runtime handle it (risky)"
+    ],
+    "impact": "Affects type safety, error message quality, and code clarity requirements"
+  },
+  {
+    "question": "Should pattern matching support tuple destructuring in Phase 4?",
+    "rationale": "The plan defers tuple destructuring to 'Future' (Phase 4.2 Advanced). However, tuples are common in Go (multiple return values) and useful for patterns like 'match (x, y) { (0, 0) => origin, ... }'. Including tuples in Phase 4 would make pattern matching more complete but adds complexity. Dingo doesn't have first-class tuple syntax yet (only multiple returns).",
+    "options": [
+      "Defer to Phase 5+ (focus on Result/Option/Enum first) (RECOMMENDED)",
+      "Include basic tuple patterns in Phase 4.2 (3-4 week timeline)",
+      "Skip tuples entirely until Go adds first-class tuple support"
+    ],
+    "impact": "Affects Phase 4 timeline (2 weeks → 4 weeks if included), feature completeness, and syntax design"
+  },
+  {
+    "question": "How should pattern matching handle Go's existing switch statement features (fallthrough, type switches)?",
+    "rationale": "Go's switch has 'fallthrough' and type switch capabilities. Dingo's match transpiles to switch, but the plan doesn't mention these features. Should 'match' support fallthrough? Should it work with interfaces (type switches)? Or should 'match' be strictly for sum types only?",
+    "options": [
+      "match = sum types only, use Go's switch for other cases (RECOMMENDED)",
+      "match supports fallthrough with explicit keyword",
+      "match supports type switches for interfaces (complex, risky)"
+    ],
+    "impact": "Affects semantic clarity, transpilation complexity, and Go interop story"
+  },
+  {
+    "question": "Should the AST parent map be built unconditionally or only when plugins request it?",
+    "rationale": "The plan proposes building parent map unconditionally in generator. This adds O(N) time and memory cost to every compilation. Alternative: lazy construction when plugin calls ctx.GetParent(). If no plugin needs parents, save the cost. However, lazy construction is more complex.",
+    "options": [
+      "Build unconditionally (simpler, predictable cost) (RECOMMENDED)",
+      "Lazy construction (optimize for plugins that don't need parents)",
+      "Plugin registration time declares parent map requirement"
+    ],
+    "impact": "Affects compilation performance (5-10ms overhead per file), code complexity, and plugin API design"
+  },
+  {
+    "question": "What is the priority order for advanced patterns if Phase 4 timeline slips?",
+    "rationale": "The plan schedules guards, nested patterns, and struct destructuring in Phase 4.2. If we run over budget, which features are must-have vs nice-to-have for initial pattern matching release?",
+    "options": [
+      "Guards (critical for conditional matching)",
+      "Nested patterns (needed for Ok(Some(x)) cases)",
+      "Struct destructuring (defer to Phase 5 if needed)"
+    ],
+    "impact": "Affects Phase 4 scope and potential timeline extension"
+  },
+  {
+    "question": "Should enhanced error messages include code snippets from source files?",
+    "rationale": "The plan shows error messages with suggestions but not actual source code context. IDEs show source snippets with error underlining. Should Dingo errors include 'error context lines' like rustc does? Example:\n\n  23 | match result {\n  24 |     Ok(x) => processX(x)\n     |     ^^^^^^^^^^^^^^^^^^^ missing Err case\n\nThis is very helpful but requires reading source files during error formatting.",
+    "options": [
+      "Yes, show source context lines (rustc-style) (RECOMMENDED)",
+      "No, just show position (file:line:col) (simpler)",
+      "Only show source in interactive mode (dingo build --verbose)"
+    ],
+    "impact": "Affects error infrastructure complexity, file I/O during error reporting, and user experience quality"
+  },
+  {
+    "question": "How should pattern matching interact with Go's future generics evolution?",
+    "rationale": "Go generics (1.18+) may eventually add sum types or pattern matching. If Go adds these features, Dingo's approach may become redundant or incompatible. Should we design with Go compatibility in mind (transpile to match Go's eventual syntax) or optimize for current Dingo users?",
+    "options": [
+      "Optimize for Dingo users now, adapt later if Go adds features (RECOMMENDED)",
+      "Design syntax to be compatible with potential Go proposals",
+      "Add configuration flag to switch between Dingo-style and Go-compatible style"
+    ],
+    "impact": "Affects long-term maintenance burden, migration path, and syntax design constraints"
+  },
+  {
+    "question": "Should pattern matching enforce that all match expressions return a value (expression-based) or allow statement-based matches?",
+    "rationale": "Rust's match is always an expression (returns a value). Go's switch is a statement. The plan shows both styles but doesn't clarify the requirement. Example:\n\nExpression: let x = match value { Ok(v) => v, Err(_) => 0 }\nStatement: match value { Ok(v) => println(v), Err(_) => println('error') }\n\nExpression-based is more functional and type-safe but requires all arms to return compatible types.",
+    "options": [
+      "Expression-based (Rust-style, requires type-checking all arms) (RECOMMENDED)",
+      "Statement-based (Go-style, no return value requirement)",
+      "Infer based on usage context (if assigned, expression; otherwise, statement)"
+    ],
+    "impact": "Affects type checking complexity, transpilation strategy, and functional programming ergonomics"
+  }
+]

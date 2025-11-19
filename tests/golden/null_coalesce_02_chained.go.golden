@@ -3,26 +3,26 @@ package main
 type OptionTag uint8
 
 const (
-	OptionTag_Some OptionTag = iota
-	OptionTag_None
+	OptionTagSome OptionTag = iota
+	OptionTagNone
 )
 
 type Option struct {
 	tag    OptionTag
-	some_0 *string
+	some *string
 }
 
 func Option_Some(arg0 string) Option {
-	return Option{tag: OptionTag_Some, some_0: &arg0}
+	return Option{tag: OptionTagSome, some: &arg0}
 }
 func Option_None() Option {
-	return Option{tag: OptionTag_None}
+	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
-	return e.tag == OptionTag_Some
+	return e.tag == OptionTagSome
 }
 func (e Option) IsNone() bool {
-	return e.tag == OptionTag_None
+	return e.tag == OptionTagNone
 }
 func main() {
 	var firstName Option = Option_None()
@@ -31,11 +31,11 @@ func main() {
 	// Chained null coalescing - try each in order
 	var name string
 	if firstName.IsSome() {
-		name = *firstName.some_0
+		name = *firstName.some
 	} else if middleName.IsSome() {
-		name = *middleName.some_0
+		name = *middleName.some
 	} else if lastName.IsSome() {
-		name = *lastName.some_0
+		name = *lastName.some
 	} else {
 		name = "Unknown"
 	}
@@ -44,9 +44,9 @@ func main() {
 	fallback := getConfig("fallback")
 	var config string
 	if primary.IsSome() {
-		config = *primary.some_0
+		config = *primary.some
 	} else if fallback.IsSome() {
-		config = *fallback.some_0
+		config = *fallback.some
 	} else {
 		config = "default"
 	}

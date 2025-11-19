@@ -1,0 +1,1 @@
+Delete obsolete error_propagation_test.go (tests deprecated architecture), update golden_test.go to use new plugin APIs (fix Logger interface, remove Registry.Register calls, update plugin instantiation). Expected outcome: zero compilation errors, core tests passing, ready to determine next development phase. Timeline: 30-45 minutes.

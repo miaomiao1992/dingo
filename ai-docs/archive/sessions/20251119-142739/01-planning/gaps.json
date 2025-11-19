@@ -1,0 +1,18 @@
+[
+  {
+    "question": "Custom enum multi-field naming: For variants like `RGB(r: int, g: int, b: int)`, should field names be `rgbr`, `rgbR`, or just `r`?",
+    "rationale": "Current implementation uses `rgb_r` (underscore between variant and field). We need to decide: (1) All lowercase concatenation `rgbr`, (2) CamelCase at boundary `rgbR`, or (3) Field name only `r`. Option 1 matches Result/Option pattern (ok0, err0) but may be less readable for complex cases."
+  },
+  {
+    "question": "Acronym handling in variant names: Should `HTTP_Status` become `HttpStatus`, `HTTPStatus`, or `Httpstatus`?",
+    "rationale": "Go stdlib uses mixed conventions (HTTPServer vs HttpClient). Options: (1) All lowercase `httpstatus` (simple, consistent), (2) Preserve acronyms `HTTPStatus` (idiomatic but complex logic), (3) Initial caps only `HttpStatus` (balanced). Recommendation is Option 3 for implementation simplicity."
+  },
+  {
+    "question": "Variant name collision handling: If CamelCase creates collisions (e.g., `Int_Value` and `IntValue` both become `IntValue`), should we error, add suffix, or preserve minimal underscores?",
+    "rationale": "CamelCase normalization could create collisions that didn't exist with underscores. Options: (1) Compile-time error (forces explicit naming), (2) Auto-suffix with numbers `IntValue1`, (3) Keep one underscore for disambiguation. Option 1 is cleanest but may surprise users."
+  },
+  {
+    "question": "Confirm keeping numeric index suffix: Is `ok0`, `err0`, `pending0` acceptable, or should we remove the `0` for cleaner names like `ok`, `err`, `pending`?",
+    "rationale": "Current implementation uses index suffix (ok_0, err_0) for future-proofing multi-field variants. Removing it now (`ok`, `err`) would be cleaner but creates breaking change if we later add multi-field support. Recommendation: Keep numeric suffix for future compatibility."
+  }
+]

@@ -1,0 +1,25 @@
+Available OpenRouter Models (in priority order):
+
+  x-ai/grok-code-fast-1
+    Ultra-fast coding - Ultra-fast coding
+
+  minimax/minimax-m2
+    Compact high-efficiency - Compact high-efficiency
+
+  google/gemini-2.5-flash
+    Advanced reasoning + vision - Advanced reasoning + vision
+
+  openai/gpt-5
+    Most advanced reasoning - Most advanced reasoning
+
+  openai/gpt-5.1-codex
+    Specialized for software engineering - Specialized for software engineering
+
+  qwen/qwen3-vl-235b-a22b-instruct
+    Multimodal with OCR - Multimodal with OCR
+
+  openrouter/polaris-alpha
+    FREE experimental (logs usage) - FREE experimental (logs usage)
+
+  custom
+    Custom Model - Enter any OpenRouter model ID manually

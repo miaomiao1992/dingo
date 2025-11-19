@@ -1,0 +1,28 @@
+FAILED: 0/7 files generated successfully
+
+REASON: Critical bugs in pattern matching transformation prevent compilation
+
+BLOCKING ISSUES:
+
+1. File 06 (guards_nested): Preprocessor bug - parse errors on line 98 (file only has 54 lines)
+   - Likely: match expression duplication in preprocessor
+
+2. Files 07-08 (guards_complex, guards_edge_cases): Field name generation bug
+   - Generated: __match_0.request_get_0 (incorrect)
+   - Should be: __match_0.Request_Get_0 (capitalized variant name)
+   - Also: Duplicate case statements and unused string literals
+
+3. Files 09-12 (tuple_*): Multiple critical issues
+   - Missing: ResultTagOk, ResultTagErr constants (undefined)
+   - Issue: Variable hoisting not working (x, y, z undefined in expressions)
+   - Issue: Multiple default cases generated (should be only one)
+
+NEXT STEPS REQUIRED:
+
+Priority 1: Fix variable hoisting in tuple pattern transformation
+Priority 2: Fix tag constant naming (ResultTagOk vs ResultTag_Ok)
+Priority 3: Fix field name generation in guard patterns (capitalize variant names)
+Priority 4: Fix preprocessor duplication bug in file 06
+Priority 5: Fix duplicate case generation and unused literals
+
+Cannot proceed with golden file generation until these bugs are fixed.

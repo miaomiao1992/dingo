@@ -1,0 +1,14 @@
+STATUS: PASS
+TOTAL_TESTS: 40+
+FAILED_TESTS: 0
+EXECUTION_TIME: 0.437s
+
+TEST BREAKDOWN:
+- Source map tests: 1 (TestSourceMapOffsetBeforeImports)
+- User shadowing tests: 4 (TestUserFunctionShadowingNoImport, TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports)
+- Multi-value tests: 10 (TestMultiValueReturnEdgeCases)
+- Import edge tests: 6 (TestImportInjectionEdgeCases)
+- Config tests: 10 (config_test.go)
+- Existing tests: All still passing
+
+ALL TESTS PASSING ✅

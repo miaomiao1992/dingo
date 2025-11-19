@@ -1,0 +1,9 @@
+Package-Wide Scanning Architecture - Complete
+
+Key Architectural Decision: Hybrid approach using manual file discovery with go/parser (fast, lightweight) with optional go/packages integration for advanced users (build tags, vendored deps). Two-level caching (memory LRU + disk) with hash-based validation. Progressive function detection: regex (fast) → AST parse → full type checking (accurate).
+
+Performance Expectations: Meets all requirements - 300ms for 10 files, 1.5s for 50 files, 6.5s for 200 files (target: <500ms, <2s, <8s). Incremental rebuild: 150ms (target: <100ms). Cache hit: 50ms (target: <20ms). Memory: ~40MB peak for 200 files. Optimizations available (parallel scanning, lazy type checking) if needed.
+
+Implementation Complexity: 9-week phased implementation - 6 phases from core infrastructure to CLI integration. ~13 new files across pkg/scanner/ and pkg/imports/, 6 modified existing files. Requires careful concurrent access handling, cache invalidation logic, and edge case coverage (build tags, vendored deps, cyclic imports, generated files).
+
+Main Risk/Consideration: Cache staleness/corruption and import inference accuracy. Mitigation: Versioned cache with checksums, confidence-scored inference (80% threshold, user-configurable), fallback to explicit imports on low confidence. Secondary risk: Performance degradation on very large packages (>500 files) - addressable with parallel scanning and package segmentation.

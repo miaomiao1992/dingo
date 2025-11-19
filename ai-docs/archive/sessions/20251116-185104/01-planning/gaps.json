@@ -1,0 +1,30 @@
+[
+  {
+    "question": "Should we deprecate the plugin-based approach entirely or keep it for demonstration/optional features?",
+    "rationale": "Current code has ErrorPropagationPlugin in pkg/plugin/builtin/. The plan proposes moving this to pkg/transformer/ as a core transformation. We need to decide if plugins should only be for truly optional features, or if core syntax can also be plugins. This affects architecture and API design."
+  },
+  {
+    "question": "What level of type inference is required for Phase 1.6 zero value generation?",
+    "rationale": "The current plugin hardcodes 'nil' as the zero value. The plan proposes basic type inference. Should we support: (1) Only basic types (int, string, bool, pointers), (2) Composite types (struct, slice, map), (3) Full go/types integration? Each has different complexity and timeline impact."
+  },
+  {
+    "question": "Should expression-context transformation (e.g., 'return fetchUser(id)?') be in Phase 1.6 or deferred?",
+    "rationale": "Statement lifting for expression contexts adds significant complexity. Current implementation only handles statement context (let user = expr?). Should we complete statement context thoroughly first, or attempt both in Phase 1.6? Affects timeline by 30-40%."
+  },
+  {
+    "question": "What is the priority for source map VLQ encoding implementation?",
+    "rationale": "Source maps work without VLQ (positions are tracked), but IDE integration requires proper VLQ encoding. Should this be: (1) Must-have for Phase 1.6, (2) Nice-to-have, or (3) Separate phase? The go-sourcemap library makes this easier, but adds testing overhead."
+  },
+  {
+    "question": "Should we use astutil.Apply for AST mutation or build a custom traversal?",
+    "rationale": "golang.org/x/tools/go/ast/astutil.Apply handles parent reference updates automatically. However, it requires understanding its callback API and cursor pattern. Custom traversal gives more control but requires manual parent tracking. Which approach fits the project better?"
+  },
+  {
+    "question": "Are there any performance constraints or file size limits we should consider?",
+    "rationale": "The two-pass transformation approach walks the AST twice. For very large files, this could be slow. Should we: (1) Optimize from the start, (2) Profile and optimize if needed, or (3) Not worry about it for MVP? Affects architecture decisions."
+  },
+  {
+    "question": "Should error context/wrapping syntax (expr? 'message') be implemented in Phase 1.6?",
+    "rationale": "The feature specification mentions 'let user = fetchUser(id) ? \"failed to fetch user\"' for error wrapping. This requires parsing a string after ?, generating fmt.Errorf, and handling the additional complexity. Include now or defer to Phase 1.7?"
+  }
+]

@@ -3,9 +3,9 @@ package main
 type StatusTag uint8
 
 const (
-	StatusTag_Pending StatusTag = iota
-	StatusTag_Active
-	StatusTag_Complete
+	StatusTagPending StatusTag = iota
+	StatusTagActive
+	StatusTagComplete
 )
 
 type Status struct {
@@ -13,40 +13,40 @@ type Status struct {
 }
 
 func Status_Pending() Status {
-	return Status{tag: StatusTag_Pending}
+	return Status{tag: StatusTagPending}
 }
 func Status_Active() Status {
-	return Status{tag: StatusTag_Active}
+	return Status{tag: StatusTagActive}
 }
 func Status_Complete() Status {
-	return Status{tag: StatusTag_Complete}
+	return Status{tag: StatusTagComplete}
 }
 func (e Status) IsPending() bool {
-	return e.tag == StatusTag_Pending
+	return e.tag == StatusTagPending
 }
 func (e Status) IsActive() bool {
-	return e.tag == StatusTag_Active
+	return e.tag == StatusTagActive
 }
 func (e Status) IsComplete() bool {
-	return e.tag == StatusTag_Complete
+	return e.tag == StatusTagComplete
 }
 func getStatusMessage(s Status) string {
-	var __match_result_0 interface{}
+	var result interface{}
 
-	__match_0 := s
-	switch __match_0.tag {
-	case StatusTag_Pending:
+	scrutinee := s
+	switch scrutinee.tag {
+	case StatusTagPending:
 
-		__match_result_0 = "Waiting to start"
-	case StatusTag_Active:
+		result = "Waiting to start"
+	case StatusTagActive:
 
-		__match_result_0 = "Currently running"
-	case StatusTag_Complete:
+		result = "Currently running"
+	case StatusTagComplete:
 
-		__match_result_0 = "Finished"
+		result = "Finished"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_0
+	return result
 
 }
 func main() {

@@ -1,0 +1,31 @@
+Dingo Priority Tasks - Implementation Plan Summary
+
+APPROVED: All 4 phases, 18-24 hours total, configurable auto-wrapping, flexible performance budget
+
+PHASE 1 (2-3h): Test Stabilization
+- Fix field name mismatches, add contains() utility, debug marker injection, fix ternary parsing
+- Goal: 97/97 tests passing, clean baseline
+
+PHASE 2 (6-8h): Type Inference System Integration
+- Create shared TypeInferenceService in plugin pipeline
+- Add Result/Option type detection, synthetic type registry
+- Enable cross-plugin type awareness
+- Goal: <15% build overhead, all plugins type-aware
+
+PHASE 3 (6-8h): Result/Option Completion
+- Implement dingo.toml configuration system (auto_wrap_go_errors)
+- Result<T, E>: literals (Ok/Err), auto-wrapping Go (T, error), error propagation integration
+- Option<T>: literals (Some/None), null coalescing integration, safe navigation fix
+- Goal: Production-ready Result/Option with configurable Go interop
+
+PHASE 4 (2-3h): Parser Enhancements
+- Fix ternary operator, pattern destructuring, map types, type declarations
+- Goal: 15+/20 golden tests passing (75%+ pass rate)
+
+KEY DECISIONS:
+- Auto-wrapping: Configurable via dingo.toml (default true, conservative detection)
+- Performance: <15% overhead acceptable, prioritize simplicity over optimization
+- Scope: Complete implementation across all priority areas
+
+FILES TO MODIFY: ~25 files, ~2,250 lines total
+NEXT STEP: Begin Phase 1 - Test Stabilization

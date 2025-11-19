@@ -1,0 +1,69 @@
+{
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "description": "Phase 1: Code Audit & Cleanup - Must be done sequentially",
+      "tasks": [
+        {
+          "task_id": "audit",
+          "description": "Audit transform pipeline, remove error_prop duplicates, update tests",
+          "files": [
+            "pkg/transform/transformer.go",
+            "pkg/transform/error_prop.go",
+            "pkg/transform/transformer_test.go"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "1.5h",
+          "rationale": "Must identify what to preserve before proceeding. Single task because files are interdependent."
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "depends_on": [1],
+      "description": "Phase 2: Implement Automatic Import Detection - Single cohesive feature",
+      "tasks": [
+        {
+          "task_id": "imports",
+          "description": "Add ImportTracker, integrate tracking, implement injection, update mappings",
+          "files": [
+            "pkg/preprocessor/error_prop.go",
+            "pkg/preprocessor/preprocessor.go"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "3h",
+          "rationale": "Import detection and source mapping are tightly coupled - must be implemented together. Combined Phases 2 and 3 from plan."
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "depends_on": [2],
+      "description": "Phase 3: Verification & Documentation - Can be parallelized",
+      "tasks": [
+        {
+          "task_id": "verify",
+          "description": "Build verification, unit tests, golden test compilation",
+          "files": [],
+          "agent": "golang-developer",
+          "estimated_time": "30m",
+          "rationale": "Testing and verification of all changes"
+        },
+        {
+          "task_id": "document",
+          "description": "Update CHANGELOG.md, create package READMEs, document architecture decisions",
+          "files": [
+            "CHANGELOG.md",
+            "pkg/preprocessor/README.md",
+            "pkg/transform/README.md"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "30m",
+          "rationale": "Documentation can be done in parallel with testing"
+        }
+      ]
+    }
+  ],
+  "total_estimated_time": "5.5 hours",
+  "parallelization_notes": "Limited parallelization due to sequential dependencies: audit must complete before import detection, import detection must complete before verification. Batch 3 has 2 parallel tasks (verify + document)."
+}

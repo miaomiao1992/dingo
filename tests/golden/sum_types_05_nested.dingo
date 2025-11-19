@@ -30,7 +30,7 @@ func parseInt(s string) Result {
 func main() {
 	result := parseInt("hello")
 	if result.IsOk() {
-		value := *result.ok_0
+		value := *result.ok
 		if value.IsString() {
 			println("String:", *value.string_0)
 		}

@@ -1,0 +1,1 @@
+Provide a ~500 word report on how Go projects organize source vs generated code. Cover protoc/gRPC, buf, templ, sqlc, ent, wire. For each: where schemas live, where generated Go emitted, module/go.mod considerations, tooling patterns (Makefile, go:generate). Cite concrete GitHub repos+paths. Highlight common idioms (internal/gen, pkg/pb, cmd/server).

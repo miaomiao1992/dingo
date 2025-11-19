@@ -1,0 +1,69 @@
+# Test Results After Naming Fix
+
+## Overall Results
+
+**Before Fix**: 91/103 tests passing (89%)
+**After Fix**: 102/103 tests passing (99%)
+
+## Passing Tests (102)
+
+All Result/Option tests now pass with correct naming:
+- 8/8 error_prop_* tests ✅
+- 4/4 option_* tests ✅
+- 11/12 pattern_match_* tests ✅
+- 2/2 result_* tests ✅
+- 1/1 showcase_00_hero ✅
+- 4/4 unqualified_import_* tests ✅
+
+## Failing Tests (1)
+
+**pattern_match_06_guards_nested** ❌
+- **Reason**: .dingo source file has syntax error preventing transpilation
+- **Error**: `expected ';', found 'else'` at line 103 of preprocessed output
+- **Root cause**: Preprocessor generates invalid Go code for guards with 'where' keyword
+- **Status**: SEPARATE BUG - not related to naming issue
+- **Action required**: Fix guard preprocessor or remove this test file
+
+## Golden Files Updated
+
+The following golden files were regenerated with correct naming convention:
+1. `pattern_match_01_simple.go.golden`
+2. `pattern_match_04_exhaustive.go.golden`
+3. `pattern_match_05_guards_basic.go.golden`
+4. `pattern_match_07_guards_complex.go.golden`
+5. `pattern_match_08_guards_edge_cases.go.golden`
+6. `pattern_match_12_tuple_exhaustiveness.go.golden`
+
+These files previously used the outdated naming convention without underscores.
+
+## Naming Convention Applied
+
+All generated code now uses consistent underscore-separated naming:
+
+**Type names**:
+- `Result_int_error` (not `Resultinterror`)
+- `Option_string` (not `Optionstring`)
+
+**Field names**:
+- `ok_0`, `err_0` (not `ok0`, `err0`)
+- `some_0` (not `some0`)
+
+**Constructor names**:
+- `Result_int_error_Ok` (not `Result_int_errorOk`)
+- `Option_string_Some` (not `Option_stringSome`)
+
+**Tag constants**:
+- `ResultTag_Ok`, `ResultTag_Err` (not `ResultTagOk`, `ResultTagErr`)
+- `OptionTag_Some`, `OptionTag_None` (not `OptionTagSome`, `OptionTagNone`)
+
+## Compilation Tests
+
+All 102 passing golden tests also pass compilation tests (TestGoldenFilesCompilation).
+Generated Go code is valid and compiles successfully.
+
+## Summary
+
+Naming fix is **COMPLETE** and **SUCCESSFUL**.
+
+99% of tests passing (102/103).
+The single failing test is unrelated to this naming fix.

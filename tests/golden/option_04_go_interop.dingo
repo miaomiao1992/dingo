@@ -19,7 +19,7 @@ func findInMap(m map[string]string, key string) Option {
 
 func getOrDefault(opt Option, defaultVal string) string {
 	if opt.IsSome() {
-		return *opt.some_0
+		return *opt.some
 	}
 	return defaultVal
 }

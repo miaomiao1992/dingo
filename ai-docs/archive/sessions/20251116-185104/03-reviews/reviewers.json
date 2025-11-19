@@ -1,0 +1,7 @@
+{
+  "internal": true,
+  "external_models": [
+    "x-ai/grok-code-fast-1",
+    "google/gemini-2.5-flash"
+  ]
+}

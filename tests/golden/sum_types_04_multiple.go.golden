@@ -3,8 +3,8 @@ package main
 type StatusTag uint8
 
 const (
-	StatusTag_Pending StatusTag = iota
-	StatusTag_Active
+	StatusTagPending StatusTag = iota
+	StatusTagActive
 )
 
 type Status struct {
@@ -12,37 +12,37 @@ type Status struct {
 }
 
 func Status_Pending() Status {
-	return Status{tag: StatusTag_Pending}
+	return Status{tag: StatusTagPending}
 }
 func Status_Active() Status {
-	return Status{tag: StatusTag_Active}
+	return Status{tag: StatusTagActive}
 }
 func (e Status) IsPending() bool {
-	return e.tag == StatusTag_Pending
+	return e.tag == StatusTagPending
 }
 func (e Status) IsActive() bool {
-	return e.tag == StatusTag_Active
+	return e.tag == StatusTagActive
 }
 
 type PriorityTag uint8
 
 const (
-	PriorityTag_Low PriorityTag = iota
-	PriorityTag_High
+	PriorityTagLow PriorityTag = iota
+	PriorityTagHigh
 )
 
 type Priority struct {
 	tag PriorityTag
 }
 func Priority_Low() Priority {
-	return Priority{tag: PriorityTag_Low}
+	return Priority{tag: PriorityTagLow}
 }
 func Priority_High() Priority {
-	return Priority{tag: PriorityTag_High}
+	return Priority{tag: PriorityTagHigh}
 }
 func (e Priority) IsLow() bool {
-	return e.tag == PriorityTag_Low
+	return e.tag == PriorityTagLow
 }
 func (e Priority) IsHigh() bool {
-	return e.tag == PriorityTag_High
+	return e.tag == PriorityTagHigh
 }

@@ -1,0 +1,18 @@
+Test Suite Results After Naming Refactor
+
+Status: INCOMPLETE REFACTOR
+Root Cause: Enum preprocessor not updated (still generates underscore naming)
+
+Golden Tests: 66/66 PASS (100%) - but with OLD naming
+Integration Tests: 2/4 PASS (50%) - test expectations need update
+Unit Tests: 7/9 packages PASS (78%) - test expectations need update
+Build: SUCCESS
+
+Critical Fix Needed:
+  File: pkg/preprocessor/enum.go
+  Lines: 353, 355, 381, 404, 413
+  Change: %sTag_%s → %sTag%s (remove underscore)
+
+Then update test expectations and regenerate golden files.
+
+Details: ai-docs/sessions/20251119-224536/04-testing/test-results.md

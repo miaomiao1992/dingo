@@ -31,14 +31,14 @@ enum Status {
 	}
 
 	// Verify tag constants
-	if !strings.Contains(output, "StatusTag_Pending StatusTag = iota") {
-		t.Error("Missing StatusTag_Pending constant")
+	if !strings.Contains(output, "StatusTagPending StatusTag = iota") {
+		t.Error("Missing StatusTagPending constant")
 	}
-	if !strings.Contains(output, "StatusTag_Active") {
-		t.Error("Missing StatusTag_Active constant")
+	if !strings.Contains(output, "StatusTagActive") {
+		t.Error("Missing StatusTagActive constant")
 	}
-	if !strings.Contains(output, "StatusTag_Complete") {
-		t.Error("Missing StatusTag_Complete constant")
+	if !strings.Contains(output, "StatusTagComplete") {
+		t.Error("Missing StatusTagComplete constant")
 	}
 
 	// Verify struct type
@@ -101,14 +101,14 @@ enum Shape {
 	if !strings.Contains(output, "type ShapeTag uint8") {
 		t.Error("Missing ShapeTag type")
 	}
-	if !strings.Contains(output, "ShapeTag_Point") {
-		t.Error("Missing ShapeTag_Point")
+	if !strings.Contains(output, "ShapeTagPoint") {
+		t.Error("Missing ShapeTagPoint")
 	}
-	if !strings.Contains(output, "ShapeTag_Circle") {
-		t.Error("Missing ShapeTag_Circle")
+	if !strings.Contains(output, "ShapeTagCircle") {
+		t.Error("Missing ShapeTagCircle")
 	}
-	if !strings.Contains(output, "ShapeTag_Rectangle") {
-		t.Error("Missing ShapeTag_Rectangle")
+	if !strings.Contains(output, "ShapeTagRectangle") {
+		t.Error("Missing ShapeTagRectangle")
 	}
 
 	// Verify struct fields for variants
@@ -288,14 +288,14 @@ enum Status {
 	output := string(result)
 
 	// Verify all variants are still generated despite comments
-	if !strings.Contains(output, "StatusTag_Pending") {
-		t.Error("Missing StatusTag_Pending")
+	if !strings.Contains(output, "StatusTagPending") {
+		t.Error("Missing StatusTagPending")
 	}
-	if !strings.Contains(output, "StatusTag_Active") {
-		t.Error("Missing StatusTag_Active")
+	if !strings.Contains(output, "StatusTagActive") {
+		t.Error("Missing StatusTagActive")
 	}
-	if !strings.Contains(output, "StatusTag_Complete") {
-		t.Error("Missing StatusTag_Complete")
+	if !strings.Contains(output, "StatusTagComplete") {
+		t.Error("Missing StatusTagComplete")
 	}
 
 	// Verify generated code compiles
@@ -380,7 +380,7 @@ enum Status {
 `,
 			shouldFail: false,
 			checkOutput: func(output string) bool {
-				return strings.Contains(output, "StatusTag_Complete")
+				return strings.Contains(output, "StatusTagComplete")
 			},
 		},
 		{
@@ -395,7 +395,7 @@ enum Status {
 `,
 			shouldFail: false,
 			checkOutput: func(output string) bool {
-				return strings.Contains(output, "StatusTag_Complete")
+				return strings.Contains(output, "StatusTagComplete")
 			},
 		},
 	}

@@ -1,0 +1,18 @@
+[
+  {
+    "question": "Should we support guards on ALL levels of nested patterns (e.g., both outer and inner guards)?",
+    "rationale": "Current failing test only has guards on the innermost pattern (val > 0). Do we need to support: Result_Ok(Option_Some(val)) where opt.IsSome() && val > 0 (guard on outer binding)? This would add complexity."
+  },
+  {
+    "question": "Should we enforce a maximum nesting depth for patterns with guards?",
+    "rationale": "Deeply nested patterns with guards create 4-5 levels of indentation. Go style guide generally discourages this. Should we limit to 2 levels (outer + inner) for readability?"
+  },
+  {
+    "question": "What should happen if multiple arms have the SAME nested pattern AND SAME guard?",
+    "rationale": "Example: Result_Ok(Option_Some(x)) where x > 10 => 'a' and Result_Ok(Option_Some(x)) where x > 10 => 'b'. This is unreachable code. Should we detect and warn/error?"
+  },
+  {
+    "question": "Should we add a golden test specifically for the fixed nested-guards case?",
+    "rationale": "pattern_match_06_guards_nested.dingo will start passing, but we might want an additional simpler test like pattern_match_08_nested_guards.dingo to isolate just the nested-pattern-with-guard feature."
+  }
+]

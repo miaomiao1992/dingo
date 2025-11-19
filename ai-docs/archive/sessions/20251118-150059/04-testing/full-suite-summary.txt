@@ -1,0 +1,22 @@
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/config	(cached)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/errors	(cached)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/generator	(cached)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/lsp	(cached)
+FAIL
+FAIL	github.com/MadAppGang/dingo/pkg/parser	0.181s
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/plugin	(cached)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/plugin/builtin	(cached)
+FAIL
+FAIL	github.com/MadAppGang/dingo/pkg/preprocessor	0.339s
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/sourcemap	(cached)
+FAIL
+FAIL	github.com/MadAppGang/dingo/tests	1.122s
+FAIL	github.com/MadAppGang/dingo/tests/golden [build failed]
+FAIL

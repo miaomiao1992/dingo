@@ -1,0 +1,17 @@
+=== RUN   TestImportInjectionEdgeCases
+=== RUN   TestImportInjectionEdgeCases/multiple_imports_from_same_package_(deduplication)
+=== RUN   TestImportInjectionEdgeCases/imports_from_different_packages
+=== RUN   TestImportInjectionEdgeCases/no_imports_needed_(no_stdlib_calls)
+=== RUN   TestImportInjectionEdgeCases/already_existing_imports_(don't_duplicate)
+=== RUN   TestImportInjectionEdgeCases/source_map_offsets_correct_for_different_import_counts
+    import_edge_cases_test.go:190: Import block spans lines 3-6 (4 lines)
+=== RUN   TestImportInjectionEdgeCases/mixed_qualified_and_unqualified_calls_(only_qualified_should_import)
+--- PASS: TestImportInjectionEdgeCases (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/multiple_imports_from_same_package_(deduplication) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/imports_from_different_packages (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/no_imports_needed_(no_stdlib_calls) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/already_existing_imports_(don't_duplicate) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/source_map_offsets_correct_for_different_import_counts (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/mixed_qualified_and_unqualified_calls_(only_qualified_should_import) (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/preprocessor	0.191s

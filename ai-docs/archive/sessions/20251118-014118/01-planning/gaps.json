@@ -1,0 +1,34 @@
+[
+  {
+    "question": "Enum Syntax: Should we support Go-like syntax `type Result enum { Ok(T); Err(E) }` or Rust-like `enum Result { Ok(T), Err(E) }`?",
+    "rationale": "Current golden tests use `enum Result { ... }` (Rust-like). This is more concise but less Go-idiomatic. The `type X enum { ... }` syntax would be more familiar to Go developers but longer. This affects preprocessor pattern matching and user documentation."
+  },
+  {
+    "question": "Type Inference: Should `Err()` calls require explicit type context, or should we implement bidirectional type inference?",
+    "rationale": "Current Result type plugin uses `interface{}` as placeholder for unknown types (line 217 in result_type.go). Without full go/types integration, we cannot infer the Ok type from context. Options: (1) Require explicit constructors `Result_T_E_Err()`, (2) Add type annotation syntax `Err::<T>(err)`, (3) Defer to Phase 3 with full type checking."
+  },
+  {
+    "question": "Constructor Syntax: Should users call `Ok(value)` (implicit) or `Result_Ok(value)` (explicit prefix)?",
+    "rationale": "Current golden tests use bare `Ok()` and `Err()`. This is ergonomic but may conflict with user-defined functions named `Ok` or `Err`. Prefixing with type name (`Result_Ok()`) is safer but verbose. Alternative: Use method syntax `Result.Ok(value)` (requires different transformation)."
+  },
+  {
+    "question": "Generated Code Location: Should Result type declarations be injected at top of file, or at first usage point?",
+    "rationale": "Current plugin appends declarations to beginning of file.Decls (line 118 in plan). This may break if there are package-level init() functions that depend on declaration order. Alternative: Insert after imports but before first usage. Affects readability of generated code."
+  },
+  {
+    "question": "Source Mapping Strategy: Should enum transformation maintain line numbers (insert padding) or use offset-based mapping?",
+    "rationale": "Enum preprocessor will replace `enum { ... }` with multiple lines of generated code. If we don't maintain line numbers, all subsequent line numbers shift, breaking source maps for error messages. Options: (1) Insert blank lines to maintain offsets, (2) Use sophisticated mapping (more complex), (3) Accept line shift and adjust all mappings."
+  },
+  {
+    "question": "Testing Strategy: Should we prioritize unit tests (faster feedback) or integration tests (more realistic)?",
+    "rationale": "Unit tests for enum preprocessor and plugin pipeline are easier to write and faster to run. But integration tests (full .dingo → .go → compile → run) catch more issues. Recommended: Start with unit tests for quick iteration, add integration tests before merging."
+  },
+  {
+    "question": "Error Handling: Should preprocessor fail loudly on invalid enum syntax, or silently skip and let parser handle it?",
+    "rationale": "If enum preprocessor encounters malformed enum syntax, should it return an error (strict) or leave it unchanged (lenient)? Strict mode gives better error messages but may be fragile. Lenient mode is more robust but errors are harder to debug."
+  },
+  {
+    "question": "Performance: Should we optimize for single-file compilation or batch compilation?",
+    "rationale": "Current architecture processes one file at a time. For large projects, batch compilation (compile all .dingo files together) would enable cross-file type inference and optimization. But adds complexity. Defer to Phase 3?"
+  }
+]

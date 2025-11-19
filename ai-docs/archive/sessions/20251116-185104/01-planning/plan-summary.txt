@@ -1,0 +1,56 @@
+Phase 1.6 Final Implementation Plan - Summary
+=============================================
+
+SCOPE: Complete error propagation operator (?) with ALL features in one phase
+
+KEY DECISIONS:
+• Plugin architecture - Enhance existing ErrorPropagationPlugin (no new transformer package)
+• Full go/types integration - Comprehensive type inference for accurate zero values
+• Complete feature set - Statement context, expression context, error wrapping, VLQ source maps
+• Timeline: 8 working days (conservative), 6 days (optimistic)
+
+IMPLEMENTATION ORDER:
+1. Parser enhancement (error message syntax) - 1 day
+2. Type inference with go/types - 2 days
+3. Statement lifter (expression context) - 1.5 days
+4. Error wrapper (fmt.Errorf generation) - 1 day
+5. Discovery pass (multi-pass orchestration) - 1 day
+6. Transformation pass (core logic) - 2 days
+7. VLQ source map encoding - 1.5 days
+8. Generator integration - 1 day
+9. End-to-end testing (6+ golden files) - 1.5 days
+10. Documentation - 1 day
+
+DELIVERABLES:
+✅ All ? operator contexts work (statement, expression, nested)
+✅ Error wrapping: expr? "message" generates fmt.Errorf
+✅ Accurate zero values for all Go types via go/types
+✅ VLQ-encoded source maps (.go.map files)
+✅ 100+ tests, 6+ golden file tests, all code compiles
+✅ Complete documentation and examples
+
+ARCHITECTURE:
+Enhanced plugin with multi-pass transformation:
+• Pass 1: Discover all ? expressions, determine context
+• Pass 2: Resolve types using go/types package
+• Pass 3: Transform and inject statements, record source maps
+
+NEW FILES:
+• pkg/plugin/builtin/type_inference.go - go/types integration
+• pkg/plugin/builtin/statement_lifter.go - Expression context handling
+• pkg/plugin/builtin/error_wrapper.go - Error message wrapping
+• tests/error_propagation_e2e_test.go - Integration tests
+• tests/golden/*.{dingo,go.golden} - Golden file tests
+
+MODIFIED FILES:
+• pkg/plugin/builtin/error_propagation.go - Multi-pass implementation
+• pkg/parser/participle.go - Parse error messages
+• pkg/ast/ast.go - Add Message field
+• pkg/generator/generator.go - Source map integration
+• pkg/sourcemap/generator.go - VLQ encoding
+
+RISK MITIGATION:
+• Use golang.org/x/tools/go/ast/astutil for safe AST mutations
+• Use github.com/go-sourcemap/sourcemap for VLQ (battle-tested)
+• Graceful degradation for complex type inference
+• Comprehensive test coverage (>80%)

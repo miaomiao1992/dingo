@@ -1,0 +1,69 @@
+=== RUN   TestIntegrationPhase4EndToEnd
+=== RUN   TestIntegrationPhase4EndToEnd/pattern_match_rust_syntax
+    integration_phase4_test.go:441: Type checker: test.go:5:21: undefined: Result_int_error
+    integration_phase4_test.go:441: Type checker: test.go:9:23: undefined: ResultTagOk
+    integration_phase4_test.go:441: Type checker: test.go:13:23: undefined: ResultTagErr
+    integration_phase4_test.go:441: Type checker: test.go:20:1: missing return
+    golden_test.go:33: DEBUG: Type inference service updated with go/types information
+    golden_test.go:33: DEBUG: Result plugin: go/types integration enabled (Fix A5)
+    integration_phase4_test.go:116: Expected default panic for exhaustive match, but not found
+    integration_phase4_test.go:119: ✓ Pattern match integration test passed
+=== RUN   TestIntegrationPhase4EndToEnd/pattern_match_non_exhaustive_error
+    integration_phase4_test.go:179: Expected non-exhaustive match error, but no errors reported
+=== RUN   TestIntegrationPhase4EndToEnd/none_context_inference_return
+    integration_phase4_test.go:441: Type checker: test.go:3:25: undefined: Option_int
+    integration_phase4_test.go:441: Type checker: test.go:5:10: undefined: None
+    integration_phase4_test.go:441: Type checker: test.go:7:9: undefined: Some
+    golden_test.go:33: DEBUG: Type inference service updated with go/types information
+    golden_test.go:33: DEBUG: None context plugin: go/types integration enabled
+    golden_test.go:33: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:29: ERROR: Cannot infer Option type for None constant at test.go:5:10
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    golden_test.go:33: DEBUG: Some(int): value is non-addressable (literal), wrapping in IIFE
+    golden_test.go:33: DEBUG: Transforming Some(int) → Option_int{tag: OptionTag_Some, some_0: <addressable-value>}
+    golden_test.go:33: DEBUG: Generated replacement AST: &{Option_int 0 [0x140002b4ea0 0x140002b4ed0] 0 false}
+    integration_phase4_test.go:252: Expected None to infer type from return, but got errors: [Cannot infer Option type for None constant at test.go:5:10
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 74)]
+    integration_phase4_test.go:293: ✓ None context inference test passed
+=== RUN   TestIntegrationPhase4EndToEnd/combined_pattern_match_and_none
+    integration_phase4_test.go:441: Type checker: test.go:3:16: undefined: Result_string_error
+    integration_phase4_test.go:441: Type checker: test.go:3:37: undefined: Option_int
+    integration_phase4_test.go:441: Type checker: test.go:7:23: undefined: ResultTagOk
+    integration_phase4_test.go:441: Type checker: test.go:11:9: undefined: Some
+    integration_phase4_test.go:441: Type checker: test.go:13:9: undefined: None
+    integration_phase4_test.go:441: Type checker: test.go:14:23: undefined: ResultTagErr
+    integration_phase4_test.go:441: Type checker: test.go:16:4: no new variables on left side of :=
+    integration_phase4_test.go:441: Type checker: test.go:17:9: undefined: None
+    integration_phase4_test.go:441: Type checker: test.go:21:1: missing return
+    golden_test.go:33: DEBUG: Type inference service updated with go/types information
+    golden_test.go:33: DEBUG: Result plugin: go/types integration enabled (Fix A5)
+    golden_test.go:33: DEBUG: Type inference service updated with go/types information
+    golden_test.go:33: DEBUG: None context plugin: go/types integration enabled
+    golden_test.go:37: WARN: Type inference failed for Some(len(...)): function call requires go/types for return type inference, using interface{}
+    golden_test.go:33: DEBUG: Some(interface{}): value is non-addressable (literal), wrapping in IIFE
+    golden_test.go:33: DEBUG: Transforming Some(interface{}) → Option_interface{}{tag: OptionTag_Some, some_0: <addressable-value>}
+    golden_test.go:33: DEBUG: Generated replacement AST: &{Option_interface{} 0 [0x140002d1140 0x140002d1170] 0 false}
+    golden_test.go:33: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:29: ERROR: Cannot infer Option type for None constant at test.go:13:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    golden_test.go:33: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:29: ERROR: Cannot infer Option type for None constant at test.go:17:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    integration_phase4_test.go:371: Expected no errors, but got: [Cannot infer Option type for None constant at test.go:13:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 243) Cannot infer Option type for None constant at test.go:17:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 340)]
+    integration_phase4_test.go:418: ✓ Combined pattern match + None inference test passed
+--- FAIL: TestIntegrationPhase4EndToEnd (0.05s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/pattern_match_rust_syntax (0.05s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/pattern_match_non_exhaustive_error (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/none_context_inference_return (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/combined_pattern_match_and_none (0.00s)
+FAIL
+FAIL	github.com/MadAppGang/dingo/tests	0.268s
+FAIL

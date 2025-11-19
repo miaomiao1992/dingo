@@ -3,137 +3,137 @@ package main
 type OptionTag uint8
 
 const (
-	OptionTag_Some OptionTag = iota
-	OptionTag_None
+	OptionTagSome OptionTag = iota
+	OptionTagNone
 )
 
 type Option struct {
 	tag    OptionTag
-	some_0 *int
+	some *int
 }
 
 func Option_Some(arg0 int) Option {
-	return Option{tag: OptionTag_Some, some_0: &arg0}
+	return Option{tag: OptionTagSome, some: &arg0}
 }
 func Option_None() Option {
-	return Option{tag: OptionTag_None}
+	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
-	return e.tag == OptionTag_Some
+	return e.tag == OptionTagSome
 }
 func (e Option) IsNone() bool {
-	return e.tag == OptionTag_None
+	return e.tag == OptionTagNone
 }
 
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
 	tag   ResultTag
-	ok_0  *int
-	err_0 *error
+	ok  *int
+	err *error
 }
 func Result_Ok(arg0 int) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 
 // Using 'where' keyword (Swift-style)
 func analyzeValue(opt Option) string {
-	var __match_result_0 interface{}
+	var result interface{}
 
-	__match_0 := opt
-	switch __match_0.tag {
-	case OptionTag_Some:
-		x := *__match_0.some_0
+	scrutinee := opt
+	switch scrutinee.tag {
+	case OptionTagSome:
+		x := *scrutinee.some
 
 		if x > 100 {
-			__match_result_0 = "large"
+			result = "large"
 
 		} else if x > 10 {
-			__match_result_0 = "medium"
+			result = "medium"
 
 		} else if x > 0 {
-			__match_result_0 = "small"
+			result = "small"
 
 		} else {
-			__match_result_0 = "non-positive"
+			result = "non-positive"
 		}
-	case OptionTag_None:
+	case OptionTagNone:
 
-		__match_result_0 = "none"
+		result = "none"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_0
+	return result
 
 }
 
 // Simple pattern with where guards (NOT nested)
 func processResult(result Result) string {
-	var __match_result_1 interface{}
+	var result2 interface{}
 
-	__match_1 := result
-	switch __match_1.tag {
-	case ResultTag_Ok:
-		val := *__match_1.ok_0
+	scrutinee2 := result
+	switch scrutinee2.tag {
+	case ResultTagOk:
+		val := *scrutinee2.ok
 
 		if val > 100 {
-			__match_result_1 = "large value"
+			result2 = "large value"
 
 		} else if val > 0 {
-			__match_result_1 = "positive value"
+			result2 = "positive value"
 
 		} else {
-			__match_result_1 = "non-positive value"
+			result2 = "non-positive value"
 		}
-	case ResultTag_Err:
+	case ResultTagErr:
 
-		__match_result_1 = "error"
+		result2 = "error"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_1
+	return result2
 
 }
 
 // Guard fallthrough demonstration
 func categorize(opt Option) string {
-	var __match_result_2 interface{}
+	var result3 interface{}
 
-	__match_2 := opt
-	switch __match_2.tag {
-	case OptionTag_Some:
-		x := *__match_2.some_0
+	scrutinee3 := opt
+	switch scrutinee3.tag {
+	case OptionTagSome:
+		x := *scrutinee3.some
 
 		if x%3 == 0 && x%5 == 0 {
-			__match_result_2 = "fizzbuzz"
+			result3 = "fizzbuzz"
 
 		} else if x%3 == 0 {
-			__match_result_2 = "fizz"
+			result3 = "fizz"
 
 		} else if x%5 == 0 {
-			__match_result_2 = "buzz"
+			result3 = "buzz"
 
 		} else {
-			__match_result_2 = "number"
+			result3 = "number"
 		}
-	case OptionTag_None:
+	case OptionTagNone:
 
-		__match_result_2 = "empty"
+		result3 = "empty"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_2
+	return result3
 
 }
 func main() {

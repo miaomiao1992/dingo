@@ -1,0 +1,81 @@
+Golden File Generation - Final Status
+=======================================
+
+COMPLETED: 3/7 files successfully generated
+BLOCKED: 4/7 files blocked on transpiler bugs
+
+✅ SUCCESSFULLY GENERATED (3 files):
+1. pattern_match_09_tuple_pairs.go.golden (1502 bytes) - ✅ Tests PASS
+2. pattern_match_10_tuple_triples.go.golden (1743 bytes) - ✅ Tests PASS
+3. pattern_match_11_tuple_wildcards.go.golden (1828 bytes) - ⚠️ Non-deterministic (see below)
+
+❌ BLOCKED ON TRANSPILER BUGS (4 files):
+1. pattern_match_01_simple.dingo
+   - Error: Line 103: expected operand, found ','
+   - Cause: Preprocessor generates invalid Go syntax for basic match expressions
+
+2. pattern_match_03_nested.dingo
+   - Error: Line 62: missing ',' in argument list (5+ errors)
+   - Cause: Nested match expression transformation bug
+
+3. pattern_match_06_guards_nested.dingo
+   - Error: Line 93: missing ',' in argument list (10+ errors)
+   - Cause: Guard condition handling in preprocessor
+
+4. pattern_match_12_tuple_exhaustiveness.dingo
+   - Error: Line 149: no pattern arms found
+   - Cause: Pattern arm parsing fails in preprocessor
+
+⚠️ CRITICAL ISSUE DISCOVERED: Non-Deterministic Output
+========================================================
+
+The pattern match plugin generates DIFFERENT code on each transpilation run.
+Specifically, the ordering of switch case statements changes randomly.
+
+**Evidence**:
+- File pattern_match_11_tuple_wildcards.dingo transpiles successfully
+- Output compiles successfully
+- Golden test FAILS because output differs from previous run
+- Re-running transpiler produces different switch case order
+
+**Impact**:
+- Golden tests are unreliable (fail even when code is correct)
+- Cannot guarantee idempotent transpilation
+- Debugging is difficult (can't reproduce exact output)
+
+**Root Cause**:
+The PatternMatchPlugin likely uses Go map iteration (which is randomized)
+to generate switch cases, causing non-deterministic ordering.
+
+**Required Fix**:
+1. Ensure pattern match plugin generates deterministic output
+2. Sort switch cases consistently (by tag value or pattern order)
+3. Regenerate all pattern match golden files after fix
+
+TEST RESULTS:
+=============
+
+Compilation Tests: ✅ 3/3 PASS
+- All 3 generated files compile successfully
+- No Go syntax errors
+- Type checking passes
+
+Golden Diff Tests: ⚠️ 2/3 PASS (non-determinism)
+- pattern_match_09_tuple_pairs: ✅ PASS (sometimes)
+- pattern_match_10_tuple_triples: ✅ PASS (sometimes)
+- pattern_match_11_tuple_wildcards: ❌ FAIL (non-deterministic)
+
+SUMMARY:
+========
+
+**Immediate Deliverables**: 3 golden files created (42.9% success rate)
+
+**Blocking Issues**:
+1. Preprocessor bugs preventing 4 files from transpiling (57.1% failure rate)
+2. Non-deterministic output making golden tests unreliable
+
+**Next Steps**:
+1. Fix non-determinism in PatternMatchPlugin (CRITICAL)
+2. Fix rust_match preprocessor bugs (4 failing files)
+3. Regenerate all 7 golden files with fixed transpiler
+4. Verify 14/14 pattern match tests pass consistently

@@ -1,0 +1,34 @@
+[
+  {
+    "question": "Should we defer 'None' constant handling to Phase 4, or implement basic None() function call syntax in Phase 3?",
+    "rationale": "The golden test 'option_01_basic.dingo' uses 'Option_None()' function call syntax, but the design shows 'None' as a constant. Implementing proper constant detection requires type context (which Option_T?), which is complex. We can either: (1) Accept Option_None() syntax for now, or (2) Implement type-context-aware None constant detection. Option 1 is simpler and gets tests passing."
+  },
+  {
+    "question": "What is the acceptable performance overhead for go/types integration?",
+    "rationale": "Running go/types type checker adds a compilation step. We should establish a performance budget (e.g., <20% slowdown in transpilation time). If exceeded, we may need to implement caching or lazy type checking. Baseline measurements needed before implementation."
+  },
+  {
+    "question": "Should we handle partial type checking failures gracefully or fail fast?",
+    "rationale": "go/types may fail on Dingo-specific syntax (enums, ? operator remnants, etc.). Current plan uses graceful degradation (collect errors, continue). Alternative: Fail fast if >X% of expressions can't be typed. Which approach aligns better with user expectations?"
+  },
+  {
+    "question": "Do we need IIFE for composite literals in all cases, or only when used in expression context?",
+    "rationale": "The plan wraps all non-addressable expressions in IIFE. For composite literals like 'User{name: \"Bob\"}', we could detect statement vs expression context and only use IIFE in expression context. This would generate cleaner code in statement contexts. Is the added complexity worth it?"
+  },
+  {
+    "question": "Should advanced helper methods (Map, Filter, AndThen, etc.) be part of Phase 3 or deferred to Phase 4?",
+    "rationale": "The plan defers these to Phase 4. However, 8 builtin plugin tests expect these methods. We could: (1) Keep tests skipped and defer implementation, (2) Implement basic versions now, or (3) Remove tests entirely. Which aligns with Phase 3 scope?"
+  },
+  {
+    "question": "What should happen when type inference fails completely (no go/types, no heuristics)?",
+    "rationale": "Current behavior: Fall back to 'interface{}'. Alternative: Generate compile error with message 'Cannot infer type for Ok(expr), please provide type annotation'. Which provides better user experience? Note: Type annotations aren't implemented yet, so interface{} may be the only option."
+  },
+  {
+    "question": "Should we integrate go/types only for Result/Option plugins, or make it available to all plugins?",
+    "rationale": "The plan adds TypeInferenceService to plugin.Context, making it available to all plugins. This is forward-looking (future plugins may need it), but increases surface area. Alternative: Keep it private to Result/Option for now, generalize in Phase 4 when other plugins need it."
+  },
+  {
+    "question": "How should we handle Result<T,E> where E is not an error type?",
+    "rationale": "Current implementation assumes E is always 'error' or error-compatible. Rust allows Result<T,E> with any E type. Should we: (1) Validate E implements error interface, (2) Allow any E type, or (3) Keep current behavior (assume error)? This affects type inference logic."
+  }
+]

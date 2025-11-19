@@ -7,57 +7,57 @@ import (
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
 	tag   ResultTag
-	ok_0  *int
-	err_0 *error
+	ok  *int
+	err *error
 }
 
 func Result_Ok(arg0 int) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 func processResults(r1 Result, r2 Result) string {
 
-	__match_0_elem0, __match_0_elem1 := r1, r2
+	elem0, elem1 := r1, r2
 
-	switch __match_0_elem0.tag {
-	case ResultTag_Err:
-		switch __match_0_elem1.tag {
-		case ResultTag_Err:
+	switch elem0.tag {
+	case ResultTagErr:
+		switch elem1.tag {
+		case ResultTagErr:
 
-			e1 := *__match_0_elem0.err0
-			e2 := *__match_0_elem1.err0
+			e1 := *elem0.err
+			e2 := *elem1.err
 			return "Both failed: " + e1.Error() + ", " + e2.Error()
-		case ResultTag_Ok:
+		case ResultTagOk:
 
-			e := *__match_0_elem0.err0
-			y := *__match_0_elem1.ok0
+			e := *elem0.err
+			y := *elem1.ok
 			return "First failed: " + e.Error() + ", second succeeded: " + string(y)
 		}
-	case ResultTag_Ok:
-		switch __match_0_elem1.tag {
-		case ResultTag_Err:
+	case ResultTagOk:
+		switch elem1.tag {
+		case ResultTagErr:
 
-			x := *__match_0_elem0.ok0
-			e := *__match_0_elem1.err0
+			x := *elem0.ok
+			e := *elem1.err
 			return "First succeeded: " + string(x) + ", second failed: " + e.Error()
-		case ResultTag_Ok:
+		case ResultTagOk:
 
-			x := *__match_0_elem0.ok0
-			y := *__match_0_elem1.ok0
+			x := *elem0.ok
+			y := *elem1.ok
 			return "Both succeeded: " + string(x) + ", " + string(y)
 		}
 	}

@@ -1,0 +1,1 @@
+Consult Gemini 3 Pro for advice on naming conventions for enum variants in Dingo, a Go transpiler with sum types. Questions: 1. Should enum variants follow PascalCase? 2. Benefits of distinguishing variants? 3. Other languages (Rust, Swift, Kotlin)? 4. Readability/usability implications? 5. Ambiguities?

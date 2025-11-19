@@ -1,0 +1,24 @@
+=== RUN   TestEnumProcessor_SimpleEnum
+--- PASS: TestEnumProcessor_SimpleEnum (0.00s)
+=== RUN   TestEnumProcessor_StructVariant
+--- PASS: TestEnumProcessor_StructVariant (0.00s)
+=== RUN   TestEnumProcessor_GenericEnum
+--- PASS: TestEnumProcessor_GenericEnum (0.00s)
+=== RUN   TestEnumProcessor_MultipleEnums
+--- PASS: TestEnumProcessor_MultipleEnums (0.00s)
+=== RUN   TestEnumProcessor_NoEnums
+--- PASS: TestEnumProcessor_NoEnums (0.00s)
+=== RUN   TestEnumProcessor_WithComments
+--- PASS: TestEnumProcessor_WithComments (0.00s)
+=== RUN   TestEnumProcessor_ComplexTypes
+--- PASS: TestEnumProcessor_ComplexTypes (0.00s)
+=== RUN   TestEnumProcessor_EdgeCases
+=== RUN   TestEnumProcessor_EdgeCases/single_variant
+=== RUN   TestEnumProcessor_EdgeCases/trailing_comma
+=== RUN   TestEnumProcessor_EdgeCases/no_trailing_comma
+--- PASS: TestEnumProcessor_EdgeCases (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/single_variant (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/trailing_comma (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/no_trailing_comma (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/preprocessor	(cached)

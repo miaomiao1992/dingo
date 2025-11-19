@@ -1,0 +1,111 @@
+=== RUN   TestSafeNavigation
+=== RUN   TestSafeNavigation/simple_safe_navigation
+=== RUN   TestSafeNavigation/chained_safe_navigation
+--- PASS: TestSafeNavigation (0.00s)
+    --- PASS: TestSafeNavigation/simple_safe_navigation (0.00s)
+    --- PASS: TestSafeNavigation/chained_safe_navigation (0.00s)
+=== RUN   TestNullCoalescing
+=== RUN   TestNullCoalescing/simple_null_coalescing
+=== RUN   TestNullCoalescing/chained_null_coalescing
+=== RUN   TestNullCoalescing/null_coalescing_with_expression
+--- PASS: TestNullCoalescing (0.00s)
+    --- PASS: TestNullCoalescing/simple_null_coalescing (0.00s)
+    --- PASS: TestNullCoalescing/chained_null_coalescing (0.00s)
+    --- PASS: TestNullCoalescing/null_coalescing_with_expression (0.00s)
+=== RUN   TestTernary
+    new_features_test.go:74: Ternary parsing not yet implemented - deferred to Phase 3+
+--- SKIP: TestTernary (0.00s)
+=== RUN   TestLambda
+=== RUN   TestLambda/rust_style_single_param
+=== RUN   TestLambda/rust_style_multiple_params
+=== RUN   TestLambda/rust_style_no_params
+=== RUN   TestLambda/rust_style_with_type_annotation
+=== RUN   TestLambda/arrow_style_single_param
+=== RUN   TestLambda/arrow_style_multiple_params
+=== RUN   TestLambda/arrow_style_no_params
+--- PASS: TestLambda (0.00s)
+    --- PASS: TestLambda/rust_style_single_param (0.00s)
+    --- PASS: TestLambda/rust_style_multiple_params (0.00s)
+    --- PASS: TestLambda/rust_style_no_params (0.00s)
+    --- PASS: TestLambda/rust_style_with_type_annotation (0.00s)
+    --- PASS: TestLambda/arrow_style_single_param (0.00s)
+    --- PASS: TestLambda/arrow_style_multiple_params (0.00s)
+    --- PASS: TestLambda/arrow_style_no_params (0.00s)
+=== RUN   TestOperatorPrecedence
+=== RUN   TestOperatorPrecedence/ternary_lower_than_null_coalescing
+    new_features_test.go:204: Requires ternary parsing (deferred to Phase 3+)
+=== RUN   TestOperatorPrecedence/null_coalescing_lower_than_comparison
+=== RUN   TestOperatorPrecedence/safe_navigation_with_error_propagation
+=== RUN   TestOperatorPrecedence/ternary_with_safe_navigation
+    new_features_test.go:204: Requires ternary parsing (deferred to Phase 3+)
+=== RUN   TestOperatorPrecedence/complex_expression
+    new_features_test.go:204: Requires ternary parsing (deferred to Phase 3+)
+--- PASS: TestOperatorPrecedence (0.00s)
+    --- SKIP: TestOperatorPrecedence/ternary_lower_than_null_coalescing (0.00s)
+    --- PASS: TestOperatorPrecedence/null_coalescing_lower_than_comparison (0.00s)
+    --- PASS: TestOperatorPrecedence/safe_navigation_with_error_propagation (0.00s)
+    --- SKIP: TestOperatorPrecedence/ternary_with_safe_navigation (0.00s)
+    --- SKIP: TestOperatorPrecedence/complex_expression (0.00s)
+=== RUN   TestOperatorChaining
+=== RUN   TestOperatorChaining/multiple_safe_navigation
+=== RUN   TestOperatorChaining/multiple_null_coalescing
+=== RUN   TestOperatorChaining/safe_navigation_with_method_chains
+    new_features_test.go:246: Method calls after safe navigation not yet supported - deferred to Phase 3 (known edge case)
+=== RUN   TestOperatorChaining/mixed_operators
+--- PASS: TestOperatorChaining (0.00s)
+    --- PASS: TestOperatorChaining/multiple_safe_navigation (0.00s)
+    --- PASS: TestOperatorChaining/multiple_null_coalescing (0.00s)
+    --- SKIP: TestOperatorChaining/safe_navigation_with_method_chains (0.00s)
+    --- PASS: TestOperatorChaining/mixed_operators (0.00s)
+=== RUN   TestLambdaInExpressions
+=== RUN   TestLambdaInExpressions/lambda_with_null_coalescing
+--- PASS: TestLambdaInExpressions (0.00s)
+    --- PASS: TestLambdaInExpressions/lambda_with_null_coalescing (0.00s)
+=== RUN   TestFullProgram
+=== RUN   TestFullProgram/function_with_safe_navigation
+    new_features_test.go:339: ParseFile() error = test.dingo:2:22: missing ',' in parameter list (and 5 more errors)
+=== RUN   TestFullProgram/function_with_ternary
+    new_features_test.go:332: Requires ternary parsing (deferred to Phase 3+)
+=== RUN   TestFullProgram/function_with_lambda
+    new_features_test.go:339: ParseFile() error = test.dingo:3:6: expected ';', found double
+=== RUN   TestFullProgram/mixed_operators
+    new_features_test.go:332: Requires ternary parsing (deferred to Phase 3+)
+--- FAIL: TestFullProgram (0.00s)
+    --- FAIL: TestFullProgram/function_with_safe_navigation (0.00s)
+    --- SKIP: TestFullProgram/function_with_ternary (0.00s)
+    --- FAIL: TestFullProgram/function_with_lambda (0.00s)
+    --- SKIP: TestFullProgram/mixed_operators (0.00s)
+=== RUN   TestDisambiguation
+=== RUN   TestDisambiguation/question_mark_-_error_propagation
+=== RUN   TestDisambiguation/question_mark_dot_-_safe_navigation
+=== RUN   TestDisambiguation/double_question_mark_-_null_coalescing
+=== RUN   TestDisambiguation/question_colon_-_ternary
+    new_features_test.go:380: Requires ternary parsing (deferred to Phase 3+)
+--- PASS: TestDisambiguation (0.00s)
+    --- PASS: TestDisambiguation/question_mark_-_error_propagation (0.00s)
+    --- PASS: TestDisambiguation/question_mark_dot_-_safe_navigation (0.00s)
+    --- PASS: TestDisambiguation/double_question_mark_-_null_coalescing (0.00s)
+    --- SKIP: TestDisambiguation/question_colon_-_ternary (0.00s)
+=== RUN   TestParseHelloWorld
+    parser_test.go:27: ParseFile failed: hello.dingo:4:6: expected ';', found message (and 1 more errors)
+--- FAIL: TestParseHelloWorld (0.00s)
+=== RUN   TestParseExpression
+=== RUN   TestParseExpression/simple_add
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+=== RUN   TestParseExpression/multiply
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+=== RUN   TestParseExpression/comparison
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+=== RUN   TestParseExpression/function_call
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+=== RUN   TestParseExpression/complex
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+--- PASS: TestParseExpression (0.00s)
+    --- SKIP: TestParseExpression/simple_add (0.00s)
+    --- SKIP: TestParseExpression/multiply (0.00s)
+    --- SKIP: TestParseExpression/comparison (0.00s)
+    --- SKIP: TestParseExpression/function_call (0.00s)
+    --- SKIP: TestParseExpression/complex (0.00s)
+FAIL
+FAIL	github.com/MadAppGang/dingo/pkg/parser	0.195s
+FAIL

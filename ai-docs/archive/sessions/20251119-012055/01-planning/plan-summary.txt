@@ -1,0 +1,17 @@
+Phase 4 Priority 2 & 3 Final Plan Summary
+
+Implementation Approach: Sequential (1→2→3→4) over 5-8 days for maximum safety
+go/types Handling: STRICT - Compilation fails with clear error if go/types.Info unavailable
+Guard Validation: STRICT - Invalid guards cause compile errors (boolean type check)
+Guard Scope: RELAXED - Allows outer scope variable references (e.g., threshold from parent scope)
+
+Task Breakdown:
+1. Implement 4 context type helpers (2-3 days) - Foundation for 90%+ None inference
+2. Pattern match scrutinee go/types integration (1 day) - Accurate type detection for aliases
+3. Err() context-based inference (1-2 days) - Eliminates Result_interface_error
+4. Guard validation with outer scope (1-2 days) - Complete guard support, remove 2 TODOs
+
+Key Decision: No fallback mode. If go/types unavailable, fail fast with actionable error.
+Success Metrics: None coverage 50%→90%, pattern accuracy 85%→95%, Err() correctness 0%→80%
+
+All infrastructure exists. Implementation is straightforward with thorough validation checkpoints.

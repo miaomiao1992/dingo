@@ -2,8 +2,9 @@
 
 This document provides a comprehensive overview of all planned features for the Dingo language, organized by priority, complexity, and implementation status.
 
-**Last Updated:** 2025-11-16
-**Phase:** Phase 0 → Phase 1 Transition
+**Last Updated:** 2025-11-19
+**Phase:** Phase V Complete - Infrastructure & Developer Experience (Ready for v1.0)
+**Status Source of Truth:** See CLAUDE.md for current implementation phase and test results (92.2% passing rate, 245/266 tests)
 **Philosophy:** As a meta-language, Dingo can implement features Go rejected, as long as they transpile cleanly
 
 ---
@@ -41,23 +42,29 @@ This document provides a comprehensive overview of all planned features for the 
 
 | Priority | Feature | Complexity | Timeline | Community Demand | Status | File |
 |----------|---------|------------|----------|------------------|--------|------|
+| **ARCH** | Type Annotations (`param: Type`) | 🟢 Low | 1 week | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 1) | Preprocessor-based |
+| **ARCH** | Generic Syntax (`<T>` → `[T]`) | 🟢 Low | 1 week | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 2) | Rust-style generics |
+| **ARCH** | Keywords (`let`, `use`) | 🟢 Low | 1 week | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 1) | Preprocessor-based |
+| **ARCH** | Source Maps | 🟡 Medium | 2 weeks | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 5) | LSP position mapping |
+| **ARCH** | Workspace Builds | 🟡 Medium | 2 weeks | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 5) | Multi-package support |
+| **ARCH** | Unqualified Imports | 🟢 Low | 1 week | ⭐⭐⭐⭐ | ✅ Implemented (Phase 5) | Stdlib function resolution |
 | **ARCH** | File Organization | 🟡 Medium | 4 weeks (Phase 1) | ⭐⭐⭐⭐⭐ | ✅ Designed | [file-organization.md](./file-organization.md) |
-| **ARCH** | Parser Architecture | 🟠 High | 5-6 weeks | ⭐⭐⭐⭐⭐ | ✅ Designed | [architecture-plan.md](./architecture-plan.md) |
+| **ARCH** | Parser Architecture | 🟠 High | 5-6 weeks | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 2) | [architecture-plan.md](./architecture-plan.md) |
 
 ### Language Features
 
 | Priority | Feature | Complexity | Timeline | Community Demand | Status | File |
 |----------|---------|------------|----------|------------------|--------|------|
-| **P0** | Result Type | 🟡 Medium | 2-3 weeks | ⭐⭐⭐⭐⭐ (#1 issue) | 🔴 Not Started | [result-type.md](./result-type.md) |
-| **P0** | Error Propagation (`?`) | 🟢 Low | 1-2 weeks | ⭐⭐⭐⭐⭐ | 🔴 Not Started | [error-propagation.md](./error-propagation.md) |
-| **P0** | Option Type | 🟡 Medium | 2-3 weeks | ⭐⭐⭐⭐⭐ | 🔴 Not Started | [option-type.md](./option-type.md) |
-| **P0** | Pattern Matching | 🟠 High | 3-4 weeks | ⭐⭐⭐⭐⭐ | 🔴 Not Started | [pattern-matching.md](./pattern-matching.md) |
-| **P0** | Sum Types | 🟠 High | 3-4 weeks | ⭐⭐⭐⭐⭐ (996+ 👍) | 🔴 Not Started | [sum-types.md](./sum-types.md) |
-| **P1** | Type-Safe Enums | 🟡 Medium | 1-2 weeks | ⭐⭐⭐⭐⭐ (900+ 👍) | 🔴 Not Started | [enums.md](./enums.md) |
+| **P0** | Result Type | 🟡 Medium | 2-3 weeks | ⭐⭐⭐⭐⭐ (#1 issue) | ✅ Implemented (Phase 2) | [result-type.md](./result-type.md) |
+| **P0** | Error Propagation (`?`) | 🟢 Low | 1-2 weeks | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 2) | [error-propagation.md](./error-propagation.md) |
+| **P0** | Option Type | 🟡 Medium | 2-3 weeks | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 2) | [option-type.md](./option-type.md) |
+| **P0** | Pattern Matching | 🟠 High | 3-4 weeks | ⭐⭐⭐⭐⭐ | ✅ Implemented (Phase 4) | [pattern-matching.md](./pattern-matching.md) |
+| **P0** | Sum Types | 🟠 High | 3-4 weeks | ⭐⭐⭐⭐⭐ (996+ 👍) | ✅ Implemented (Phase 3) | [sum-types.md](./sum-types.md) |
+| **P1** | Type-Safe Enums | 🟡 Medium | 1-2 weeks | ⭐⭐⭐⭐⭐ (900+ 👍) | ✅ Implemented (Phase 3) | [enums.md](./enums.md) |
 | **P1** | Lambda/Arrow Functions | 🟡 Medium | 2-3 weeks | ⭐⭐⭐⭐ (750+ 👍) | 🔴 Not Started | [lambdas.md](./lambdas.md) |
 | **P1** | Null Safety (`?.`) | 🟡 Medium | 2 weeks | ⭐⭐⭐⭐ | 🔴 Not Started | [null-safety.md](./null-safety.md) |
 | **P2** | Functional Utilities | 🟢 Low | 1 week | ⭐⭐⭐ | 🔴 Not Started | [functional-utilities.md](./functional-utilities.md) |
-| **P2** | Tuples | 🟡 Medium | 1-2 weeks | ⭐⭐⭐ | 🔴 Not Started | [tuples.md](./tuples.md) |
+| **P2** | Tuples | 🟡 Medium | 1-2 weeks | ⭐⭐⭐ | 🟡 Partial (10% - pattern matching only) | [tuples.md](./tuples.md) |
 | **P2** | Null Coalescing (`??`) | 🟢 Low | 2-3 days | ⭐⭐⭐ | 🔴 Not Started | [null-coalescing.md](./null-coalescing.md) |
 | **P2** | Immutability | 🔴 Very High | 4+ weeks | ⭐⭐⭐ | 🔴 Not Started | [immutability.md](./immutability.md) |
 | **P3** | Ternary Operator | 🟢 Low | 2-3 days | ⭐⭐ | 🔴 Not Started | [ternary-operator.md](./ternary-operator.md) |

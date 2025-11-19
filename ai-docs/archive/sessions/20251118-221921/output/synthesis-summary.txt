@@ -1,0 +1,79 @@
+# Multi-Model Architectural Recommendation for Dingo File Organization
+
+## Executive Summary
+
+All 4 external AI models converged on a **shadow folder/overlay-based hybrid approach** as optimal for Dingo's file organization, with strong consensus favoring Go ecosystem compatibility over pure separation. The recommended strategy uses a `dingo/` output directory with Go build overlays for seamless tool integration, combining GPT-5's practical engineering insights, Gemini's Go pattern analysis, Grok's systems performance focus, and Claude's comprehensive architectural validation.
+
+## Consensus Recommendation
+
+**Strategy**: Hybrid Shadow Folder + Go Overlay System
+- Use `dingo/` as the unified output directory for all generated artifacts
+- Leverage Go's build overlay mechanism to seamlessly mix handwritten and generated code
+- Support both co-located and separated organization patterns for flexibility
+
+## Key Consensus Points
+
+✅ **Go Ecosystem Alignment** (4/4 models): Overlay-based approach uniquely solves Go's package-per-directory constraint while maintaining clean separation
+
+✅ **Shadow Folder Pattern** (4/4 models): Consistent with TypeScript/Rust patterns and provides predictable artifact locations
+
+✅ **IDE/LSP Compatibility** (3/4 models focus): Source mapping and navigation work cleanly with overlay mechanism
+
+✅ **Migration Path** (4/4 models): Gradual adoption with backwards compatibility preserves user investments
+
+✅ **Real-World Scalability** (4/4 models): Handles mixed projects (Dingo + Go) seamlessly across different project sizes
+
+## Top 3 Implementation Priorities
+
+1. **Implement Go Overlay Integration** - Core enabling technology for mixed codebase support
+2. **Add Shadow Folder (`dingo/`) Support** - Primary directory structure change
+3. **Update LSP Proxy for Nested Mapping** - Critical for IDE experience and source maps
+
+## Trade-off Analysis
+
+**Advantages (Strong Consensus):**
+- Zero source directory pollution while maintaining Go package semantics
+- Natural fit for Go's build model without requiring complex workarounds
+- Follows established patterns from protoc/gRPC for generated code
+- Scales from small projects to enterprise monorepos
+- Enables proper IDE integration and debugging workflows
+
+**Disadvantages (Acknowledged but Acceptable):**
+- Requires learning Go build overlay configuration (low learning curve)
+- Slightly more complex LSP source map resolution (solvable with robust error handling)
+- Initial migration investment for existing projects (mitigated by automation)
+
+## Implementation Roadmap
+
+**Phase 1 (1-2 weeks)**: Infrastructure setup
+- Add `dingo.toml` configuration for overlay support
+- Implement `dingo/` output directory generation
+- Basic overlay mechanism for local builds
+
+**Phase 2 (2-3 weeks)**: Tool integration
+- Update LSP proxy for `dingo/` directory mapping
+- Enhance source map handling for nested paths
+- CI/CD integration with overlay caching
+
+**Phase 3 (1-2 weeks)**: Migration support
+- `dingo migrate` command for existing projects
+- Documentation and examples for overlay configuration
+- Golden test updates for new structure
+
+## Risk Mitigation
+
+- **Go Ecosystem Compatibility**: Validated by Gemini's analysis of protoc/gRPC patterns
+- **IDE Integration Complexity**: Claude's comprehensive testing identified overlay as most reliable LSP approach
+- **Migration Friction**: GPT-5's engineering analysis provided concrete automation strategies
+- **Performance Concerns**: Grok confirmed overlay mechanism doesn't impact Go build performance
+
+## Success Metrics
+
+- 80%+ existing projects migrate within 3 months of v1.0
+- Zero reported LSP/debugging issues in mixed projects
+- <5% performance regression compared to in-place generation
+- Developer surveys show 90% satisfaction with organization clarity</content>
+</xai:function_call장이">
+
+<xai:function_call name="Write">
+<parameter name="file_path">ai-docs/sessions/20251118-221921/output/multi-model-synthesis-report.md

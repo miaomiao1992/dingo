@@ -1,0 +1,26 @@
+VSCode Syntax Highlighting - Implementation Plan Summary
+=========================================================
+
+BLOCK-LEVEL MARKERS (Transpiler):
+- Add DINGO:GENERATED:START/END comments wrapping generated code blocks
+- Enabled by default, configurable via Config.EmitGeneratedMarkers
+- Markers are standard Go comments, survive go fmt, don't break tooling
+
+CONFIGURABLE VISUAL STYLES (VSCode Extension):
+- Settings: subtle (default), bold, outline, disabled
+- User can customize colors via dingo.generatedCodeColor settings
+- Highlighting appears in .go and .go.golden files automatically
+
+ENHANCED DINGO SYNTAX:
+- Special highlighting for error messages: expr? "custom message"
+- Muted colors for generated variables: __err0, __tmp0
+- Improved Result/Option type highlighting with constructors (Ok, Err, Some, None)
+
+TIMELINE: 4-5 weeks
+- Week 1: Transpiler marker injection
+- Week 2: VSCode extension core
+- Week 3: Enhanced syntax highlighting
+- Week 4: Golden file support + polish
+- Week 5: Testing & documentation
+
+READY TO BEGIN: Waiting for your approval to start Week 1.

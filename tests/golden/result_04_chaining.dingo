@@ -34,6 +34,6 @@ func processInput(input string) Result {
 func main() {
 	result := processInput("hello world")
 	if result.IsOk() {
-		println("Result:", *result.ok_0)
+		println("Result:", *result.ok)
 	}
 }

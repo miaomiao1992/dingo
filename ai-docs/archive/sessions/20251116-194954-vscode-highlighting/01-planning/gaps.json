@@ -1,0 +1,335 @@
+{
+  "questions": [
+    {
+      "id": "q1_marker_style",
+      "category": "design",
+      "question": "Which marker style do you prefer for generated code comments?",
+      "options": [
+        {
+          "label": "Line-level markers",
+          "description": "Each generated line gets `// DINGO:GENERATED` comment",
+          "pros": "Fine-grained, simple implementation",
+          "cons": "More verbose, clutters output"
+        },
+        {
+          "label": "Block-level markers",
+          "description": "Generated blocks wrapped with START/END comments",
+          "pros": "Cleaner for multi-line blocks",
+          "cons": "More complex generator logic"
+        },
+        {
+          "label": "Hybrid approach",
+          "description": "Block markers for multi-statement code, line markers for single expressions",
+          "pros": "Best of both worlds, self-documenting",
+          "cons": "Slightly more complex"
+        }
+      ],
+      "recommendation": "Hybrid approach (Option 3) for flexibility and clarity"
+    },
+    {
+      "id": "q2_marker_context",
+      "category": "implementation",
+      "question": "Should markers include contextual information about what they generated?",
+      "options": [
+        {
+          "label": "Minimal markers only",
+          "description": "Just `// DINGO:GENERATED:START` / `// DINGO:GENERATED:END`",
+          "pros": "Clean, minimal",
+          "cons": "Less informative"
+        },
+        {
+          "label": "Include generation type",
+          "description": "`// DINGO:GENERATED:START error_propagation`",
+          "pros": "Helps understand what was generated",
+          "cons": "Slightly longer"
+        },
+        {
+          "label": "Include full context",
+          "description": "`// DINGO:GENERATED:START error_propagation for ReadFile(path)?`",
+          "pros": "Very informative, great for debugging",
+          "cons": "Can be verbose"
+        }
+      ],
+      "recommendation": "Include generation type (Option 2) - good balance of information and brevity"
+    },
+    {
+      "id": "q3_default_style",
+      "category": "ux",
+      "question": "What should be the default visual style for generated code highlighting?",
+      "options": [
+        {
+          "label": "Subtle",
+          "description": "Light background color only (#3b82f620)",
+          "pros": "Non-intrusive, clean",
+          "cons": "Might be too subtle for some users"
+        },
+        {
+          "label": "Bold",
+          "description": "Background color + border",
+          "pros": "Very clear, hard to miss",
+          "cons": "Can be visually overwhelming"
+        },
+        {
+          "label": "Outline",
+          "description": "Border only, no background",
+          "pros": "Clear but not distracting",
+          "cons": "May not be visible in all themes"
+        }
+      ],
+      "recommendation": "Subtle (Option 1) as default, with easy setting to switch to others"
+    },
+    {
+      "id": "q4_marker_default",
+      "category": "configuration",
+      "question": "Should marker generation be enabled by default in the transpiler?",
+      "options": [
+        {
+          "label": "Enabled by default",
+          "description": "All transpiled files include markers unless disabled",
+          "pros": "VSCode highlighting works immediately",
+          "cons": "Adds comments to all generated code"
+        },
+        {
+          "label": "Disabled by default",
+          "description": "Users must opt-in via config flag",
+          "pros": "Cleaner output by default",
+          "cons": "Requires manual config for highlighting"
+        },
+        {
+          "label": "Dev mode only",
+          "description": "Enabled in dev builds, disabled in production",
+          "pros": "Best of both worlds",
+          "cons": "Need to define dev vs production"
+        }
+      ],
+      "recommendation": "Enabled by default (Option 1) - prioritize UX, comments are harmless"
+    },
+    {
+      "id": "q5_golden_icon",
+      "category": "ux",
+      "question": "Should .go.golden files have a distinct icon in the file explorer?",
+      "options": [
+        {
+          "label": "Yes, custom golden icon",
+          "description": "Create unique icon (e.g., gold/yellow colored Go gopher)",
+          "pros": "Instantly recognizable, visually distinct",
+          "cons": "Requires icon design"
+        },
+        {
+          "label": "Use standard Go icon",
+          "description": "Treat as regular Go files visually",
+          "pros": "Simple, no extra work",
+          "cons": "Less visual distinction"
+        },
+        {
+          "label": "Use test file icon",
+          "description": "Similar to *_test.go files",
+          "pros": "Indicates test-related nature",
+          "cons": "Might confuse with actual test files"
+        }
+      ],
+      "recommendation": "Yes, custom golden icon (Option 1) - helps users navigate test files"
+    },
+    {
+      "id": "q6_syntax_priorities",
+      "category": "features",
+      "question": "Which .dingo syntax highlighting improvements are highest priority?",
+      "options": [
+        {
+          "label": "Error propagation operator (?)",
+          "description": "Make ? operator more visually distinct",
+          "importance": "high"
+        },
+        {
+          "label": "Error messages",
+          "description": "Special highlighting for `expr? \"message\"`",
+          "importance": "high"
+        },
+        {
+          "label": "Generated variable patterns",
+          "description": "Highlight __err0, __tmp0 style variables",
+          "importance": "medium"
+        },
+        {
+          "label": "Result/Option types",
+          "description": "Better highlighting for Result<T,E> and Option<T>",
+          "importance": "medium"
+        },
+        {
+          "label": "Pattern matching",
+          "description": "Enhanced match expression highlighting",
+          "importance": "low"
+        }
+      ],
+      "note": "This is a multi-select question - user can choose multiple priorities"
+    },
+    {
+      "id": "q7_keybindings",
+      "category": "ux",
+      "question": "What keyboard shortcut should open the .dingo ↔ .go.golden comparison?",
+      "options": [
+        {
+          "label": "Ctrl+Shift+D (Cmd+Shift+D on Mac)",
+          "description": "D for Dingo/Diff",
+          "pros": "Mnemonic, not commonly used",
+          "cons": "Some users might have custom binding"
+        },
+        {
+          "label": "Ctrl+Shift+G (Cmd+Shift+G on Mac)",
+          "description": "G for Golden",
+          "pros": "Mnemonic",
+          "cons": "Conflicts with Git shortcuts in some setups"
+        },
+        {
+          "label": "No default keybinding",
+          "description": "Users can set their own if desired",
+          "pros": "No conflicts",
+          "cons": "Less discoverable"
+        }
+      ],
+      "recommendation": "Ctrl+Shift+D (Option 1) - most intuitive and least conflict risk"
+    },
+    {
+      "id": "q8_performance_threshold",
+      "category": "technical",
+      "question": "What file size should trigger performance optimizations (debouncing, lazy highlighting)?",
+      "options": [
+        {
+          "label": "500 lines",
+          "description": "Optimize early for all non-trivial files",
+          "pros": "Maximum performance",
+          "cons": "May be unnecessary optimization"
+        },
+        {
+          "label": "1000 lines",
+          "description": "Optimize for medium-large files",
+          "pros": "Good balance",
+          "cons": "May lag on very large files initially"
+        },
+        {
+          "label": "2000 lines",
+          "description": "Only optimize for very large files",
+          "pros": "Simpler code for most files",
+          "cons": "Performance issues on large files"
+        }
+      ],
+      "recommendation": "1000 lines (Option 2) - matches VSCode internal thresholds"
+    },
+    {
+      "id": "q9_extensibility",
+      "category": "architecture",
+      "question": "Should we design the marker system to be extensible for future Dingo features?",
+      "options": [
+        {
+          "label": "Yes, plugin-based marker system",
+          "description": "Each generator plugin can define its own marker types",
+          "pros": "Future-proof, flexible",
+          "cons": "More complex initial implementation"
+        },
+        {
+          "label": "No, hardcode for error propagation",
+          "description": "Only support current use case",
+          "pros": "Simpler, faster to implement",
+          "cons": "Need refactoring for future features"
+        },
+        {
+          "label": "Simple extensibility",
+          "description": "Support marker types but keep implementation simple",
+          "pros": "Good balance",
+          "cons": "Middle ground compromise"
+        }
+      ],
+      "recommendation": "Simple extensibility (Option 3) - prepare for future without over-engineering"
+    },
+    {
+      "id": "q10_documentation_priority",
+      "category": "project",
+      "question": "When should we write user-facing documentation?",
+      "options": [
+        {
+          "label": "Before implementation",
+          "description": "Write docs first to clarify requirements",
+          "pros": "Clear specification, better planning",
+          "cons": "Docs might change during implementation"
+        },
+        {
+          "label": "During implementation",
+          "description": "Document as features are built",
+          "pros": "Docs match actual implementation",
+          "cons": "Can slow down coding flow"
+        },
+        {
+          "label": "After implementation",
+          "description": "Build first, document after features work",
+          "pros": "Accurate docs, faster initial development",
+          "cons": "Might forget details, delays user access"
+        }
+      ],
+      "recommendation": "During implementation (Option 2) - keeps docs in sync with code"
+    }
+  ],
+  "clarifications_needed": [
+    {
+      "item": "Existing VSCode extension users",
+      "question": "Are there already users of the Dingo VSCode extension? How many?",
+      "impact": "Determines backward compatibility needs and rollout strategy"
+    },
+    {
+      "item": "Color theme preferences",
+      "question": "Do you have preferred color themes you primarily use (e.g., Dark+, Light+, Monokai)?",
+      "impact": "Helps design colors that work well in your environment"
+    },
+    {
+      "item": "File sizes in practice",
+      "question": "What's the typical size of .dingo files you're working with? Any very large files (>1000 LOC)?",
+      "impact": "Informs performance optimization priorities"
+    },
+    {
+      "item": "Development workflow",
+      "question": "Do you typically work with .dingo and .go.golden files side-by-side, or separately?",
+      "impact": "Influences UX design for file comparison features"
+    },
+    {
+      "item": "CI/CD integration",
+      "question": "Will transpiled files with markers be committed to git or generated on-the-fly?",
+      "impact": "Determines whether markers should be in version control"
+    }
+  ],
+  "assumptions_made": [
+    "Users are familiar with VSCode and its configuration system",
+    "Primary use case is viewing transpiled code to understand what Dingo generates",
+    "Performance is acceptable if highlighting updates within 100-200ms",
+    "Users prefer subtle visual cues over bold/intrusive highlighting",
+    "Golden files are primarily for testing, not production code",
+    "The extension will work alongside the official Go extension",
+    "Most .dingo files are under 500 lines of code",
+    "Users want generated code highlighting but it should be optional",
+    "TypeScript is acceptable for extension development (vs JavaScript)",
+    "VSCode 1.80+ is the target version (recent stable)"
+  ],
+  "open_decisions": [
+    {
+      "decision": "Marker comment format details",
+      "options": [
+        "// DINGO:GENERATED",
+        "// dingo:generated",
+        "/* DINGO:GENERATED */",
+        "//go:generate dingo (abuse go:generate comment)"
+      ],
+      "current_recommendation": "// DINGO:GENERATED (uppercase for visibility)"
+    },
+    {
+      "decision": "Should we support syntax highlighting for inline Go code in .dingo files?",
+      "context": "Some .dingo features might allow inline Go blocks",
+      "requires_investigation": true
+    },
+    {
+      "decision": "Should the extension provide code actions (quick fixes) for generated code?",
+      "examples": [
+        "Jump to original Dingo source",
+        "Explain this generated code"
+      ],
+      "priority": "future enhancement, not MVP"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+COMPLETED
+
+Test Function: TestMultiValueReturnEdgeCases
+File: /Users/jack/mag/dingo/pkg/preprocessor/preprocessor_test.go
+Lines: 798-1054 (257 lines added)
+
+Test Cases: 10/10 PASSED
+- 2-value return (baseline case) ✓
+- 3-value return (verified by golden test) ✓
+- 4-value return (extreme case) ✓
+- 5-value return (very extreme case) ✓
+- mixed types (string, int, []byte, error) ✓
+- complex types (map, slice, struct pointer, error) ✓
+- verify correct number of temporaries (3 non-error values) ✓
+- verify correct number of temporaries (4 non-error values) ✓
+- all values returned in success path (4 values) ✓
+- all zero values in error path (mixed types) ✓
+
+Execution Time: 0.185s
+Status: All tests pass successfully
+
+Verification Command:
+go test ./pkg/preprocessor -run '^TestMultiValueReturnEdgeCases$' -v
+
+Notes:
+- Comprehensive coverage beyond existing error_prop_09_multi_value golden test
+- Tests 2-5 value returns with various type combinations
+- Verifies correct temporary variable counts (__tmp0, __tmp1, etc.)
+- Ensures all values returned in success path
+- Confirms all zero values in error path
+- Prevents CRITICAL-2 regression (multi-value return dropping)

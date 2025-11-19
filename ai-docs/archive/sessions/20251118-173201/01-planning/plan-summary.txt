@@ -1,0 +1,74 @@
+Phase 4.2 Final Implementation Plan Summary
+
+STATUS: FINAL - Ready for Implementation
+TIMELINE: 5.5-6 hours (parallel execution)
+TESTS: 19 new tests → 94 total (100% pass rate target)
+
+KEY FEATURES (User Decisions Incorporated):
+
+1. Pattern Guards
+   - Runtime conditions using nested if statements (safe, debuggable)
+   - Supports both 'if' and 'where' keywords (Rust + Swift syntax)
+   - Guards ignored for exhaustiveness (simple, safe)
+
+2. Swift Syntax Support
+   - Dual syntax: switch/case .Variant(let x) vs match Variant(x) =>
+   - Config-driven (match.syntax = "rust" or "swift")
+   - Both normalize to same markers (plugin sees no difference)
+
+3. Tuple Destructuring
+   - Match multiple values: (Ok(x), Ok(y)) => handleBoth(x, y)
+   - Max 6 elements (64 pattern limit, balanced performance)
+   - Wildcard catch-all semantics: (_, _) makes match exhaustive
+
+4. Enhanced Error Messages
+   - Always-on rustc-style diagnostics (consistent DX)
+   - Source snippets with carets ^^^^
+   - Actionable suggestions for all error types
+
+IMPLEMENTATION ROADMAP (Parallel Batches):
+
+Batch 1 (1h, 2 parallel): Guards parsing + Enhanced errors foundation
+Batch 2 (1.5h, 2 parallel): Swift preprocessor + Guard plugin
+Batch 3 (1.5h, collaborate): Tuple preprocessor + plugin
+Batch 4 (1h, 2 parallel): 12 golden tests
+Batch 5 (0.5h, sequential): Integration, docs, verification
+
+RISK MITIGATION:
+
+- Tuple limit prevents exponential complexity (max 64 patterns)
+- Nested if strategy safer than goto labels (simpler AST)
+- Dual guard keywords minimal complexity (single regex alternation)
+- Enhanced errors gracefully degrade if file read fails
+
+PERFORMANCE TARGETS:
+
+- Total overhead: <20ms per file (+5ms from Phase 4.1)
+- Tuple exhaustiveness: <1ms for 6-element tuples
+- Enhanced errors: <10ms per error
+- Runtime: Zero overhead (compiles to native Go)
+
+BACKWARD COMPATIBILITY:
+
+- All Phase 4.1 tests MUST pass (57/57)
+- No breaking config changes
+- No changes to existing golden outputs
+- Swift syntax opt-in via config
+
+SUCCESS CRITERIA:
+
+✅ 94 tests passing (57 Phase 4.1 + 19 Phase 4.2 + integration)
+✅ <20ms compile overhead
+✅ Clean, idiomatic Go output
+✅ 4 feature guides written
+✅ >80% code coverage
+
+DELIVERABLES:
+
+- 4 new files (~650 lines): SwiftMatchProcessor, EnhancedError + tests
+- 4 modified files (+470 lines): RustMatchProcessor, PatternMatchPlugin, generator, docs
+- 12 golden test suites (24 files: .dingo + .go.golden)
+- 3 config files (Swift syntax tests)
+- 4 feature documentation files
+
+READY TO PROCEED: No open questions, all decisions finalized.

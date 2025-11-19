@@ -1,0 +1,34 @@
+[
+  {
+    "question": "What is the maximum number of tuple elements to support in pattern matching?",
+    "rationale": "Tuple exhaustiveness checking has exponential complexity (M^N for M variants, N elements). Need to balance usability vs compile time. Options: (a) 4 elements (16 patterns for Result), (b) 6 elements (64 patterns), (c) 8 elements (256 patterns), or (d) unlimited with performance warnings."
+  },
+  {
+    "question": "How should pattern guards handle fallthrough in nested match expressions?",
+    "rationale": "Guards that fail need to fall through to the next pattern. Two approaches: (a) goto labels (fast, explicit control flow) or (b) nested if statements (safer, simpler AST). Goto labels are faster but may interact poorly with nested matches."
+  },
+  {
+    "question": "Should Swift-style case bodies require braces or allow bare statements?",
+    "rationale": "Swift allows both `case .Ok(x): return x` and `case .Ok(x): { return x }`. Dingo could: (a) require braces (safer, clearer scope), (b) allow bare statements (more flexible, follows Swift), or (c) allow both. This affects preprocessor parsing complexity."
+  },
+  {
+    "question": "Should enhanced error message verbosity be configurable?",
+    "rationale": "rustc-style errors with source snippets are detailed (5-10 lines per error). Some users may prefer minimal errors (1 line). Options: (a) always enhanced (consistent DX), (b) CLI flag --error-format=[enhanced|minimal] (flexible), or (c) config file setting (persistent preference)."
+  },
+  {
+    "question": "What does tuple wildcard `(_, _)` mean for exhaustiveness checking?",
+    "rationale": "A pattern like `(_, _)` could mean: (a) 'catch-all' that makes match exhaustive (any tuple matches), or (b) 'any specific pattern not listed' (still requires explicit coverage). Rust uses (a), but this may hide missing cases. Which semantics do we want?"
+  },
+  {
+    "question": "Should guards affect exhaustiveness checking in any way?",
+    "rationale": "Current plan: guards do NOT satisfy exhaustiveness (runtime checks are not compile-time guarantees). But we could: (a) keep it simple (ignore guards entirely), (b) warn if all patterns have guards (potentially non-exhaustive at runtime), or (c) require a guard-free fallback pattern. Which approach provides best safety/usability balance?"
+  },
+  {
+    "question": "How should tuple patterns handle type inference for nested patterns?",
+    "rationale": "Pattern `(Ok(x), Some(y))` needs to infer types for both x and y. We can: (a) use parent tracking from Phase 4.1 (scrutinee type → tuple element types), (b) require explicit type annotations on tuple patterns, or (c) defer to go/types for full inference. Option (a) reuses infrastructure but may be less accurate."
+  },
+  {
+    "question": "Should Swift syntax support guards with the same `if` keyword or Swift's `where` keyword?",
+    "rationale": "Swift uses `case .Ok(let x) where x > 0:` instead of `if x > 0`. Dingo could: (a) use `if` for both Rust and Swift (consistent), (b) use `where` for Swift (authentic Swift syntax), or (c) support both keywords. This affects Swift preprocessor implementation."
+  }
+]

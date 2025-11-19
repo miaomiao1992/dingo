@@ -1,0 +1,8 @@
+Internal analysis complete.
+
+Recommended: Multi-Statement Preprocessor with Variable Hoisting
+Generates clean Go code (var x Type; switch { case: x = value }) instead of IIFE wrapper, matching industry standard (Rust→C, Scala→Java, Kotlin→Java all use this pattern).
+Implementation: 6-10 hours via new LetMatchProcessor + modified RustMatchProcessor.
+Cleanliness: 9/10 vs IIFE 4/10 - zero runtime overhead, idiomatic Go, fits Dingo's preprocessor architecture.
+
+Full analysis: /Users/jack/mag/dingo/ai-docs/sessions/20251118-234826/output/internal-analysis.md

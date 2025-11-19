@@ -1,0 +1,32 @@
+[
+  {
+    "question": "What should happen when an ambiguous unqualified function is detected (e.g., 'Open' could be os.Open or net.Open)?",
+    "rationale": "Need to decide between: (A) Conservative - throw compile error and force user to qualify, (B) Priority-based - pick most common package and emit warning, or (C) Context-based - use go/types inference. Option A is simplest and safest but less convenient. This affects user experience significantly.",
+    "options": ["Error (conservative)", "Priority-based (os > net > io)", "Context inference (complex)"],
+    "recommended": "Error (conservative)"
+  },
+  {
+    "question": "Which standard library packages should be included in the initial registry?",
+    "rationale": "Need to scope the initial implementation. Options: (A) Top 10 most common (os, fmt, strconv, io, encoding/json), (B) Top 50 comprehensive coverage, or (C) All stdlib packages. Smaller scope = faster implementation but less coverage. Affects how many existing tests will pass.",
+    "options": ["Top 10 packages", "Top 50 functions", "Comprehensive stdlib"],
+    "recommended": "Top 50 functions (covers 90% of common usage)"
+  },
+  {
+    "question": "How should we handle user-defined functions that have the same name as stdlib functions (e.g., user defines 'func ReadFile()')?",
+    "rationale": "Need to prevent false positives. Options: (A) Pre-scan AST for local function definitions and exclude from transformation, (B) Only transform if no local definition found via heuristic, or (C) Require users to always qualify stdlib calls. Option A is most correct but adds complexity. Option C breaks the ergonomic goal.",
+    "options": ["Pre-scan AST (accurate)", "Heuristic-based (fast)", "Always require qualification (simple)"],
+    "recommended": "Pre-scan AST (accurate)"
+  },
+  {
+    "question": "Should the transformation happen in the preprocessor stage (text-based) or AST plugin stage (semantic)?",
+    "rationale": "Preprocessor stage is simpler and consistent with current architecture (matches how error propagation works). AST stage is more precise and can use go/types for better inference. Affects implementation complexity and maintainability. Current architecture uses preprocessor for syntax transformations.",
+    "options": ["Preprocessor stage (simple)", "AST plugin stage (precise)"],
+    "recommended": "Preprocessor stage (simple)"
+  },
+  {
+    "question": "What should the error message format look like for ambiguous function calls?",
+    "rationale": "If we choose conservative ambiguity handling, we need helpful error messages. Should we: (A) List all possible packages ('Open' could be os.Open or net.Open), (B) Suggest most likely option, or (C) Provide fix-it hints? Affects developer experience and debugging time.",
+    "options": ["List all options", "Suggest most likely", "Provide fix-it hints"],
+    "recommended": "List all options with fix-it hints"
+  }
+]

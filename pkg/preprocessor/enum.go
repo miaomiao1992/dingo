@@ -350,9 +350,9 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 	buf.WriteString("const (\n")
 	for i, variant := range variants {
 		if i == 0 {
-			buf.WriteString(fmt.Sprintf("\t%sTag_%s %sTag = iota\n", enumName, variant.Name, enumName))
+			buf.WriteString(fmt.Sprintf("\t%sTag%s %sTag = iota\n", enumName, variant.Name, enumName))
 		} else {
-			buf.WriteString(fmt.Sprintf("\t%sTag_%s\n", enumName, variant.Name))
+			buf.WriteString(fmt.Sprintf("\t%sTag%s\n", enumName, variant.Name))
 		}
 	}
 	buf.WriteString(")\n\n")
@@ -362,11 +362,29 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 	buf.WriteString("\ttag " + enumName + "Tag\n")
 
 	// Add fields for each variant
+	// Add fields for each variant
+	// Naming strategy:
+	// - Tuple variants (single field): use variant name in lowercase (e.g., "ok", "err", "some")
+	// - Tuple variants (multiple fields): use _N format (e.g., "_0", "_1")
+	// - Struct variants: use variantname_fieldname to avoid conflicts (e.g., "circle_radius", "rectangle_width")
 	for _, variant := range variants {
 		if len(variant.Fields) > 0 {
 			for _, field := range variant.Fields {
-				// Generate field name: variantname_fieldname
-				fieldName := strings.ToLower(variant.Name) + "_" + field.Name
+				var fieldName string
+				// Check if this is a tuple variant (numeric field name)
+				isTupleField := len(field.Name) > 0 && field.Name[0] >= '0' && field.Name[0] <= '9'
+
+				if isTupleField && len(variant.Fields) == 1 {
+					// Single tuple field - use variant name (e.g., "ok", "err", "some")
+					fieldName = strings.ToLower(variant.Name)
+				} else if isTupleField {
+					// Multiple tuple fields - use _N format (e.g., "_0", "_1")
+					fieldName = "_" + field.Name
+				} else {
+					// Struct variant with named fields - use variantname_fieldname to avoid conflicts
+					fieldName = strings.ToLower(variant.Name) + "_" + field.Name
+				}
+
 				buf.WriteString(fmt.Sprintf("\t%s *%s\n", fieldName, field.Type))
 			}
 		}
@@ -378,7 +396,7 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 		if len(variant.Fields) == 0 {
 			// Unit variant constructor
 			buf.WriteString(fmt.Sprintf("func %s_%s() %s {\n", enumName, variant.Name, enumName))
-			buf.WriteString(fmt.Sprintf("\treturn %s{tag: %sTag_%s}\n", enumName, enumName, variant.Name))
+			buf.WriteString(fmt.Sprintf("\treturn %s{tag: %sTag%s}\n", enumName, enumName, variant.Name))
 			buf.WriteString("}\n")
 		} else {
 			// Struct variant constructor
@@ -386,22 +404,34 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 			assignments := []string{}
 
 			for _, field := range variant.Fields {
-				// For tuple variants (numeric field names like "0", "1"), use "arg" prefix
-				// For struct variants (named fields), use the field name directly
+				// Determine parameter name
 				paramName := field.Name
-				if len(field.Name) > 0 && field.Name[0] >= '0' && field.Name[0] <= '9' {
-					// Tuple field - numeric name like "0", "1"
+				isTupleField := len(field.Name) > 0 && field.Name[0] >= '0' && field.Name[0] <= '9'
+				if isTupleField {
+					// Tuple field - numeric name like "0", "1" → "arg0", "arg1"
 					paramName = "arg" + field.Name
 				}
 
+				// Determine field name using same logic as struct generation
+				var fieldName string
+				if isTupleField && len(variant.Fields) == 1 {
+					// Single tuple field - use variant name (e.g., "ok", "err", "some")
+					fieldName = strings.ToLower(variant.Name)
+				} else if isTupleField {
+					// Multiple tuple fields - use _N format
+					fieldName = "_" + field.Name
+				} else {
+					// Struct variant with named fields - use variantname_fieldname
+					fieldName = strings.ToLower(variant.Name) + "_" + field.Name
+				}
+
 				params = append(params, fmt.Sprintf("%s %s", paramName, field.Type))
-				fieldName := strings.ToLower(variant.Name) + "_" + field.Name
 				assignments = append(assignments, fmt.Sprintf("%s: &%s", fieldName, paramName))
 			}
 
 			buf.WriteString(fmt.Sprintf("func %s_%s(%s) %s {\n",
 				enumName, variant.Name, strings.Join(params, ", "), enumName))
-			buf.WriteString(fmt.Sprintf("\treturn %s{tag: %sTag_%s, %s}\n",
+			buf.WriteString(fmt.Sprintf("\treturn %s{tag: %sTag%s, %s}\n",
 				enumName, enumName, variant.Name, strings.Join(assignments, ", ")))
 			buf.WriteString("}\n")
 		}
@@ -410,7 +440,7 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 	// 5. Generate Is* methods
 	for i, variant := range variants {
 		buf.WriteString(fmt.Sprintf("func (e %s) Is%s() bool {\n", enumName, variant.Name))
-		buf.WriteString(fmt.Sprintf("\treturn e.tag == %sTag_%s\n", enumName, variant.Name))
+		buf.WriteString(fmt.Sprintf("\treturn e.tag == %sTag%s\n", enumName, variant.Name))
 		buf.WriteString("}")
 		// Add newline after each method except the last
 		if i < len(variants)-1 {

@@ -1,0 +1,87 @@
+{
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "description": "Independent documentation and validation tasks",
+      "tasks": [
+        {
+          "task_id": "A",
+          "description": "Package Management Documentation - Create hybrid workflow docs and 3 example projects (libs→.go, apps→.dingo)",
+          "files": [
+            "docs/package-management.md",
+            "examples/library-example/",
+            "examples/app-example/",
+            "examples/hybrid-example/"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "1 week"
+        },
+        {
+          "task_id": "B",
+          "description": "Source Map Validation Suite - Create read-only validation suite with schema docs",
+          "files": [
+            "pkg/sourcemap/validator.go",
+            "pkg/sourcemap/validator_test.go",
+            "docs/sourcemap-schema.md"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "1-2 weeks"
+        },
+        {
+          "task_id": "C",
+          "description": "Developer Experience Documentation - Getting started guide, feature docs, migration guide",
+          "files": [
+            "docs/getting-started.md",
+            "docs/features/",
+            "docs/migration-from-go.md"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "1 week"
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "depends_on": [1],
+      "description": "CI/CD enhancements (depends on validation suite from batch 1)",
+      "tasks": [
+        {
+          "task_id": "D",
+          "description": "CI/CD Enhancements - Golden test diff visualization, performance tracking, auto-docs",
+          "files": [
+            ".github/workflows/visualization.yml",
+            "scripts/diff-visualizer.go",
+            "scripts/performance-tracker.go"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "1 week"
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "depends_on": [1, 2],
+      "description": "Optional workspace builds (if time permits)",
+      "tasks": [
+        {
+          "task_id": "E",
+          "description": "Workspace Builds - Multi-package support, dingo build ./..., dependency resolution",
+          "files": [
+            "cmd/dingo/workspace.go",
+            "pkg/build/workspace.go",
+            "docs/workspace-builds.md"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "1 week",
+          "optional": true
+        }
+      ]
+    }
+  ],
+  "constraints": {
+    "no_engine_changes": true,
+    "no_test_fixes": true,
+    "infrastructure_only": true
+  },
+  "total_estimated_time": "3-4 weeks"
+}

@@ -5,33 +5,33 @@ import "errors"
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
 	tag   ResultTag
-	ok_0  *int
-	err_0 *error
+	ok  *int
+	err *error
 }
 
 func Result_Ok(arg0 int) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 
 // Map method for Result chaining
 func (r Result) Map(f func(int) int) Result {
 	if r.IsOk() {
-		return Result_Ok(f(*r.ok_0))
+		return Result_Ok(f(*r.ok))
 	}
 	return r
 }
@@ -39,7 +39,7 @@ func (r Result) Map(f func(int) int) Result {
 // AndThen method for Result chaining
 func (r Result) AndThen(f func(int) Result) Result {
 	if r.IsOk() {
-		return f(*r.ok_0)
+		return f(*r.ok)
 	}
 	return r
 }
@@ -66,6 +66,6 @@ func processInput(input string) Result {
 func main() {
 	result := processInput("hello world")
 	if result.IsOk() {
-		println("Result:", *result.ok_0)
+		println("Result:", *result.ok)
 	}
 }

@@ -1,0 +1,33 @@
+SUCCESS: 11 files created (4 .dingo + 4 .go.golden + 3 dingo.toml)
+
+Test Files:
+- swift_match_01_basic (3 files: .dingo, .go.golden, dingo.toml)
+- swift_match_02_guards (3 files: .dingo, .go.golden, dingo.toml)
+- swift_match_03_nested (3 files: .dingo, .go.golden, dingo.toml)
+- swift_match_04_equivalence (2 files: .dingo, .go.golden, NO config)
+
+Test Status: EXPECTED TO FAIL (integration pending)
+- Reason: SwiftMatchProcessor not integrated in preprocessor.go yet
+- Integration Task: B2 or C (add processor selection logic)
+- When Integrated: All 4 tests expected to PASS
+
+Features Covered:
+✅ Basic Swift syntax (switch/case, .Variant, let binding)
+✅ Guard keywords (both where and if)
+✅ Body styles (bare statements and braced blocks)
+✅ Nesting (up to triple-nested switches)
+✅ Equivalence validation (Rust vs Swift)
+
+File Statistics:
+- Total Lines: ~530 (200 .dingo + 324 .go.golden + 6 config)
+- Test Complexity: Basic (01) → Intermediate (02) → Advanced (03) + Equivalence (04)
+- Golden Test Guidelines: Followed ✅
+
+Next Steps:
+1. Remove swift_match tests from golden test skip list (or keep until integration)
+2. Integrate SwiftMatchProcessor in preprocessor.go (Task B2/C)
+3. Run tests: go test ./tests -run TestGoldenFiles/swift_match -v
+4. Verify: 4/4 passing
+5. Verify equivalence: Compare swift_match_01 vs swift_match_04 markers
+
+Task D2 Status: COMPLETE ✅

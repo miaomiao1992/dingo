@@ -11,9 +11,9 @@ import (
 type UserStatusTag uint8
 
 const (
-	UserStatusTag_Active UserStatusTag = iota
-	UserStatusTag_Pending
-	UserStatusTag_Suspended
+	UserStatusTagActive UserStatusTag = iota
+	UserStatusTagPending
+	UserStatusTagSuspended
 )
 
 type UserStatus struct {
@@ -21,22 +21,22 @@ type UserStatus struct {
 }
 
 func UserStatus_Active() UserStatus {
-	return UserStatus{tag: UserStatusTag_Active}
+	return UserStatus{tag: UserStatusTagActive}
 }
 func UserStatus_Pending() UserStatus {
-	return UserStatus{tag: UserStatusTag_Pending}
+	return UserStatus{tag: UserStatusTagPending}
 }
 func UserStatus_Suspended() UserStatus {
-	return UserStatus{tag: UserStatusTag_Suspended}
+	return UserStatus{tag: UserStatusTagSuspended}
 }
 func (e UserStatus) IsActive() bool {
-	return e.tag == UserStatusTag_Active
+	return e.tag == UserStatusTagActive
 }
 func (e UserStatus) IsPending() bool {
-	return e.tag == UserStatusTag_Pending
+	return e.tag == UserStatusTagPending
 }
 func (e UserStatus) IsSuspended() bool {
-	return e.tag == UserStatusTag_Suspended
+	return e.tag == UserStatusTagSuspended
 }
 
 type User struct {

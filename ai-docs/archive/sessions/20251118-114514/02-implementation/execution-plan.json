@@ -1,0 +1,126 @@
+{
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "description": "Foundation Infrastructure (Parallel)",
+      "estimated_hours": "4-6",
+      "tasks": [
+        {
+          "task_id": "1a",
+          "description": "Type Inference Infrastructure - Integrate go/types",
+          "files": [
+            "pkg/plugin/builtin/type_inference.go",
+            "pkg/generator/generator.go"
+          ],
+          "agent": "golang-developer",
+          "complexity": "medium"
+        },
+        {
+          "task_id": "1b",
+          "description": "Error Infrastructure - Type inference failure reporting",
+          "files": [
+            "pkg/plugin/plugin.go",
+            "pkg/errors/ (NEW package)"
+          ],
+          "agent": "golang-developer",
+          "complexity": "simple"
+        },
+        {
+          "task_id": "1c",
+          "description": "Addressability Detection - IIFE wrapping logic for Fix A4",
+          "files": [
+            "pkg/plugin/builtin/addressability.go (NEW)"
+          ],
+          "agent": "golang-developer",
+          "complexity": "simple-medium",
+          "depends_on": ["1b"]
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "description": "Core Plugin Updates (Parallel tracks)",
+      "estimated_hours": "6-8",
+      "depends_on": [1],
+      "tasks": [
+        {
+          "task_id": "2a",
+          "description": "Result<T,E> Plugin - Apply Fix A5 + Fix A4",
+          "files": [
+            "pkg/plugin/builtin/result_type.go"
+          ],
+          "agent": "golang-developer",
+          "complexity": "medium"
+        },
+        {
+          "task_id": "2b",
+          "description": "Option<T> Plugin - Apply Fix A5 + Fix A4 + None constant",
+          "files": [
+            "pkg/plugin/builtin/option_type.go"
+          ],
+          "agent": "golang-developer",
+          "complexity": "high"
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "description": "Helper Methods (Parallel tracks)",
+      "estimated_hours": "4-6",
+      "depends_on": [2],
+      "tasks": [
+        {
+          "task_id": "3a",
+          "description": "Result<T,E> Helper Methods - Map, Filter, AndThen, etc.",
+          "files": [
+            "pkg/plugin/builtin/result_type.go",
+            "tests/golden/result_05_helpers.dingo"
+          ],
+          "agent": "golang-developer",
+          "complexity": "medium"
+        },
+        {
+          "task_id": "3b",
+          "description": "Option<T> Helper Methods - Map, Filter, AndThen, etc.",
+          "files": [
+            "pkg/plugin/builtin/option_type.go",
+            "tests/golden/option_05_helpers.dingo"
+          ],
+          "agent": "golang-developer",
+          "complexity": "medium"
+        }
+      ]
+    },
+    {
+      "batch_id": 4,
+      "description": "Integration & Testing",
+      "estimated_hours": "4-6",
+      "depends_on": [3],
+      "tasks": [
+        {
+          "task_id": "4a",
+          "description": "Integration Testing - Run all 39 builtin tests + golden tests",
+          "files": [
+            "pkg/plugin/builtin/*_test.go",
+            "tests/golden_test.go"
+          ],
+          "agent": "golang-tester",
+          "complexity": "medium"
+        },
+        {
+          "task_id": "4b",
+          "description": "Documentation Updates - CHANGELOG, ARCHITECTURE",
+          "files": [
+            "CHANGELOG.md",
+            "ai-docs/ARCHITECTURE.md"
+          ],
+          "agent": "golang-developer",
+          "complexity": "simple"
+        }
+      ]
+    }
+  ],
+  "total_estimated_hours": "18-26",
+  "total_tasks": 9,
+  "parallel_batches_count": 4
+}

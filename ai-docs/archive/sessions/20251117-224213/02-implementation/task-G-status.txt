@@ -1,0 +1,11 @@
+COMPLETED
+
+Test: TestUserFunctionShadowingNoImport
+Status: PASS (all 4 subtests)
+Coverage: User-defined functions with stdlib names (ReadFile, Atoi) do NOT trigger imports
+Verification: GetNeededImports() output checked directly at ErrorPropProcessor level
+Lines Added: 150 lines in preprocessor_test.go (lines 1174-1323)
+Test Run: go test ./pkg/preprocessor -run TestUserFunctionShadowingNoImport -v
+Result: PASS (0.00s)
+
+Issue #3 (IMPORTANT-1) verified: Only qualified calls (os.ReadFile) trigger imports, not bare function calls (ReadFile).

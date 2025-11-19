@@ -1,0 +1,138 @@
+{
+  "strategy": "Focus on Phase 4.1 MVP (weeks 1-2) first",
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "phase": "Foundation (Week 1, Days 1-4)",
+      "description": "Independent foundation components - can run in parallel",
+      "tasks": [
+        {
+          "task_id": "A",
+          "description": "Configuration System (dingo.toml support)",
+          "files": [
+            "pkg/config/config.go",
+            "pkg/config/loader.go",
+            "pkg/config/config_test.go"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "2 days",
+          "dependencies": []
+        },
+        {
+          "task_id": "B",
+          "description": "AST Parent Tracking",
+          "files": [
+            "pkg/plugin/context.go (extend)",
+            "pkg/plugin/context_test.go"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "2 days",
+          "dependencies": []
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "phase": "Foundation (Week 1, Days 5-7)",
+      "description": "Rust pattern match preprocessor - depends on config system",
+      "depends_on": [1],
+      "tasks": [
+        {
+          "task_id": "C",
+          "description": "Rust Pattern Match Preprocessor",
+          "files": [
+            "pkg/preprocessor/rust_match.go",
+            "pkg/preprocessor/rust_match_test.go",
+            "tests/golden/pattern_match_01_simple.dingo",
+            "tests/golden/pattern_match_01_simple.go.golden"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "3 days",
+          "dependencies": ["A"]
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "phase": "Week 2: Core plugins",
+      "description": "Pattern match plugin and None inference - can run in parallel",
+      "depends_on": [2],
+      "tasks": [
+        {
+          "task_id": "D",
+          "description": "Pattern Match Plugin (Discovery + Exhaustiveness)",
+          "files": [
+            "pkg/plugin/builtin/pattern_match.go",
+            "pkg/plugin/builtin/pattern_match_test.go",
+            "tests/golden/pattern_match_02_exhaustive.dingo",
+            "tests/golden/pattern_match_02_exhaustive.go.golden"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "3 days",
+          "dependencies": ["C", "B"]
+        },
+        {
+          "task_id": "E",
+          "description": "None Context Inference Plugin",
+          "files": [
+            "pkg/plugin/builtin/none_context.go",
+            "pkg/plugin/builtin/none_context_test.go",
+            "tests/golden/option_06_none_inference.dingo",
+            "tests/golden/option_06_none_inference.go.golden"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "2 days",
+          "dependencies": ["B"]
+        }
+      ]
+    },
+    {
+      "batch_id": 4,
+      "phase": "Week 2: Pattern transformation",
+      "description": "Pattern match transformation - depends on exhaustiveness checker",
+      "depends_on": [3],
+      "tasks": [
+        {
+          "task_id": "F",
+          "description": "Pattern Match Transformation",
+          "files": [
+            "pkg/plugin/builtin/pattern_match.go (extend Transform phase)",
+            "tests/golden/pattern_match_03_result_option.dingo",
+            "tests/golden/pattern_match_03_result_option.go.golden"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "2 days",
+          "dependencies": ["D"]
+        }
+      ]
+    },
+    {
+      "batch_id": 5,
+      "phase": "Integration and testing",
+      "description": "Integrate all components and run full test suite",
+      "depends_on": [4],
+      "tasks": [
+        {
+          "task_id": "G",
+          "description": "Generator integration and end-to-end testing",
+          "files": [
+            "pkg/generator/generator.go (integrate config, parent map, plugins)",
+            "tests/integration_phase4_test.go"
+          ],
+          "agent": "golang-developer",
+          "estimated_time": "1 day",
+          "dependencies": ["A", "B", "C", "D", "E", "F"]
+        }
+      ]
+    }
+  ],
+  "total_parallel_tasks": 7,
+  "total_sequential_batches": 5,
+  "estimated_speedup": "2.5x (7 tasks in 5 batches vs 7 sequential)",
+  "notes": [
+    "Batch 1: 2 tasks in parallel (Config + Parent Tracking)",
+    "Batch 3: 2 tasks in parallel (Pattern Match Plugin + None Plugin)",
+    "Other batches: Sequential due to dependencies",
+    "Phase 4.1 MVP only - Phase 4.2 (guards, Swift syntax, tuples) deferred to separate session"
+  ]
+}

@@ -1,0 +1,338 @@
+=== RUN   TestDefaultConfig
+--- PASS: TestDefaultConfig (0.00s)
+=== RUN   TestValidateMultiValueReturnMode
+=== RUN   TestValidateMultiValueReturnMode/full_mode_is_valid
+=== RUN   TestValidateMultiValueReturnMode/single_mode_is_valid
+=== RUN   TestValidateMultiValueReturnMode/invalid_mode_returns_error
+=== RUN   TestValidateMultiValueReturnMode/empty_mode_returns_error
+=== RUN   TestValidateMultiValueReturnMode/partial_mode_returns_error
+--- PASS: TestValidateMultiValueReturnMode (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/full_mode_is_valid (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/single_mode_is_valid (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/invalid_mode_returns_error (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/empty_mode_returns_error (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/partial_mode_returns_error (0.00s)
+=== RUN   TestConfigFullMode_MultiValueReturns
+--- PASS: TestConfigFullMode_MultiValueReturns (0.00s)
+=== RUN   TestConfigSingleMode_MultiValueReturns
+--- PASS: TestConfigSingleMode_MultiValueReturns (0.00s)
+=== RUN   TestConfigSingleMode_TwoValueReturns
+--- PASS: TestConfigSingleMode_TwoValueReturns (0.00s)
+=== RUN   TestConfigSingleMode_ReturnStatement
+--- PASS: TestConfigSingleMode_ReturnStatement (0.00s)
+=== RUN   TestConfigNilDefault
+--- PASS: TestConfigNilDefault (0.00s)
+=== RUN   TestConfigFullMode_ComplexCase
+--- PASS: TestConfigFullMode_ComplexCase (0.00s)
+=== RUN   TestConfigSingleMode_AssignmentAllowed
+--- PASS: TestConfigSingleMode_AssignmentAllowed (0.00s)
+=== RUN   TestEnumProcessor_SimpleEnum
+--- PASS: TestEnumProcessor_SimpleEnum (0.00s)
+=== RUN   TestEnumProcessor_StructVariant
+--- PASS: TestEnumProcessor_StructVariant (0.00s)
+=== RUN   TestEnumProcessor_GenericEnum
+--- PASS: TestEnumProcessor_GenericEnum (0.00s)
+=== RUN   TestEnumProcessor_MultipleEnums
+--- PASS: TestEnumProcessor_MultipleEnums (0.00s)
+=== RUN   TestEnumProcessor_NoEnums
+--- PASS: TestEnumProcessor_NoEnums (0.00s)
+=== RUN   TestEnumProcessor_WithComments
+--- PASS: TestEnumProcessor_WithComments (0.00s)
+=== RUN   TestEnumProcessor_ComplexTypes
+--- PASS: TestEnumProcessor_ComplexTypes (0.00s)
+=== RUN   TestEnumProcessor_EdgeCases
+=== RUN   TestEnumProcessor_EdgeCases/single_variant
+=== RUN   TestEnumProcessor_EdgeCases/trailing_comma
+=== RUN   TestEnumProcessor_EdgeCases/no_trailing_comma
+--- PASS: TestEnumProcessor_EdgeCases (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/single_variant (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/trailing_comma (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/no_trailing_comma (0.00s)
+=== RUN   TestImportInjectionEdgeCases
+=== RUN   TestImportInjectionEdgeCases/multiple_imports_from_same_package_(deduplication)
+=== RUN   TestImportInjectionEdgeCases/imports_from_different_packages
+=== RUN   TestImportInjectionEdgeCases/no_imports_needed_(no_stdlib_calls)
+=== RUN   TestImportInjectionEdgeCases/already_existing_imports_(don't_duplicate)
+=== RUN   TestImportInjectionEdgeCases/source_map_offsets_correct_for_different_import_counts
+    import_edge_cases_test.go:190: Import block spans lines 3-6 (4 lines)
+=== RUN   TestImportInjectionEdgeCases/mixed_qualified_and_unqualified_calls_(only_qualified_should_import)
+--- PASS: TestImportInjectionEdgeCases (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/multiple_imports_from_same_package_(deduplication) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/imports_from_different_packages (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/no_imports_needed_(no_stdlib_calls) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/already_existing_imports_(don't_duplicate) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/source_map_offsets_correct_for_different_import_counts (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/mixed_qualified_and_unqualified_calls_(only_qualified_should_import) (0.00s)
+=== RUN   TestErrorPropagationBasic
+=== RUN   TestErrorPropagationBasic/simple_assignment
+=== RUN   TestErrorPropagationBasic/simple_return
+--- PASS: TestErrorPropagationBasic (0.00s)
+    --- PASS: TestErrorPropagationBasic/simple_assignment (0.00s)
+    --- PASS: TestErrorPropagationBasic/simple_return (0.00s)
+=== RUN   TestIMPORTANT1_ErrorMessageEscaping
+=== RUN   TestIMPORTANT1_ErrorMessageEscaping/percent_in_error_message
+=== RUN   TestIMPORTANT1_ErrorMessageEscaping/multiple_percents_in_error_message
+=== RUN   TestIMPORTANT1_ErrorMessageEscaping/percent-w_pattern_in_error_message
+--- PASS: TestIMPORTANT1_ErrorMessageEscaping (0.00s)
+    --- PASS: TestIMPORTANT1_ErrorMessageEscaping/percent_in_error_message (0.00s)
+    --- PASS: TestIMPORTANT1_ErrorMessageEscaping/multiple_percents_in_error_message (0.00s)
+    --- PASS: TestIMPORTANT1_ErrorMessageEscaping/percent-w_pattern_in_error_message (0.00s)
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/function_type_in_parameters
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/channel_with_direction
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/complex_nested_generics
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/function_returning_multiple_values
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/nested_function_types
+--- PASS: TestIMPORTANT2_TypeAnnotationEnhancement (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/function_type_in_parameters (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/channel_with_direction (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/complex_nested_generics (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/function_returning_multiple_values (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/nested_function_types (0.00s)
+=== RUN   TestGeminiCodeReviewFixes
+--- PASS: TestGeminiCodeReviewFixes (0.00s)
+=== RUN   TestSourceMapGeneration
+--- PASS: TestSourceMapGeneration (0.00s)
+=== RUN   TestSourceMapMultipleExpansions
+--- PASS: TestSourceMapMultipleExpansions (0.00s)
+=== RUN   TestAutomaticImportDetection
+=== RUN   TestAutomaticImportDetection/os.ReadFile_import
+=== RUN   TestAutomaticImportDetection/strconv.Atoi_import
+=== RUN   TestAutomaticImportDetection/multiple_imports
+=== RUN   TestAutomaticImportDetection/with_error_message_(needs_fmt)
+--- PASS: TestAutomaticImportDetection (0.00s)
+    --- PASS: TestAutomaticImportDetection/os.ReadFile_import (0.00s)
+    --- PASS: TestAutomaticImportDetection/strconv.Atoi_import (0.00s)
+    --- PASS: TestAutomaticImportDetection/multiple_imports (0.00s)
+    --- PASS: TestAutomaticImportDetection/with_error_message_(needs_fmt) (0.00s)
+=== RUN   TestSourceMappingWithImports
+    preprocessor_test.go:495: Result has 15 lines
+--- PASS: TestSourceMappingWithImports (0.00s)
+=== RUN   TestCRITICAL2_MultiValueReturnHandling
+=== RUN   TestCRITICAL2_MultiValueReturnHandling/two_values_plus_error
+=== RUN   TestCRITICAL2_MultiValueReturnHandling/three_values_plus_error
+=== RUN   TestCRITICAL2_MultiValueReturnHandling/single_value_plus_error_(regression)
+--- PASS: TestCRITICAL2_MultiValueReturnHandling (0.00s)
+    --- PASS: TestCRITICAL2_MultiValueReturnHandling/two_values_plus_error (0.00s)
+    --- PASS: TestCRITICAL2_MultiValueReturnHandling/three_values_plus_error (0.00s)
+    --- PASS: TestCRITICAL2_MultiValueReturnHandling/single_value_plus_error_(regression) (0.00s)
+=== RUN   TestCRITICAL2_MultiValueReturnWithMessage
+--- PASS: TestCRITICAL2_MultiValueReturnWithMessage (0.00s)
+=== RUN   TestCRITICAL1_MappingsBeforeImportsNotShifted
+    preprocessor_test.go:688: Import block inserted at generated line 3
+    preprocessor_test.go:689: Total mappings: 7
+--- PASS: TestCRITICAL1_MappingsBeforeImportsNotShifted (0.00s)
+=== RUN   TestSourceMapOffsetBeforeImports
+    preprocessor_test.go:789: ✓ All mappings correctly handled:
+    preprocessor_test.go:790:   Line 1 (< 2): NOT shifted (correct)
+    preprocessor_test.go:791:   Line 2 (= 2): NOT shifted (CRITICAL FIX VERIFIED)
+    preprocessor_test.go:792:   Line 3 (> 2): Shifted to 5 (correct)
+    preprocessor_test.go:793:   Line 4 (> 2): Shifted to 6 (correct)
+--- PASS: TestSourceMapOffsetBeforeImports (0.00s)
+=== RUN   TestMultiValueReturnEdgeCases
+=== RUN   TestMultiValueReturnEdgeCases/2-value_return_(baseline_case)
+=== RUN   TestMultiValueReturnEdgeCases/3-value_return_(verified_by_golden_test)
+=== RUN   TestMultiValueReturnEdgeCases/4-value_return_(extreme_case)
+=== RUN   TestMultiValueReturnEdgeCases/5-value_return_(very_extreme_case)
+=== RUN   TestMultiValueReturnEdgeCases/mixed_types_(string,_int,_[]byte,_error)
+=== RUN   TestMultiValueReturnEdgeCases/complex_types_(map,_slice,_struct_pointer,_error)
+=== RUN   TestMultiValueReturnEdgeCases/verify_correct_number_of_temporaries_(3_non-error_values)
+=== RUN   TestMultiValueReturnEdgeCases/verify_correct_number_of_temporaries_(4_non-error_values)
+=== RUN   TestMultiValueReturnEdgeCases/all_values_returned_in_success_path_(4_values)
+=== RUN   TestMultiValueReturnEdgeCases/all_zero_values_in_error_path_(mixed_types)
+--- PASS: TestMultiValueReturnEdgeCases (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/2-value_return_(baseline_case) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/3-value_return_(verified_by_golden_test) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/4-value_return_(extreme_case) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/5-value_return_(very_extreme_case) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/mixed_types_(string,_int,_[]byte,_error) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/complex_types_(map,_slice,_struct_pointer,_error) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/verify_correct_number_of_temporaries_(3_non-error_values) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/verify_correct_number_of_temporaries_(4_non-error_values) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/all_values_returned_in_success_path_(4_values) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/all_zero_values_in_error_path_(mixed_types) (0.00s)
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/user-defined_ReadFile_(no_qualifier)
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/qualified_os.ReadFile_(with_package_qualifier)
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/multiple_user-defined_functions_with_stdlib_names
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/mixed_user-defined_and_qualified_stdlib_calls
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/user-defined_http.Get_lookalike
+--- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/user-defined_ReadFile_(no_qualifier) (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/qualified_os.ReadFile_(with_package_qualifier) (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/multiple_user-defined_functions_with_stdlib_names (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/mixed_user-defined_and_qualified_stdlib_calls (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/user-defined_http.Get_lookalike (0.00s)
+=== RUN   TestConfigSingleValueReturnModeEnforcement
+=== RUN   TestConfigSingleValueReturnModeEnforcement/multi-value_return_in_single_mode_-_expect_error
+    preprocessor_test.go:1218: expected an error, but got none
+=== RUN   TestConfigSingleValueReturnModeEnforcement/single-value_return_in_single_mode_-_no_error
+--- FAIL: TestConfigSingleValueReturnModeEnforcement (0.00s)
+    --- FAIL: TestConfigSingleValueReturnModeEnforcement/multi-value_return_in_single_mode_-_expect_error (0.00s)
+    --- PASS: TestConfigSingleValueReturnModeEnforcement/single-value_return_in_single_mode_-_no_error (0.00s)
+=== RUN   TestUserFunctionShadowingNoImport
+=== RUN   TestUserFunctionShadowingNoImport/user_function_named_ReadFile_-_no_os_import
+=== RUN   TestUserFunctionShadowingNoImport/user_function_named_Atoi_-_no_strconv_import
+=== RUN   TestUserFunctionShadowingNoImport/qualified_os.ReadFile_call_-_SHOULD_import_os
+=== RUN   TestUserFunctionShadowingNoImport/mixed_user-defined_and_qualified_stdlib
+--- PASS: TestUserFunctionShadowingNoImport (0.00s)
+    --- PASS: TestUserFunctionShadowingNoImport/user_function_named_ReadFile_-_no_os_import (0.00s)
+    --- PASS: TestUserFunctionShadowingNoImport/user_function_named_Atoi_-_no_strconv_import (0.00s)
+    --- PASS: TestUserFunctionShadowingNoImport/qualified_os.ReadFile_call_-_SHOULD_import_os (0.00s)
+    --- PASS: TestUserFunctionShadowingNoImport/mixed_user-defined_and_qualified_stdlib (0.00s)
+=== RUN   TestRustMatchProcessor_SimpleResult
+    rust_match_test.go:40: Expected output to contain "switch __match_0.tag {", but it didn't.
+        Got:
+        // DINGO_MATCH_START: result
+        __match_0 := result
+        switch {
+        case __match_0.tag == ResultTagOk:
+        	// DINGO_PATTERN: Ok(x)
+        	x := *__match_0.ok_0
+        	x * 2
+        case __match_0.tag == ResultTagErr:
+        	// DINGO_PATTERN: Err(e)
+        	e := __match_0.err_0
+        	0
+        }
+        // DINGO_MATCH_END
+    rust_match_test.go:40: Expected output to contain "case ResultTagOk:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: result
+        __match_0 := result
+        switch {
+        case __match_0.tag == ResultTagOk:
+        	// DINGO_PATTERN: Ok(x)
+        	x := *__match_0.ok_0
+        	x * 2
+        case __match_0.tag == ResultTagErr:
+        	// DINGO_PATTERN: Err(e)
+        	e := __match_0.err_0
+        	0
+        }
+        // DINGO_MATCH_END
+    rust_match_test.go:40: Expected output to contain "case ResultTagErr:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: result
+        __match_0 := result
+        switch {
+        case __match_0.tag == ResultTagOk:
+        	// DINGO_PATTERN: Ok(x)
+        	x := *__match_0.ok_0
+        	x * 2
+        case __match_0.tag == ResultTagErr:
+        	// DINGO_PATTERN: Err(e)
+        	e := __match_0.err_0
+        	0
+        }
+        // DINGO_MATCH_END
+--- FAIL: TestRustMatchProcessor_SimpleResult (0.00s)
+=== RUN   TestRustMatchProcessor_SimpleOption
+    rust_match_test.go:81: Expected output to contain "switch __match_0.tag {", but it didn't.
+        Got:
+        // DINGO_MATCH_START: value
+        __match_0 := value
+        switch {
+        case __match_0.tag == OptionTagSome:
+        	// DINGO_PATTERN: Some(v)
+        	v := *__match_0.some_0
+        	v
+        case __match_0.tag == OptionTagNone:
+        	// DINGO_PATTERN: None
+        	"default"
+        }
+        // DINGO_MATCH_END
+    rust_match_test.go:81: Expected output to contain "case OptionTagSome:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: value
+        __match_0 := value
+        switch {
+        case __match_0.tag == OptionTagSome:
+        	// DINGO_PATTERN: Some(v)
+        	v := *__match_0.some_0
+        	v
+        case __match_0.tag == OptionTagNone:
+        	// DINGO_PATTERN: None
+        	"default"
+        }
+        // DINGO_MATCH_END
+    rust_match_test.go:81: Expected output to contain "case OptionTagNone:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: value
+        __match_0 := value
+        switch {
+        case __match_0.tag == OptionTagSome:
+        	// DINGO_PATTERN: Some(v)
+        	v := *__match_0.some_0
+        	v
+        case __match_0.tag == OptionTagNone:
+        	// DINGO_PATTERN: None
+        	"default"
+        }
+        // DINGO_MATCH_END
+--- FAIL: TestRustMatchProcessor_SimpleOption (0.00s)
+=== RUN   TestRustMatchProcessor_Wildcard
+    rust_match_test.go:117: Expected output to contain "case ActiveTag:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: status
+        __match_0 := status
+        switch {
+        case __match_0.tag == ActiveTag:
+        	// DINGO_PATTERN: Active
+        	"active"
+        default:
+        	// DINGO_PATTERN: _
+        	"other"
+        }
+        // DINGO_MATCH_END
+--- FAIL: TestRustMatchProcessor_Wildcard (0.00s)
+=== RUN   TestRustMatchProcessor_MultipleMatches
+--- PASS: TestRustMatchProcessor_MultipleMatches (0.00s)
+=== RUN   TestRustMatchProcessor_NoMatch
+--- PASS: TestRustMatchProcessor_NoMatch (0.00s)
+=== RUN   TestRustMatchProcessor_MultilineMatch
+    rust_match_test.go:200: Expected Ok case
+    rust_match_test.go:203: Expected Err case
+--- FAIL: TestRustMatchProcessor_MultilineMatch (0.00s)
+=== RUN   TestRustMatchProcessor_ComplexExpression
+--- PASS: TestRustMatchProcessor_ComplexExpression (0.00s)
+=== RUN   TestRustMatchProcessor_GetNeededImports
+--- PASS: TestRustMatchProcessor_GetNeededImports (0.00s)
+=== RUN   TestRustMatchProcessor_Name
+--- PASS: TestRustMatchProcessor_Name (0.00s)
+=== RUN   TestRustMatchProcessor_ParseArms
+=== RUN   TestRustMatchProcessor_ParseArms/simple_patterns
+=== RUN   TestRustMatchProcessor_ParseArms/no_binding
+=== RUN   TestRustMatchProcessor_ParseArms/wildcard
+--- PASS: TestRustMatchProcessor_ParseArms (0.00s)
+    --- PASS: TestRustMatchProcessor_ParseArms/simple_patterns (0.00s)
+    --- PASS: TestRustMatchProcessor_ParseArms/no_binding (0.00s)
+    --- PASS: TestRustMatchProcessor_ParseArms/wildcard (0.00s)
+=== RUN   TestRustMatchProcessor_GetTagName
+=== RUN   TestRustMatchProcessor_GetTagName/Ok
+=== RUN   TestRustMatchProcessor_GetTagName/Err
+=== RUN   TestRustMatchProcessor_GetTagName/Some
+=== RUN   TestRustMatchProcessor_GetTagName/None
+=== RUN   TestRustMatchProcessor_GetTagName/Active
+=== RUN   TestRustMatchProcessor_GetTagName/Pending
+--- PASS: TestRustMatchProcessor_GetTagName (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Ok (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Err (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Some (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/None (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Active (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Pending (0.00s)
+=== RUN   TestRustMatchProcessor_GenerateBinding
+=== RUN   TestRustMatchProcessor_GenerateBinding/Ok
+=== RUN   TestRustMatchProcessor_GenerateBinding/Err
+=== RUN   TestRustMatchProcessor_GenerateBinding/Some
+=== RUN   TestRustMatchProcessor_GenerateBinding/Active
+--- PASS: TestRustMatchProcessor_GenerateBinding (0.00s)
+    --- PASS: TestRustMatchProcessor_GenerateBinding/Ok (0.00s)
+    --- PASS: TestRustMatchProcessor_GenerateBinding/Err (0.00s)
+    --- PASS: TestRustMatchProcessor_GenerateBinding/Some (0.00s)
+    --- PASS: TestRustMatchProcessor_GenerateBinding/Active (0.00s)
+FAIL
+coverage: 83.4% of statements
+FAIL	github.com/MadAppGang/dingo/pkg/preprocessor	0.496s
+FAIL

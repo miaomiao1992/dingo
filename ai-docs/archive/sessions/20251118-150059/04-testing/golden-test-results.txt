@@ -1,0 +1,105 @@
+=== RUN   TestGoldenFiles
+=== RUN   TestGoldenFiles/error_prop_01_simple
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_01_simple.dingo:4:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_01_simple.dingo:4:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_02_multiple
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/error_prop_03_expression
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_03_expression.dingo:4:20: undefined: Atoi
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_03_expression.dingo:4:20: undefined: Atoi
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_04_wrapping
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_04_wrapping.dingo:7:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_04_wrapping.dingo:7:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_05_complex_types
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_05_complex_types.dingo:9:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_05_complex_types.dingo:20:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_05_complex_types.dingo:9:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_06_mixed_context
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_06_mixed_context.dingo:4:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_06_mixed_context.dingo:11:20: undefined: Atoi
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_06_mixed_context.dingo:4:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_07_special_chars
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_07_special_chars.dingo:6:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_07_special_chars.dingo:6:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_08_chained_calls
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_08_chained_calls.dingo:11:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_08_chained_calls.dingo:19:20: undefined: Unmarshal
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_08_chained_calls.dingo:25:6: declared and not used: err
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_08_chained_calls.dingo:11:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_09_multi_value
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/func_util_01_map
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_02_filter
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_03_reduce
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_04_chaining
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_01_basic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_02_multiline
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_03_closure
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_04_higher_order
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_01_basic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_02_chained
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_03_with_option
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/option_01_basic
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/option_02_literals
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_02_pattern_match
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_03_chaining
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_04_go_interop
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/option_05_helpers
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:16:16: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:22:23: undefined: Option_bool
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:40:22: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:40:34: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:48:23: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:48:35: undefined: Option_int
+--- FAIL: TestGoldenFiles (0.35s)
+--- FAIL: TestGoldenFilesCompilation (0.03s)
+FAIL
+FAIL	github.com/MadAppGang/dingo/tests	0.590s
+FAIL

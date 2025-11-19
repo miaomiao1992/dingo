@@ -7,75 +7,75 @@ import (
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
 	tag   ResultTag
-	ok_0  *int
-	err_0 *error
+	ok  *int
+	err *error
 }
 
 func Result_Ok(arg0 int) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 func analyzeResults(r1 Result, r2 Result, r3 Result) string {
 
-	__match_0_elem0, __match_0_elem1, __match_0_elem2 := r1, r2, r3
+	elem0, elem1, elem2 := r1, r2, r3
 
-	switch __match_0_elem0.tag {
-	case ResultTag_Err:
-		switch __match_0_elem1.tag {
+	switch elem0.tag {
+	case ResultTagErr:
+		switch elem1.tag {
 		default:
-			switch __match_0_elem2.tag {
+			switch elem2.tag {
 			default:
 
-				e := *__match_0_elem0.err0
+				e := *elem0.err
 				return "First failed immediately: " + e.Error()
 			}
 		}
-	case ResultTag_Ok:
-		switch __match_0_elem1.tag {
-		case ResultTag_Ok:
-			switch __match_0_elem2.tag {
-			case ResultTag_Err:
+	case ResultTagOk:
+		switch elem1.tag {
+		case ResultTagOk:
+			switch elem2.tag {
+			case ResultTagErr:
 
-				_ := *__match_0_elem0.ok0
-				_ := *__match_0_elem1.ok0
-				e := *__match_0_elem2.err0
+				_ := *elem0.ok
+				_ := *elem1.ok
+				e := *elem2.err
 				return "First two ok, third failed: " + e.Error()
-			case ResultTag_Ok:
+			case ResultTagOk:
 
-				x := *__match_0_elem0.ok0
-				y := *__match_0_elem1.ok0
-				z := *__match_0_elem2.ok0
+				x := *elem0.ok
+				y := *elem1.ok
+				z := *elem2.ok
 				return "All succeeded: sum = " + string(x+y+z)
 			}
 		}
 	default:
-		switch __match_0_elem1.tag {
-		case ResultTag_Err:
-			switch __match_0_elem2.tag {
+		switch elem1.tag {
+		case ResultTagErr:
+			switch elem2.tag {
 			default:
 
-				e := *__match_0_elem1.err0
+				e := *elem1.err
 				return "Second failed: " + e.Error()
 			}
 		default:
-			switch __match_0_elem2.tag {
-			case ResultTag_Err:
+			switch elem2.tag {
+			case ResultTagErr:
 
-				e := *__match_0_elem2.err0
+				e := *elem2.err
 				return "Third failed: " + e.Error()
 			}
 		}

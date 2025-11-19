@@ -1,0 +1,24 @@
+SUCCESS
+
+All tuple pattern parser bugs fixed. All 4 test files transpile successfully:
+- pattern_match_09_tuple_pairs.dingo ✅
+- pattern_match_10_tuple_triples.dingo ✅
+- pattern_match_11_tuple_wildcards.dingo ✅
+- pattern_match_12_tuple_exhaustiveness.dingo ✅
+
+Root cause: Parser was splitting expressions on commas inside string literals.
+Solution: Implemented findExpressionEnd() that respects strings, nesting, and escapes.
+Files modified: 1 (pkg/preprocessor/rust_match.go)
+Functions updated: parseArms(), parseTupleArms()
+New helper added: findExpressionEnd()
+
+Edge cases handled:
+- Nested patterns: (Ok(x), Ok(y)) ✅
+- Wildcards: (_, Err(e)) ✅
+- N-tuples: 2, 3-element tuples ✅
+- String commas: "x, y" ✅
+- Escaped quotes: "\"hello\"" ✅
+- Backticks: `template ${x}` ✅
+- Nested calls: foo(bar(x, y)) ✅
+
+Zero regressions. All tests pass.

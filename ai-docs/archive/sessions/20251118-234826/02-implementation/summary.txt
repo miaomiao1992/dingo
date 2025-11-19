@@ -1,0 +1,5 @@
+Comment pollution fix: PARTIAL
+Injected types: Still polluted with DINGO comments
+Root cause identified: File-level comment map pollution
+Solution required: Refactor pattern_match.go to attach comments to nodes, not file
+Details: /Users/jack/mag/dingo/ai-docs/sessions/20251118-234826/02-implementation/comment-pollution-fix.md

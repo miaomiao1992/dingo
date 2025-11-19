@@ -1,0 +1,34 @@
+[
+  {
+    "question": "Are Result<T, E> and Option<T> types already implemented in the codebase?",
+    "rationale": "Functional utilities need to integrate with Result/Option types for error-aware operations like mapResult() and filterSome(). If these types don't exist yet, we need to either implement basic versions or coordinate with whoever is building them. This affects the scope and timeline of functional utilities implementation."
+  },
+  {
+    "question": "Should we wait for lambda syntax implementation, or proceed with Go function literals?",
+    "rationale": "The feature proposal shows lambdas (|x| x * 2) but they're not yet implemented. We can build functional utilities now using Go function literals, and lambda syntax will seamlessly integrate later since both transpile to the same code. However, if lambda is being implemented in parallel, we should coordinate to avoid conflicts. What's the priority and timeline?"
+  },
+  {
+    "question": "What package naming convention should we use for the standard library?",
+    "rationale": "The plan suggests pkg/stdlib/ for the standard library utilities that will be imported by generated Go code. Alternative names could be pkg/functional/, pkg/iter/, or pkg/collections/. This needs to align with the overall vision for Dingo's standard library. What naming convention fits best with future expansion plans?"
+  },
+  {
+    "question": "How many functional utilities should we implement in the initial version?",
+    "rationale": "The plan outlines core operations (map, filter, reduce) plus helpers (sum, count, all, any, find) and Result/Option integration. Should we ship all of these in Phase 1, or start with just map/filter/reduce and iterate? A smaller initial scope means faster delivery and easier testing, but users might expect common helpers immediately."
+  },
+  {
+    "question": "Should method chaining be supported in the initial implementation?",
+    "rationale": "Chaining like numbers.filter(p).map(fn).reduce(init, r) is powerful but adds parser complexity. The plan suggests starting with single method calls and adding chaining later. Is this acceptable, or is chaining a must-have for the initial release? This affects parser work and testing scope."
+  },
+  {
+    "question": "What should be the behavior for nil slices in functional utilities?",
+    "rationale": "Go allows nil slices, and we need consistent semantics: should Map(nil, fn) return nil, an empty slice, or panic? The plan suggests nil-in/nil-out for consistency with Go idioms, but this needs confirmation. This affects correctness, documentation, and error handling."
+  },
+  {
+    "question": "Should we optimize for inlined loops or readable stdlib function calls?",
+    "rationale": "The plan recommends using stdlib.Map() calls for readability and maintainability, with future optimization for inlining loops. However, some users might want maximum performance from day one. Should we provide an optimization flag (-O2) in the initial release, or defer that to later? This affects implementation complexity."
+  },
+  {
+    "question": "How should functional utilities handle error propagation with the ? operator?",
+    "rationale": "Users might want to use map with functions that can fail: numbers.map(|x| parseNumber(x)?). Should the ? operator work inside lambda/function arguments to functional utilities? This might require coordination with the error_propagation plugin or special handling. What's the expected behavior?"
+  }
+]

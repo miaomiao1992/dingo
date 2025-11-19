@@ -1,0 +1,22 @@
+[
+  {
+    "question": "Should we enable Go interoperability (auto-wrapping) by default or make it opt-in?",
+    "rationale": "Auto-wrapping `(T, error)` to `Result<T, E>` and `*T` to `Option<T>` is powerful but changes behavior. Default enabled = more magical but convenient. Default disabled = explicit but more manual work. Affects result_05_go_interop.dingo and option_04_go_interop.dingo golden tests. Recommendation: Start with opt-in (safer), can change later based on feedback."
+  },
+  {
+    "question": "How should we handle None type inference failures? Fallback to interface{} or compilation error?",
+    "rationale": "When `None` appears without clear type context, we have two options: (1) Use `Option_interface{}` as fallback (compiles but loses type safety), or (2) Fail compilation with clear error message (safer but potentially frustrating). Recommendation: Compilation error with helpful message ('cannot infer type for None, add explicit type annotation'), forces users to be explicit."
+  },
+  {
+    "question": "Should Result/Option helper methods be generated for ALL instances or only used methods?",
+    "rationale": "Generating all helper methods (IsOk, IsErr, Unwrap, UnwrapOr, Map, Filter, etc.) increases binary size but provides complete API. Generating only used methods reduces size but requires usage analysis. For Phase 3, recommend generating all methods (simpler implementation). Optimize in Phase 4+ with dead code elimination analysis."
+  },
+  {
+    "question": "What priority should we assign to lambda integration (currently deferred to Phase 4)?",
+    "rationale": "Lambda functions (lambda_01-04 tests) would make Result/Option.Map() much more ergonomic: `result.Map(|x| x * 2)` vs `result.Map(func(x int) int { return x * 2 })`. Current plan defers lambdas to Phase 4, but they have high synergy with Result/Option. Should we pull lambdas forward into Phase 3 (adds 1-2 weeks) or keep them separate? Recommendation: Keep separate for Phase 3 focus, prioritize lambdas in Phase 4."
+  },
+  {
+    "question": "Should we support custom error types or enforce error interface?",
+    "rationale": "Result<T, E> allows any error type E, but Go convention is `error` interface. Options: (1) Allow any E type (flexible but non-idiomatic), (2) Enforce E implements error interface (idiomatic but restrictive), (3) Provide Result<T, error> as default but allow custom (hybrid). Recommendation: Hybrid approach - Result<T> defaults to Result<T, error>, but Result<T, MyError> is allowed for advanced cases."
+  }
+]

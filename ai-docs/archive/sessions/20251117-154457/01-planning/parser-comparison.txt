@@ -1,0 +1,434 @@
+================================================================================
+PARSER STRATEGY COMPARISON
+================================================================================
+Date: 2025-11-17
+Purpose: Compare parser strategies for Dingo transpiler
+Recommendation: Strategy 1 (go/parser + Preprocessor)
+================================================================================
+
+OVERVIEW COMPARISON
+--------------------------------------------------------------------------------
+Strategy                      | Development | Maintenance | Go Coverage | Risk
+                             | Time        | Burden      |            |
+------------------------------|-------------|-------------|-------------|------
+1. go/parser + Preprocessor  | 2-3 weeks   | Low         | 100%       | Low
+2. go/scanner + Hybrid       | 3-6 months  | Very High   | ~80%       | High
+3. go/parser + AST Injection | 1-2 weeks   | Low         | 100%       | Med
+4. Tree-sitter              | 6-10 weeks  | Medium      | 100%*      | Med
+
+* Via CST conversion, not direct
+
+================================================================================
+DETAILED COMPARISON
+================================================================================
+
+STRATEGY 1: go/parser + Preprocessor (RECOMMENDED)
+--------------------------------------------------------------------------------
+Architecture:
+  .dingo → [Text Transform] → Valid Go → [go/parser] → AST → [Transform] → .go
+
+Lines of Code:
+  - Preprocessor (text):        1,000 lines
+  - AST transformations:          800 lines
+  - Source mapping:               500 lines
+  - TOTAL:                      2,300 lines
+
+Go Parsing:
+  ✓ 100% coverage (via go/parser - FREE)
+  ✓ All Go features work automatically
+  ✓ Future Go features: automatic
+
+Dingo Features:
+  ✓ Error propagation (?)
+  ✓ Pattern matching (match)
+  ✓ Sum types (enum)
+  ✓ Lambdas (|x| expr)
+  ✓ Null coalescing (??)
+  ✓ Safe navigation (?.)
+  ✓ Unlimited extensibility
+
+Error Handling:
+  ✓ Excellent (via go/parser)
+  ✓ Source maps for position mapping
+  ✓ User sees errors in .dingo files
+
+Ecosystem Integration:
+  ✓ Perfect gopls integration (via proxy)
+  ✓ Perfect gofmt integration
+  ✓ Perfect go vet integration
+  ✓ Works with all Go tools
+
+Precedents:
+  ✓ TypeScript (TS → JS)
+  ✓ Rust macros (macro → Rust)
+  ✓ PREGO (preprocessor → Go)
+  ✓ gpp (macros → Go)
+  ✓ templ (template → Go)
+  ✓ C preprocessor (#define → C)
+
+Pros:
+  + Small codebase (~2,300 LOC)
+  + Fast development (2-3 weeks)
+  + Battle-tested tools (go/parser)
+  + Simple architecture
+  + Easy to maintain
+  + Industry-proven pattern
+  + 100% Go compatibility
+
+Cons:
+  - Two-phase parsing (minor complexity)
+  - Temporary placeholders (e.g., __dingo_try_N)
+  - Need source maps for error positions
+
+Risk Level: LOW
+Confidence: VERY HIGH
+
+--------------------------------------------------------------------------------
+
+STRATEGY 2: go/scanner + Hybrid Parser
+--------------------------------------------------------------------------------
+Architecture:
+  .dingo → [go/scanner] → Tokens → [Hybrid Parser] → Custom AST → [Transform]
+
+Lines of Code:
+  - Custom Go parser:         6,000-9,000 lines
+  - Dingo-specific parsing:   1,500-2,500 lines
+  - Error recovery:           1,000-2,000 lines
+  - AST construction:         1,500-2,500 lines
+  - TOTAL:                   10,000-15,000 lines
+
+Go Parsing:
+  ✗ Manual implementation (~80% coverage)
+  ✗ Must track Go evolution manually
+  ✗ Selectors: NOT IMPLEMENTED
+  ✗ Assignments: NOT IMPLEMENTED
+  ✗ Many statements: NOT IMPLEMENTED
+
+Dingo Features:
+  ✓ All features possible
+  ✗ High implementation cost for each
+
+Error Handling:
+  ✗ Must implement error recovery manually
+  ✗ Must implement error messages manually
+  ✗ Source positions manual
+
+Ecosystem Integration:
+  ~ Via source maps (extra work)
+  ~ Need to match go/parser AST structure
+
+Precedents:
+  ✗ No known examples of this working well
+  ✗ Most hybrids degenerate to "reimplement parser"
+
+Pros:
+  + Fine-grained control
+  + Direct token access
+
+Cons:
+  - Very large codebase (10,000-15,000 LOC)
+  - Long development time (3-6 months)
+  - High maintenance burden
+  - Must reimplement most of Go parsing
+  - Must track Go language evolution
+  - No fallback to go/parser (incompatible states)
+  - Manual error handling
+  - No precedent for success
+
+Risk Level: VERY HIGH
+Confidence: LOW
+
+VERDICT: NOT RECOMMENDED
+Reason: Defeats purpose of leveraging Go tooling. Reimplements go/parser.
+
+--------------------------------------------------------------------------------
+
+STRATEGY 3: go/parser + AST Injection
+--------------------------------------------------------------------------------
+Architecture:
+  .dingo (valid Go syntax) → [go/parser] → AST → [Detect patterns] → Transform
+
+Lines of Code:
+  - Pattern detection:          500 lines
+  - AST transformations:        800 lines
+  - TOTAL:                    1,300 lines
+
+Go Parsing:
+  ✓ 100% coverage (via go/parser - FREE)
+
+Dingo Features:
+  ✗ Limited to valid Go syntax
+  ✗ Error propagation: value.question() (ugly)
+  ✗ Pattern matching: NOT POSSIBLE (not valid Go)
+  ✗ Sum types: NOT POSSIBLE (not valid Go)
+  ✗ Lambdas: Already valid Go (no benefit)
+  ✗ Custom operators: NOT POSSIBLE
+
+Error Handling:
+  ✓ Excellent (via go/parser)
+
+Ecosystem Integration:
+  ✓ Perfect (everything is valid Go)
+
+Pros:
+  + Smallest codebase (1,300 LOC)
+  + Fast development (1-2 weeks)
+  + Uses go/parser directly
+  + No preprocessing step
+
+Cons:
+  - FATAL: Dingo syntax must be valid Go
+  - Can't use `?`, `match`, custom operators
+  - Defeats purpose of nicer syntax
+  - Very limited value proposition
+
+Risk Level: MEDIUM
+Confidence: HIGH (that it won't meet requirements)
+
+VERDICT: NOT VIABLE
+Reason: Too limited. Compromises Dingo's value proposition.
+
+--------------------------------------------------------------------------------
+
+STRATEGY 4: Tree-sitter
+--------------------------------------------------------------------------------
+Architecture:
+  .dingo → [tree-sitter] → CST → [Convert] → Custom AST → go/ast → Transform
+
+Lines of Code:
+  - Grammar extension (JS):      500-1,000 lines
+  - CST → AST conversion:      2,500-4,000 lines
+  - AST → go/ast transform:    1,500-2,500 lines
+  - Source mapping:              500-1,000 lines
+  - TOTAL (Go):                5,000-8,000 lines
+  - TOTAL (JS):                  500-1,000 lines
+
+Go Parsing:
+  ✓ 100% coverage (via tree-sitter-go grammar)
+  ✗ BUT: Via CST, need conversion
+
+Dingo Features:
+  ✓ All features possible
+  ~ Medium implementation cost
+
+Error Handling:
+  ✓ Good (tree-sitter error recovery)
+  ~ Need to convert error positions
+
+Ecosystem Integration:
+  ~ Via source maps
+  ~ CST → go/ast conversion needed
+
+Build Dependencies:
+  ✗ Node.js (for grammar development)
+  ✗ tree-sitter CLI
+  ✗ CGO (for Go bindings)
+  ✗ C compiler (for generated parser)
+
+Precedents:
+  ✓ Used by Neovim, Atom, GitHub
+  ~ For EDITORS, not transpilers
+
+Pros:
+  + Incremental parsing (for editors)
+  + Error recovery (for syntax highlighting)
+  + Grammar reuse (tree-sitter-go exists)
+  + Extensibility (can add rules)
+
+Cons:
+  - Extra layer: CST → AST → go/ast (vs just go/ast)
+  - Build complexity (JS + C + Go)
+  - CGO dependency (complicates distribution)
+  - Must track tree-sitter-go updates
+  - Wrong tool for the job (editor tool, not transpiler)
+  - Incremental parsing not needed (transpiler runs once)
+  - Error recovery not needed (fail on invalid syntax)
+  - CST conversion overhead
+
+Risk Level: MEDIUM
+Confidence: MEDIUM
+
+VERDICT: NOT RECOMMENDED
+Reason: Wrong tool for job. Adds complexity without benefit for transpiler.
+       (Great for editors, overkill for build-time transpiler)
+
+================================================================================
+IMPLEMENTATION COMPLEXITY
+================================================================================
+
+Lines of Code Comparison:
+                                  Custom    Reused      Total    Go Coverage
+Strategy 1 (Preprocessor)         2,300         0      2,300    100% (free)
+Strategy 2 (Hybrid)             10,000+         0     10,000+    80% (manual)
+Strategy 3 (AST Injection)        1,300         0      1,300    100% (free)
+Strategy 4 (Tree-sitter)          5,000     1,000      6,000    100% (via CST)
+
+Development Time Comparison:
+Strategy 1 (Preprocessor)         2-3 weeks
+Strategy 2 (Hybrid)               3-6 months
+Strategy 3 (AST Injection)        1-2 weeks (but limited features)
+Strategy 4 (Tree-sitter)          6-10 weeks
+
+Maintenance Burden:
+Strategy 1 (Preprocessor)         LOW    (simple transformations)
+Strategy 2 (Hybrid)               VERY HIGH (track Go evolution, maintain parser)
+Strategy 3 (AST Injection)        LOW    (but limited)
+Strategy 4 (Tree-sitter)          MEDIUM (track tree-sitter-go, CST conversion)
+
+================================================================================
+FEATURE SUPPORT MATRIX
+================================================================================
+
+Feature                  | Strategy 1 | Strategy 2 | Strategy 3 | Strategy 4
+                        | Preprocess | Hybrid     | Injection  | Tree-sitter
+------------------------|------------|------------|------------|------------
+Go Imports              | ✓ FREE     | Manual     | ✓ FREE     | ✓ Via CST
+Go Types                | ✓ FREE     | Manual     | ✓ FREE     | ✓ Via CST
+Go Methods              | ✓ FREE     | Manual     | ✓ FREE     | ✓ Via CST
+Go Generics             | ✓ FREE     | Manual     | ✓ FREE     | ✓ Via CST
+Go Interfaces           | ✓ FREE     | Manual     | ✓ FREE     | ✓ Via CST
+-----------------------------------------------------------------------------------
+Error Propagation (?)   | ✓          | ✓          | ✗ (ugly)   | ✓
+Pattern Matching        | ✓          | ✓          | ✗          | ✓
+Sum Types (enum)        | ✓          | ✓          | ✗          | ✓
+Lambdas                 | ✓          | ✓          | ~ (no win) | ✓
+Null Coalescing (??)    | ✓          | ✓          | ✗          | ✓
+Safe Navigation (?.)    | ✓          | ✓          | ✗          | ✓
+-----------------------------------------------------------------------------------
+Future Go Features      | ✓ Auto     | Manual     | ✓ Auto     | Manual
+Future Dingo Features   | ✓ Easy     | Medium     | ✗ Limited  | Medium
+
+================================================================================
+ECOSYSTEM INTEGRATION
+================================================================================
+
+Tool Integration:       | Strategy 1 | Strategy 2 | Strategy 3 | Strategy 4
+------------------------|------------|------------|------------|------------
+gopls                   | Perfect*   | Via LSP    | Perfect    | Via LSP
+gofmt                   | Perfect    | Via AST    | Perfect    | Via AST
+go vet                  | Perfect    | Via AST    | Perfect    | Via AST
+go build                | Perfect    | Perfect    | Perfect    | Perfect
+go test                 | Perfect    | Perfect    | Perfect    | Perfect
+IDE autocomplete        | Perfect*   | Via LSP    | Perfect    | Via LSP
+Error diagnostics       | Good**     | Manual     | Perfect    | Good**
+
+* Via LSP proxy + source maps
+** Via source maps (minor position mapping)
+
+================================================================================
+RISK ASSESSMENT
+================================================================================
+
+Technical Risks:
+Strategy 1: LOW
+  - go/parser is battle-tested (10+ years production)
+  - AST transformation is well-documented
+  - Pattern proven by TypeScript, Rust macros, PREGO, gpp, templ
+
+Strategy 2: VERY HIGH
+  - No precedent for hybrid approach working
+  - Must reimplement most of go/parser
+  - Parser state incompatibility (can't switch mid-parse)
+
+Strategy 3: MEDIUM
+  - Technical risk low (uses go/parser)
+  - Product risk high (can't deliver features)
+
+Strategy 4: MEDIUM
+  - Tree-sitter mature and stable
+  - CST conversion adds complexity
+  - CGO dependency complicates builds
+
+Implementation Risks:
+Strategy 1: LOW (straightforward text + AST transforms)
+Strategy 2: VERY HIGH (reimplementing parser is hard)
+Strategy 3: LOW (simple code, but limited)
+Strategy 4: MEDIUM (grammar + CST conversion)
+
+Maintenance Risks:
+Strategy 1: LOW (small codebase, decoupled from Go evolution)
+Strategy 2: VERY HIGH (must track Go language changes)
+Strategy 3: LOW (but feature-limited)
+Strategy 4: MEDIUM (track tree-sitter-go updates)
+
+================================================================================
+REAL-WORLD PRECEDENTS
+================================================================================
+
+Successfully Using Preprocessing Approach (Strategy 1):
+  ✓ TypeScript → JavaScript (Microsoft, 10+ years production)
+  ✓ Rust macros → Rust (Mozilla/Rust Foundation)
+  ✓ C preprocessor → C (Every C compiler)
+  ✓ PREGO → Go (github.com/strickyak/prego)
+  ✓ gpp → Go (github.com/mmirolim/gpp)
+  ✓ templ → Go (github.com/a-h/templ)
+  ✓ Babel → JavaScript (Facebook/community)
+
+Successfully Using Hybrid Approach (Strategy 2):
+  ✗ No known examples found
+
+Successfully Using AST Injection (Strategy 3):
+  ~ Rust proc macros (but within Rust syntax constraints)
+  ~ Limited use cases only
+
+Successfully Using Tree-sitter for Transpilers (Strategy 4):
+  ✗ Tree-sitter primarily used for editors, not transpilers
+  ~ Could work, but not the primary use case
+
+================================================================================
+RECOMMENDATION SUMMARY
+================================================================================
+
+WINNER: Strategy 1 (go/parser + Preprocessor)
+
+Reasoning:
+  1. Leverages existing tools (don't reinvent the wheel)
+  2. Industry-proven pattern (TypeScript, Rust, C, etc.)
+  3. Small codebase (2,300 LOC vs 10,000+)
+  4. Fast development (2-3 weeks vs months)
+  5. Low maintenance burden
+  6. 100% Go compatibility (automatic)
+  7. Supports all desired Dingo features
+  8. Battle-tested tools (go/parser)
+
+Next Steps:
+  1. Week 1: Implement preprocessor MVP (? operator)
+  2. Week 2: Add AST transformations
+  3. Week 3: Add pattern matching, sum types
+  4. Week 4: Polish, source maps, CLI integration
+
+Confidence: VERY HIGH
+
+================================================================================
+QUESTIONS & ANSWERS
+================================================================================
+
+Q: Why not use tree-sitter? It's modern and powerful.
+A: Tree-sitter excels at editor features (incremental parsing, error recovery).
+   For a transpiler that runs once at build time, preprocessing + go/parser is
+   simpler and more maintainable. We'd add complexity without benefit.
+
+Q: Isn't the hybrid approach (Strategy 2) more "correct"?
+A: No - it's a trap. You can't "fall back" to go/parser mid-parse. This
+   degenerates into reimplementing go/parser, which defeats the purpose.
+
+Q: What about Strategy 3 (AST Injection)?
+A: Too limited. We'd be constrained to valid Go syntax, which prevents us from
+   implementing `?`, `match`, and other Dingo features. Defeats the value prop.
+
+Q: Won't preprocessing make errors confusing?
+A: No - source maps translate error positions from .go back to .dingo files.
+   Users see errors in their original .dingo code, not generated code.
+
+Q: What if Go adds new syntax in the future?
+A: Strategy 1 handles it automatically (go/parser updates, we get it free).
+   Strategy 2 requires manual parser updates.
+   Strategy 4 requires tracking tree-sitter-go updates.
+
+Q: How do we handle complex Dingo features like pattern matching?
+A: Transform to equivalent Go constructs (switch statements, type assertions).
+   All Dingo features can be expressed as valid Go code.
+
+================================================================================
+END OF COMPARISON
+================================================================================

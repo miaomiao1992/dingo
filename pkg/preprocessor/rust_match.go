@@ -29,6 +29,27 @@ func NewRustMatchProcessor() *RustMatchProcessor {
 	}
 }
 
+// getScrutineeVarName returns scrutinee variable name (scrutinee, scrutinee2, scrutinee3, ...)
+func (r *RustMatchProcessor) getScrutineeVarName(matchID int) string {
+	if matchID == 0 {
+		return "scrutinee"
+	}
+	return fmt.Sprintf("scrutinee%d", matchID+1)
+}
+
+// getResultVarName returns result variable name (result, result2, result3, ...)
+func (r *RustMatchProcessor) getResultVarName(matchID int) string {
+	if matchID == 0 {
+		return "result"
+	}
+	return fmt.Sprintf("result%d", matchID+1)
+}
+
+// isGeneratedResultVar checks if a variable name is a generated result variable
+func (r *RustMatchProcessor) isGeneratedResultVar(varName string) bool {
+	return varName == "result" || strings.HasPrefix(varName, "result")
+}
+
 // Name returns the processor name
 func (r *RustMatchProcessor) Name() string {
 	return "rust_match"
@@ -145,23 +166,13 @@ func (r *RustMatchProcessor) collectMatchExpression(lines []string, startLine in
 
 // transformMatch transforms a Rust-like match expression to Go switch
 func (r *RustMatchProcessor) transformMatch(matchExpr string, originalLine int, outputLine int) (string, []Mapping, error) {
-	// DEBUG: Print the match expression being processed
-	fmt.Printf("\n=== transformMatch DEBUG ===\n")
-	fmt.Printf("matchExpr = %q\n", matchExpr)
-	fmt.Printf("matchExpr length = %d\n", len(matchExpr))
-
 	// Extract scrutinee and arms using boundary-aware parsing instead of regex
 	// This fixes the issue where DOTALL flag (.+) matches across all newlines until EOF
 	// in files with multiple match expressions
 	scrutinee, armsText, err := r.extractScrutineeAndArms(matchExpr)
 	if err != nil {
-		fmt.Printf("ERROR: extractScrutineeAndArms failed: %v\n", err)
 		return "", nil, fmt.Errorf("extracting match components: %w", err)
 	}
-
-	fmt.Printf("scrutinee = %q\n", scrutinee)
-	fmt.Printf("armsText = %q\n", armsText)
-	fmt.Printf("=== END DEBUG ===\n\n")
 
 	// Check if match expression is in assignment context and extract variable name
 	// If the entire match expression starts with "let x = match" or "var x = match",
@@ -276,7 +287,7 @@ func (r *RustMatchProcessor) extractAssignmentVar(matchExpr string) (bool, strin
 	// Check for "return match" pattern
 	if beforeMatch == "return" || strings.HasSuffix(beforeMatch, "return") {
 		// Generate temporary variable name for return context
-		varName := fmt.Sprintf("__match_result_%d", r.matchCounter)
+		varName := r.getResultVarName(r.matchCounter)
 		return true, varName
 	}
 
@@ -592,7 +603,7 @@ func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm,
 	r.matchCounter++
 
 	// Create temporary variable for scrutinee
-	scrutineeVar := fmt.Sprintf("__match_%d", matchID)
+	scrutineeVar := r.getScrutineeVarName(matchID)
 
 	// Variable Hoisting Pattern: If in assignment context, declare result variable with proper type
 	if isInAssignment && assignmentVar != "" {
@@ -684,7 +695,7 @@ func (r *RustMatchProcessor) generateSwitch(scrutinee string, arms []patternArm,
 	outputLine++
 
 	// If in assignment context with auto-generated variable (return match), add return statement
-	if isInAssignment && assignmentVar != "" && strings.HasPrefix(assignmentVar, "__match_result_") {
+	if isInAssignment && assignmentVar != "" && r.isGeneratedResultVar(assignmentVar) {
 		buf.WriteString(fmt.Sprintf("return %s\n", assignmentVar))
 		mappings = append(mappings, Mapping{
 			OriginalLine:    originalLine,
@@ -836,7 +847,7 @@ func (r *RustMatchProcessor) generateCaseWithGuards(scrutineeVar string, group a
 		// NESTED PATTERN CASE: Generate nested switch
 		// Extract outer value and switch on inner patterns
 		fieldName := r.getFieldName(group.pattern)
-		intermediateVar := fmt.Sprintf("__%s_nested", group.pattern)
+		intermediateVar := fmt.Sprintf("nested%s", group.pattern)
 		buf.WriteString(fmt.Sprintf("\t%s := *%s.%s\n", intermediateVar, scrutineeVar, fieldName))
 		buf.WriteString(fmt.Sprintf("\tswitch %s.tag {\n", intermediateVar))
 
@@ -1127,54 +1138,54 @@ func (r *RustMatchProcessor) generateCase(scrutineeVar string, arm patternArm, o
 	return buf.String(), mappings
 }
 
-// getTagName converts pattern name to Go tag constant name
-// Ok → ResultTag_Ok, Err → ResultTag_Err, Some → OptionTag_Some, None → OptionTag_None
-// Status_Pending → StatusTag_Pending (for custom enums)
+// getTagName converts pattern name to Go tag constant name (CamelCase)
+// Ok → ResultTagOk, Err → ResultTagErr, Some → OptionTagSome, None → OptionTagNone
+// Status_Pending → StatusTagPending (for custom enums)
 func (r *RustMatchProcessor) getTagName(pattern string) string {
 	switch pattern {
 	case "Ok":
-		return "ResultTag_Ok"
+		return "ResultTagOk"
 	case "Err":
-		return "ResultTag_Err"
+		return "ResultTagErr"
 	case "Some":
-		return "OptionTag_Some"
+		return "OptionTagSome"
 	case "None":
-		return "OptionTag_None"
+		return "OptionTagNone"
 	default:
-		// Custom enum variant: EnumName_Variant → EnumNameTag_Variant
-		// Example: Value_Int → ValueTag_Int
+		// Custom enum variant: EnumName_Variant → EnumNameTagVariant
+		// Example: Value_Int → ValueTagInt
 		if idx := strings.Index(pattern, "_"); idx > 0 {
 			enumName := pattern[:idx]
 			variantName := pattern[idx+1:]
-			return enumName + "Tag_" + variantName
+			return enumName + "Tag" + variantName
 		}
 		// Bare variant name (shouldn't happen in well-formed Dingo code)
 		return pattern + "Tag"
 	}
 }
 
-// generateBinding generates binding extraction code
+// generateBinding generates binding extraction code (CamelCase field names)
 func (r *RustMatchProcessor) generateBinding(scrutinee string, pattern string, binding string) string {
 	switch pattern {
 	case "Ok":
-		// For Result<T,E>, Ok value is stored in ok_0 field (pointer to T)
-		return fmt.Sprintf("%s := *%s.ok_0", binding, scrutinee)
+		// For Result<T,E>, Ok value is stored in ok field (pointer to T)
+		return fmt.Sprintf("%s := *%s.ok", binding, scrutinee)
 	case "Err":
-		// For Result<T,E>, Err value is stored in err_0 field (E)
-		return fmt.Sprintf("%s := %s.err_0", binding, scrutinee)
+		// For Result<T,E>, Err value is stored in err field (E)
+		return fmt.Sprintf("%s := %s.err", binding, scrutinee)
 	case "Some":
-		// For Option<T>, Some value is stored in some_0 field (pointer to T)
-		return fmt.Sprintf("%s := *%s.some_0", binding, scrutinee)
+		// For Option<T>, Some value is stored in some field (pointer to T)
+		return fmt.Sprintf("%s := *%s.some", binding, scrutinee)
 	default:
 		// Custom enum variant: extract variant name and lowercase it
 		// Pattern may be "Value_Int" or just "Int"
-		// Field name should be "int_0" (lowercase with underscore)
+		// Field name should be "int" (lowercase, no suffix)
 		variantName := pattern
 		if idx := strings.LastIndex(pattern, "_"); idx != -1 {
 			// Extract variant after last underscore: "Value_Int" -> "Int"
 			variantName = pattern[idx+1:]
 		}
-		fieldName := strings.ToLower(variantName) + "_0"
+		fieldName := strings.ToLower(variantName)
 
 		// Check if field is a pointer (most custom enum fields are pointers)
 		// For now, assume pointer dereference for custom enums with bindings
@@ -1185,30 +1196,33 @@ func (r *RustMatchProcessor) generateBinding(scrutinee string, pattern string, b
 	}
 }
 
-// generateTupleBinding generates binding extraction code for tuple patterns
+// generateTupleBinding generates binding extraction code for tuple patterns (CamelCase)
 // BUG FIX #2: New function to extract tuple element values
 // Examples:
-//   elemVar="__match_0_elem0", variant="Ok", binding="x"
-//   -> "x := *__match_0_elem0.ok_0"
+//   elemVar="elem0", variant="Ok", binding="x"
+//   -> "x := *elem0.ok"
 func (r *RustMatchProcessor) generateTupleBinding(elemVar string, variant string, binding string) string {
 	switch variant {
 	case "Ok":
-		// For Result<T,E>, Ok value is stored in ok0 field (pointer to T)
-		return fmt.Sprintf("%s := *%s.ok0", binding, elemVar)
+		// For Result<T,E>, Ok value is stored in ok field (pointer to T)
+		return fmt.Sprintf("%s := *%s.ok", binding, elemVar)
 	case "Err":
-		// For Result<T,E>, Err value is stored in err0 field (pointer to E)
-		return fmt.Sprintf("%s := *%s.err0", binding, elemVar)
+		// For Result<T,E>, Err value is stored in err field (pointer to E)
+		return fmt.Sprintf("%s := *%s.err", binding, elemVar)
 	case "Some":
-		// For Option<T>, Some value is stored in some0 field (pointer to T)
-		return fmt.Sprintf("%s := *%s.some0", binding, elemVar)
+		// For Option<T>, Some value is stored in some field (pointer to T)
+		return fmt.Sprintf("%s := *%s.some", binding, elemVar)
 	case "None":
 		// None has no value to extract
 		return ""
 	default:
-		// Custom enum variant: CamelCase field name without underscores
-		// Example: Status_Pending -> statuspending0
-		variantName := strings.ToLower(strings.ReplaceAll(variant, "_", ""))
-		fieldName := variantName + "0"
+		// Custom enum variant: lowercase field name
+		// Example: Status_Pending -> "pending"
+		variantName := variant
+		if idx := strings.LastIndex(variant, "_"); idx != -1 {
+			variantName = variant[idx+1:]
+		}
+		fieldName := strings.ToLower(variantName)
 		return fmt.Sprintf("%s := *%s.%s", binding, elemVar, fieldName)
 	}
 }
@@ -1470,7 +1484,6 @@ func (r *RustMatchProcessor) generateTupleMatch(tupleElements []string, arms []t
 	var buf bytes.Buffer
 	mappings := []Mapping{}
 
-	matchID := r.matchCounter
 	r.matchCounter++
 
 	arity := len(tupleElements)
@@ -1491,7 +1504,7 @@ func (r *RustMatchProcessor) generateTupleMatch(tupleElements []string, arms []t
 	// Line 2: Extract tuple elements into temp vars
 	var elemVars []string
 	for i := 0; i < arity; i++ {
-		elemVars = append(elemVars, fmt.Sprintf("__match_%d_elem%d", matchID, i))
+		elemVars = append(elemVars, fmt.Sprintf("elem%d", i))
 	}
 	buf.WriteString(fmt.Sprintf("%s := %s\n",
 		strings.Join(elemVars, ", "),
@@ -1870,22 +1883,22 @@ func (r *RustMatchProcessor) parseNestedPattern(binding string) (pattern string,
 	return pattern, innerBinding
 }
 
-// getFieldName returns the field name for a pattern (e.g., "Ok" -> "ok_0", "Err" -> "err_0")
+// getFieldName returns the field name for a pattern (CamelCase, e.g., "Ok" -> "ok", "Err" -> "err")
 func (r *RustMatchProcessor) getFieldName(pattern string) string {
 	switch pattern {
 	case "Ok":
-		return "ok_0"
+		return "ok"
 	case "Err":
-		return "err_0"
+		return "err"
 	case "Some":
-		return "some_0"
+		return "some"
 	default:
 		// Custom enum variant: extract variant name after underscore
 		if idx := strings.LastIndex(pattern, "_"); idx != -1 {
 			variantName := pattern[idx+1:]
-			return strings.ToLower(variantName) + "_0"
+			return strings.ToLower(variantName)
 		}
-		return strings.ToLower(pattern) + "_0"
+		return strings.ToLower(pattern)
 	}
 }
 

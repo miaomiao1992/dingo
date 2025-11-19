@@ -421,9 +421,9 @@ package main
 type StatusTag uint8
 
 const (
-    StatusTag_Pending StatusTag = iota
-    StatusTag_Active
-    StatusTag_Complete
+    StatusTagPending StatusTag = iota
+    StatusTagActive
+    StatusTagComplete
 )
 
 type Status struct {
@@ -443,15 +443,15 @@ func Status_Complete() Status {
 }
 
 func (e Status) IsPending() bool {
-    return e.tag == StatusTag_Pending
+    return e.tag == StatusTagPending
 }
 
 func (e Status) IsActive() bool {
-    return e.tag == StatusTag_Active
+    return e.tag == StatusTagActive
 }
 
 func (e Status) IsComplete() bool {
-    return e.tag == StatusTag_Complete
+    return e.tag == StatusTagComplete
 }
 ```
 
@@ -495,47 +495,47 @@ package main
 type ShapeTag uint8
 
 const (
-    ShapeTag_Point ShapeTag = iota
-    ShapeTag_Circle
-    ShapeTag_Rectangle
+    ShapeTagPoint ShapeTag = iota
+    ShapeTagCircle
+    ShapeTagRectangle
 )
 
 type Shape struct {
-    tag              ShapeTag
-    circle_radius    *float64
-    rectangle_width  *float64
-    rectangle_height *float64
+    tag             ShapeTag
+    circleRadius    *float64
+    rectangleWidth  *float64
+    rectangleHeight *float64
 }
 
 func Shape_Point() Shape {
-    return Shape{tag: ShapeTag_Point}
+    return Shape{tag: ShapeTagPoint}
 }
 
 func Shape_Circle(radius float64) Shape {
     return Shape{
-        tag: ShapeTag_Circle,
-        circle_radius: &radius,
+        tag: ShapeTagCircle,
+        circleRadius: &radius,
     }
 }
 
 func Shape_Rectangle(width, height float64) Shape {
     return Shape{
-        tag: ShapeTag_Rectangle,
-        rectangle_width: &width,
-        rectangle_height: &height,
+        tag: ShapeTagRectangle,
+        rectangleWidth: &width,
+        rectangleHeight: &height,
     }
 }
 
 func (e Shape) IsPoint() bool {
-    return e.tag == ShapeTag_Point
+    return e.tag == ShapeTagPoint
 }
 
 func (e Shape) IsCircle() bool {
-    return e.tag == ShapeTag_Circle
+    return e.tag == ShapeTagCircle
 }
 
 func (e Shape) IsRectangle() bool {
-    return e.tag == ShapeTag_Rectangle
+    return e.tag == ShapeTagRectangle
 }
 ```
 

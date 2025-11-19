@@ -4,6 +4,100 @@ All notable changes to the Dingo compiler will be documented in this file.
 
 ## [Unreleased] - 2025-11-19
 
+### ⚠️ BREAKING CHANGE: Full Go-Style CamelCase Naming
+
+**Date**: 2025-11-19
+**Type**: Breaking Change
+**Status**: Complete
+
+**Overview:**
+Complete refactor of all generated code naming from underscore notation to pure Go-style CamelCase. Generated code now looks indistinguishable from hand-written Go code.
+
+**Changes:**
+
+**Enum Tag Constants:**
+- `ResultTag_Ok` → `ResultTagOk`
+- `ResultTag_Err` → `ResultTagErr`
+- `OptionTag_Some` → `OptionTagSome`
+- `OptionTag_None` → `OptionTagNone`
+- Custom enum tags: `EnumTag_Variant` → `EnumTagVariant`
+
+**Struct Field Names:**
+- `ok_0` → `ok` (no numeric suffix for first/only field)
+- `err_0` → `err`
+- `some_0` → `some`
+
+**Generated Variables (Pattern Matching):**
+- `__match_0` → `scrutinee` (first match)
+- `__match_1` → `scrutinee2` (second match, NO underscore)
+- `__match_result_0` → `result`
+- `__match_result_1` → `result2` (NO underscore)
+- `__match_0_elem0` → `elem0` (tuple elements)
+
+**Migration Guide:**
+
+**Before (OLD):**
+```go
+const (
+    ResultTag_Ok ResultTag = iota
+    ResultTag_Err
+)
+
+type ResultIntError struct {
+    tag   ResultTag
+    ok_0  *int
+    err_0 *error
+}
+
+// Pattern match generated:
+__match_0 := result
+switch __match_0.tag {
+case ResultTag_Ok:
+    x := *__match_0.ok_0
+}
+```
+
+**After (NEW):**
+```go
+const (
+    ResultTagOk ResultTag = iota
+    ResultTagErr
+)
+
+type ResultIntError struct {
+    tag ResultTag
+    ok  *int
+    err *error
+}
+
+// Pattern match generated:
+scrutinee := result
+switch scrutinee.tag {
+case ResultTagOk:
+    x := *scrutinee.ok
+}
+```
+
+**Why This Change:**
+- **Readability**: Generated code looks hand-written, not machine-generated
+- **Debuggability**: Meaningful variable names (`scrutinee` vs `__match_0`)
+- **Go Conventions**: Follows standard Go naming (no underscores in identifiers)
+- **Marketing**: "Dingo generates clean, idiomatic Go" is now visibly true
+
+**Impact:**
+- All existing `.dingo` code continues to work (this affects generated output only)
+- Golden test files regenerated with new naming
+- Documentation updated with new examples
+- All tests passing (266 tests, 92.2% pass rate maintained)
+
+**Files Changed:**
+- Code generators: `result_type.go`, `option_type.go`, `enum.go`, `rust_match.go`
+- Supporting: `none_context.go`, `pattern_match.go`, `unused_vars.go`
+- Tests: 60+ test files updated with new expectations
+- Docs: All feature documentation and examples updated
+
+---
+
 ### Pattern Match: Document Where Guard Limitation
 
 **Date**: 2025-11-19

@@ -3,10 +3,10 @@ package main
 type ColorTag uint8
 
 const (
-	ColorTag_Red ColorTag = iota
-	ColorTag_Green
-	ColorTag_Blue
-	ColorTag_RGB
+	ColorTagRed ColorTag = iota
+	ColorTagGreen
+	ColorTagBlue
+	ColorTagRGB
 )
 
 type Color struct {
@@ -17,49 +17,49 @@ type Color struct {
 }
 
 func Color_Red() Color {
-	return Color{tag: ColorTag_Red}
+	return Color{tag: ColorTagRed}
 }
 func Color_Green() Color {
-	return Color{tag: ColorTag_Green}
+	return Color{tag: ColorTagGreen}
 }
 func Color_Blue() Color {
-	return Color{tag: ColorTag_Blue}
+	return Color{tag: ColorTagBlue}
 }
 func Color_RGB(r int, g int, b int) Color {
-	return Color{tag: ColorTag_RGB, rgb_r: &r, rgb_g: &g, rgb_b: &b}
+	return Color{tag: ColorTagRGB, rgb_r: &r, rgb_g: &g, rgb_b: &b}
 }
 func (e Color) IsRed() bool {
-	return e.tag == ColorTag_Red
+	return e.tag == ColorTagRed
 }
 func (e Color) IsGreen() bool {
-	return e.tag == ColorTag_Green
+	return e.tag == ColorTagGreen
 }
 func (e Color) IsBlue() bool {
-	return e.tag == ColorTag_Blue
+	return e.tag == ColorTagBlue
 }
 func (e Color) IsRGB() bool {
-	return e.tag == ColorTag_RGB
+	return e.tag == ColorTagRGB
 }
 func colorToHex(c Color) string {
-	var __match_result_0 interface{}
+	var result interface{}
 
-	__match_0 := c
-	switch __match_0.tag {
-	case ColorTag_Red:
+	scrutinee := c
+	switch scrutinee.tag {
+	case ColorTagRed:
 
-		__match_result_0 = "#FF0000"
-	case ColorTag_Green:
+		result = "#FF0000"
+	case ColorTagGreen:
 
-		__match_result_0 = "#00FF00"
-	case ColorTag_Blue:
+		result = "#00FF00"
+	case ColorTagBlue:
 
-		__match_result_0 = "#0000FF"
-	case ColorTag_RGB{r, g, b}:
+		result = "#0000FF"
+	case ColorTagRGB{r, g, b}:
 
-		__match_result_0 = "#" + toHex(r) + toHex(g) + toHex(b)
+		result = "#" + toHex(r) + toHex(g) + toHex(b)
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_0
+	return result
 
 }
 func toHex(n int) string {

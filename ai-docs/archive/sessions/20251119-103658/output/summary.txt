@@ -1,0 +1,5 @@
+Phase 5 tooling gaps center on the missing LSP proxy, nondeterministic builds, manual golden-test workflows, and absent editor/installation tooling.
+Critical path should tackle sourcemap validation, dingo-lsp MVP, deterministic builds, and CI automation to unblock downstream efforts.
+High-priority follow-ups: VS Code extension, watch-mode developer loop, docs site pipeline, and installer/version manager.
+Medium/low priorities focus on cross-editor coverage, property tests, lint/fmt commands, scaffolding, telemetry, debugging adapters, and performance suites.
+Detailed roadmap and risk analysis: /Users/jack/mag/dingo/ai-docs/sessions/20251119-103658/output/phase5-readiness.md

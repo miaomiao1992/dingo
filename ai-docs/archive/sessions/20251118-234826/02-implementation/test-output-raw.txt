@@ -1,0 +1,3205 @@
+=== RUN   TestGoldenFiles
+=== RUN   TestGoldenFiles/option_02_pattern_match
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/pattern_match_01_basic
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_basic.dingo:43:2: "Waiting to start" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_basic.dingo:46:2: "Currently running" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_basic.dingo:49:2: "Finished" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_basic.dingo:53:1: missing return
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_01_basic.dingo:43:2: "Waiting to start" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+    golden_test.go:143: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:143
+        	Error:      	Not equal: 
+        	            	expected: "package main\n\n// Test: Basic pattern matching\n// Feature: Pattern matching with match expression\n// Complexity: basic\n\ntype StatusTag uint8\n\nconst (\n\tStatusTag_Pending StatusTag = iota\n\tStatusTag_Active\n\tStatusTag_Complete\n)\n\ntype Status struct {\n\ttag StatusTag\n}\n\nfunc Status_Pending() Status {\n\treturn Status{tag: StatusTag_Pending}\n}\nfunc Status_Active() Status {\n\treturn Status{tag: StatusTag_Active}\n}\nfunc Status_Complete() Status {\n\treturn Status{tag: StatusTag_Complete}\n}\nfunc (e Status) IsPending() bool {\n\treturn e.tag == StatusTag_Pending\n}\nfunc (e Status) IsActive() bool {\n\treturn e.tag == StatusTag_Active\n}\nfunc (e Status) IsComplete() bool {\n\treturn e.tag == StatusTag_Complete\n}\nfunc getStatusMessage(s Status) string {\n\t// DINGO_MATCH_START: s\n\t__match_0 := s\n\tif s.IsPending() {\n\t\treturn \"Waiting to start\" // DINGO_PATTERN: Status_Pending\n\t}\n\tif s.IsActive() {\n\t\treturn \"Currently running\" // DINGO_PATTERN: Status_Active\n\t}\n\tif s.IsComplete() {\n\t\treturn \"Finished\" // DINGO_PATTERN: Status_Complete\n\t}\n\tpanic(\n\n\t\t// DINGO_MATCH_END\n\t\t\"non-exhaustive match\")\n\n}\nfunc main() {\n\tstatus := Status_Active()\n\tmsg := getStatusMessage(status)\n\tprintln(msg)\n}"
+        	            	actual  : "package main\n\n// Test: Basic pattern matching\n// Feature: Pattern matching with match expression\n// Complexity: basic\n\ntype StatusTag uint8\n\nconst (\n\tStatusTag_Pending StatusTag = iota\n\tStatusTag_Active\n\tStatusTag_Complete\n)\n\ntype Status struct {\n\ttag StatusTag\n}\n\nfunc Status_Pending() Status {\n\treturn Status{tag: StatusTag_Pending}\n}\nfunc Status_Active() Status {\n\treturn Status{tag: StatusTag_Active}\n}\nfunc Status_Complete() Status {\n\treturn Status{tag: StatusTag_Complete}\n}\nfunc (e Status) IsPending() bool {\n\treturn e.tag == StatusTag_Pending\n}\nfunc (e Status) IsActive() bool {\n\treturn e.tag == StatusTag_Active\n}\nfunc (e Status) IsComplete() bool {\n\treturn e.tag == StatusTag_Complete\n}\nfunc getStatusMessage(s Status) string {\n\t__match_0 := s\n\tif\n\t// DINGO_MATCH_START: s\n\ts.IsPending() {\n\t\treturn \"Waiting to start\" // DINGO_PATTERN: Status_Pending\n\t}\n\tif s.IsActive() {\n\t\treturn \"Currently running\" // DINGO_PATTERN: Status_Active\n\t}\n\tif s.IsComplete() {\n\t\treturn \"Finished\" // DINGO_PATTERN: Status_Complete\n\t}\n\tpanic(\n\n\t\t// DINGO_MATCH_END\n\t\t\"non-exhaustive match\")\n\n}\nfunc main() {\n\tstatus := Status_Active()\n\tmsg := getStatusMessage(status)\n\tprintln(msg)\n}"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -37,5 +37,6 @@
+        	            	 func getStatusMessage(s Status) string {
+        	            	+	__match_0 := s
+        	            	+	if
+        	            	 	// DINGO_MATCH_START: s
+        	            	-	__match_0 := s
+        	            	-	if s.IsPending() {
+        	            	+	s.IsPending() {
+        	            	 		return "Waiting to start" // DINGO_PATTERN: Status_Pending
+        	Test:       	TestGoldenFiles/pattern_match_01_basic
+        	Messages:   	Generated code doesn't match golden file
+    golden_test.go:144: 
+        === EXPECTED ===
+        package main
+        
+        // Test: Basic pattern matching
+        // Feature: Pattern matching with match expression
+        // Complexity: basic
+        
+        type StatusTag uint8
+        
+        const (
+        	StatusTag_Pending StatusTag = iota
+        	StatusTag_Active
+        	StatusTag_Complete
+        )
+        
+        type Status struct {
+        	tag StatusTag
+        }
+        
+        func Status_Pending() Status {
+        	return Status{tag: StatusTag_Pending}
+        }
+        func Status_Active() Status {
+        	return Status{tag: StatusTag_Active}
+        }
+        func Status_Complete() Status {
+        	return Status{tag: StatusTag_Complete}
+        }
+        func (e Status) IsPending() bool {
+        	return e.tag == StatusTag_Pending
+        }
+        func (e Status) IsActive() bool {
+        	return e.tag == StatusTag_Active
+        }
+        func (e Status) IsComplete() bool {
+        	return e.tag == StatusTag_Complete
+        }
+        func getStatusMessage(s Status) string {
+        	// DINGO_MATCH_START: s
+        	__match_0 := s
+        	if s.IsPending() {
+        		return "Waiting to start" // DINGO_PATTERN: Status_Pending
+        	}
+        	if s.IsActive() {
+        		return "Currently running" // DINGO_PATTERN: Status_Active
+        	}
+        	if s.IsComplete() {
+        		return "Finished" // DINGO_PATTERN: Status_Complete
+        	}
+        	panic(
+        
+        		// DINGO_MATCH_END
+        		"non-exhaustive match")
+        
+        }
+        func main() {
+        	status := Status_Active()
+        	msg := getStatusMessage(status)
+        	println(msg)
+        }
+    golden_test.go:145: 
+        === ACTUAL ===
+        package main
+        
+        // Test: Basic pattern matching
+        // Feature: Pattern matching with match expression
+        // Complexity: basic
+        
+        type StatusTag uint8
+        
+        const (
+        	StatusTag_Pending StatusTag = iota
+        	StatusTag_Active
+        	StatusTag_Complete
+        )
+        
+        type Status struct {
+        	tag StatusTag
+        }
+        
+        func Status_Pending() Status {
+        	return Status{tag: StatusTag_Pending}
+        }
+        func Status_Active() Status {
+        	return Status{tag: StatusTag_Active}
+        }
+        func Status_Complete() Status {
+        	return Status{tag: StatusTag_Complete}
+        }
+        func (e Status) IsPending() bool {
+        	return e.tag == StatusTag_Pending
+        }
+        func (e Status) IsActive() bool {
+        	return e.tag == StatusTag_Active
+        }
+        func (e Status) IsComplete() bool {
+        	return e.tag == StatusTag_Complete
+        }
+        func getStatusMessage(s Status) string {
+        	__match_0 := s
+        	if
+        	// DINGO_MATCH_START: s
+        	s.IsPending() {
+        		return "Waiting to start" // DINGO_PATTERN: Status_Pending
+        	}
+        	if s.IsActive() {
+        		return "Currently running" // DINGO_PATTERN: Status_Active
+        	}
+        	if s.IsComplete() {
+        		return "Finished" // DINGO_PATTERN: Status_Complete
+        	}
+        	panic(
+        
+        		// DINGO_MATCH_END
+        		"non-exhaustive match")
+        
+        }
+        func main() {
+        	status := Status_Active()
+        	msg := getStatusMessage(status)
+        	println(msg)
+        }
+        
+    golden_test.go:150: Actual output written to: golden/pattern_match_01_basic.go.actual
+=== RUN   TestGoldenFiles/pattern_match_01_simple
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:8:27: undefined: Result
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:26:24: undefined: Option
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:62:26: undefined: Option
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:62:39: undefined: Option
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:81:27: undefined: Result
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:12:6: undefined: ResultTagOk
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:16:6: undefined: ResultTagErr
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:19:2: 0 (untyped int constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:23:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:18:2: declared and not used: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:30:6: undefined: OptionTagSome
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:34:6: undefined: OptionTagNone
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:36:2: "default" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:40:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:46:18: __match_2.tag undefined (type Status has no field or method tag)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:47:6: undefined: ActiveTag
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:49:2: "running" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:50:6: undefined: PendingTag
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:52:2: "waiting" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:55:2: "unknown" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:59:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:63:12: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:67:6: undefined: OptionTagSome
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:70:11: undefined: Some
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:71:6: undefined: OptionTagNone
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:73:11: undefined: Option_int_None
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:85:6: undefined: ResultTagOk
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:91:6: undefined: OptionTagSome
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:95:6: undefined: OptionTagNone
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:97:2: 0 (untyped int constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:101:6: undefined: ResultTagErr
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:104:2: -1 (untyped int constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:108:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:103:2: declared and not used: e
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_01_simple.dingo:8:27: undefined: Result
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: Registered Result type: Result_int_error (T=int, E=error)
+    golden_test.go:35: DEBUG: Registered Result type: Result_unknown_error (T=unknown, E=error)
+    golden_test.go:39: WARN: Type inference failed for Some((x * 2)): type inference failed for expression type *ast.BinaryExpr, using interface{}
+    golden_test.go:35: DEBUG: Some(interface{}): value is non-addressable (literal), wrapping in IIFE
+    golden_test.go:35: DEBUG: Transforming Some(interface{}) → Option_interface{}{tag: OptionTag_Some, some_0: <addressable-value>}
+    golden_test.go:35: DEBUG: Generated replacement AST: &{Option_interface{} 0 [0x14000436390 0x140004363c0] 0 false}
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+    golden_test.go:39: WARN: Failed to format generated code: 215:22: expected type, found '{' (and 1 more errors)
+    golden_test.go:143: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:143
+        	Error:      	Not equal: 
+        	            	expected: "package main\n\nimport \"fmt\"\n\n// DINGO:GENERATED - This file was generated by the Dingo transpiler\n\n// Simple pattern matching examples for Result<T,E> and Option<T>\n\n// Example 1: Pattern match on Result<T,E>\nfunc processResult(result Result_int_error) int {\n\t__match_0 := result\n\t// DINGO_MATCH_START: result\n\tswitch __match_0.tag {\n\tcase ResultTagOk:\n\t\t// DINGO_PATTERN: Ok(value)\n\t\tvalue := *__match_0.ok_0\n\t\tvalue * 2\n\tcase ResultTagErr:\n\t\t// DINGO_PATTERN: Err(e)\n\t\te := __match_0.err_0\n\t\t0\n\t}\n\t// DINGO_MATCH_END\n}\n\n// Example 2: Pattern match on Option<T>\nfunc processOption(opt Option_string) string {\n\t__match_1 := opt\n\t// DINGO_MATCH_START: opt\n\tswitch __match_1.tag {\n\tcase OptionTagSome:\n\t\t// DINGO_PATTERN: Some(s)\n\t\ts := *__match_1.some_0\n\t\ts\n\tcase OptionTagNone:\n\t\t// DINGO_PATTERN: None\n\t\t\"default\"\n\t}\n\t// DINGO_MATCH_END\n}\n\n// Example 3: Pattern match with wildcard\nfunc handleStatus(status Status) string {\n\t__match_2 := status\n\t// DINGO_MATCH_START: status\n\tswitch __match_2.tag {\n\tcase ActiveTag:\n\t\t// DINGO_PATTERN: Active\n\t\t\"running\"\n\tcase PendingTag:\n\t\t// DINGO_PATTERN: Pending\n\t\t\"waiting\"\n\tdefault:\n\t\t// DINGO_PATTERN: _\n\t\t\"unknown\"\n\t}\n\t// DINGO_MATCH_END\n}\n\n// Example 4: Pattern match in assignment context\nfunc doubleIfPresent(opt Option_int) Option_int {\n\tvar result = __match_3 := opt\n\t// DINGO_MATCH_START: opt\n\tswitch __match_3.tag {\n\tcase OptionTagSome:\n\t\t// DINGO_PATTERN: Some(x)\n\t\tx := *__match_3.some_0\n\t\tSome(x * 2)\n\tcase OptionTagNone:\n\t\t// DINGO_PATTERN: None\n\t\tNone\n\t}\n\t// DINGO_MATCH_END\n\treturn result\n}\n\n// Example 5: Nested pattern matching\nfunc processNested(result Result_Option_int_error) int {\n\t__match_4 := result\n\t// DINGO_MATCH_START: result\n\tswitch __match_4.tag {\n\tcase ResultTagOk:\n\t\t// DINGO_PATTERN: Ok(inner)\n\t\tinner := *__match_4.ok_0\n\t\t__match_5 := inner\n\t\t// DINGO_MATCH_START: inner\n\t\tswitch __match_5.tag {\n\t\tcase OptionTagSome:\n\t\t\t// DINGO_PATTERN: Some(val)\n\t\t\tval := *__match_5.some_0\n\t\t\tval\n\t\tcase OptionTagNone:\n\t\t\t// DINGO_PATTERN: None\n\t\t\t0\n\t\t}\n\t\t// DINGO_MATCH_END\n\tcase ResultTagErr:\n\t\t// DINGO_PATTERN: Err(e)\n\t\te := __match_4.err_0\n\t\t-1\n\t}\n\t// DINGO_MATCH_END\n}\n\n// Helper enum for example 3\ntype Status int\n\nconst (\n\tActive Status = iota\n\tPending\n\tCompleted\n)"
+        	            	actual  : "package main\n\ntype OptionTag uint8\n\n// Simple pattern matching examples for Result[T,E] and Option[T]\nconst (\n\tOptionTag_Some OptionTag = iota\n\tOptionTag_None\n)\n\ntype Option_string struct\n\n// Example 1: Pattern match on Result[T,E]\n{\n\ttag    OptionTag\n\tsome_0 *string\n}\n\nfunc Option_string_Some(arg0 string) Option_string {\n\treturn Option_string{tag: OptionTag_Some,\n\n\t// DINGO_MATCH_START: result\n\tsome_0: &arg0}\n}\nfunc Option_string_None() Option_string {\n\treturn Option_string{\n\n\t// DINGO_PATTERN: Ok(value)\n\ttag: OptionTag_None}\n}\nfunc (o Option_string) IsSome() bool {\n\treturn o.tag == OptionTag_Some\n\n\t// DINGO_PATTERN: Err(e)\n}\nfunc (o Option_string) IsNone() bool {\n\treturn o.tag == OptionTag_None\n\n\t// DINGO_MATCH_END\n}\nfunc (o Option_string) Unwrap(\n\n// Example 2: Pattern match on Option[T]\n) string {\n\tif o.tag != OptionTag_Some {\n\t\tpanic(\"called Unwrap on None\")\n\t}\n\treturn *o.some_0\n}\nfunc (o Option_string) UnwrapOr(\n\n// DINGO_MATCH_START: opt\ndefaultValue string) string {\n\tif o.tag == OptionTag_Some {\n\t\treturn *\n\n\t\t// DINGO_PATTERN: Some(s)\n\t\to.some_0\n\t}\n\treturn defaultValue\n}\nfunc (o Option_string) UnwrapOrElse(fn func() string) string {\n\n\t// DINGO_PATTERN: None\n\tif o.tag == OptionTag_Some {\n\n\t\t// DINGO_MATCH_END\n\t\treturn *o.some_0\n\t}\n\treturn fn(\n\n\t// Example 3: Pattern match with wildcard\n\t)\n}\nfunc (o Option_string) Map(fn func(string) interface{}) Option_string {\n\tif o.tag == OptionTag_None {\n\t\treturn o\n\t}\n\tmapped :=\n\n\t// DINGO_MATCH_START: status\n\tfn(*o.some_0)\n\tresult := mapped.(string)\n\treturn Option_string{tag: OptionTag_Some,\n\n\t// DINGO_PATTERN: Active\n\tsome_0: &result}\n}\nfunc (o Option_string) AndThen(\n\n// DINGO_PATTERN: Pending\nfn func(string) Option_string) Option_string {\n\tif o.\n\n\t// DINGO_PATTERN: _\n\ttag == OptionTag_None {\n\t\treturn o\n\t}\n\treturn fn(\n\n\t// DINGO_MATCH_END\n\t*o.some_0)\n}\nfunc (o Option_string) Filter(\n\n// Example 4: Pattern match in assignment context\npredicate func(string) bool) Option_string {\n\tif o.tag == OptionTag_None {\n\t\treturn o\n\t}\n\tif predicate(*o.some_0) {\n\t\treturn o\n\t}\n\treturn Option_string{\n\n\t// DINGO_MATCH_START: opt\n\ttag: OptionTag_None}\n}\n\ntype Option_int struct {\n\ttag    OptionTag\n\tsome_0 *int\n}\n\nfunc Option_int_Some(\n\n// DINGO_PATTERN: Some(x)\narg0 int) Option_int {\n\treturn Option_int{tag: OptionTag_Some, some_0: &arg0}\n}\nfunc Option_int_None(\n\n// DINGO_PATTERN: None\n) Option_int {\n\treturn Option_int{tag: OptionTag_None}\n\n\t// DINGO_MATCH_END\n}\nfunc (o Option_int) IsSome() bool {\n\treturn o.\n\n\t// Example 5: Nested pattern matching\n\ttag == OptionTag_Some\n}\nfunc (o Option_int) IsNone() bool {\n\treturn o.tag == OptionTag_None\n}\nfunc (o Option_int) Unwrap() int {\n\tif o.\n\n\t// DINGO_MATCH_START: result\n\ttag != OptionTag_Some {\n\t\tpanic(\"called Unwrap on None\")\n\t}\n\treturn *o.some_0\n}\nfunc\n\n// DINGO_PATTERN: Ok(inner)\n(o Option_int) UnwrapOr(defaultValue int) int {\n\tif o.tag == OptionTag_Some {\n\t\treturn *\n\n\t\t// DINGO_MATCH_START: inner\n\t\to.some_0\n\t}\n\treturn defaultValue\n}\nfunc (o Option_int) UnwrapOrElse(fn func() int) int {\n\n\t// DINGO_PATTERN: Some(val)\n\tif o.tag == OptionTag_Some {\n\t\treturn *o.some_0\n\t}\n\treturn fn()\n}\nfunc (o Option_int) Map(fn func\n\n// DINGO_PATTERN: None\n(int) interface{}) Option_int {\n\n\t// DINGO_MATCH_END\n\tif o.tag == OptionTag_None {\n\t\treturn o\n\t}\n\tmapped :=\n\n\t// DINGO_PATTERN: Err(e)\n\tfn(*o.some_0)\n\tresult := mapped.(int)\n\treturn Option_int{tag:\n\n\t// DINGO_MATCH_END\n\tOptionTag_Some, some_0:\n\n\t// Helper enum for example 3\n\t&result}\n}\nfunc (o Option_int) AndThen(fn func(int) Option_int) Option_int {\n\tif o.tag == OptionTag_None {\n\t\treturn o\n\t}\n\treturn fn(*o.some_0)\n}\nfunc (o Option_int) Filter(predicate func(int) bool) Option_int {\n\tif o.tag == OptionTag_None {\n\t\treturn o\n\t}\n\tif predicate(*o.some_0) {\n\t\treturn o\n\t}\n\treturn Option_int{tag: OptionTag_None}\n}\n\ntype Option_interface{} struct {\n\ttag    OptionTag\n\tsome_0 *interface{}\n}\n\nfunc Option_interface{}_Some(arg0 interface{}) Option_interface{} {\n\treturn Option_interface{}{tag: OptionTag_Some, some_0: &arg0}\n}\nfunc Option_interface{}_None() Option_interface{} {\n\treturn Option_interface{}{tag: OptionTag_None}\n}\nfunc (o Option_interface{}) IsSome() bool {\n\treturn o.tag == OptionTag_Some\n}\nfunc (o Option_interface{}) IsNone() bool {\n\treturn o.tag == OptionTag_None\n}\nfunc (o Option_interface{}) Unwrap() interface{} {\n\tif o.tag != OptionTag_Some {\n\t\tpanic(\"called Unwrap on None\")\n\t}\n\treturn *o.some_0\n}\nfunc (o Option_interface{}) UnwrapOr(defaultValue interface{}) interface{} {\n\tif o.tag == OptionTag_Some {\n\t\treturn *o.some_0\n\t}\n\treturn defaultValue\n}\nfunc (o Option_interface{}) UnwrapOrElse(fn func() interface{}) interface{} {\n\tif o.tag == OptionTag_Some {\n\t\treturn *o.some_0\n\t}\n\treturn fn()\n}\nfunc (o Option_interface{}) Map(fn func(interface{}) interface{}) Option_interface{} {\n\tif o.tag == OptionTag_None {\n\t\treturn o\n\t}\n\tmapped := fn(*o.some_0)\n\tresult := mapped.(interface{})\n\treturn Option_interface{}{tag: OptionTag_Some, some_0: &result}\n}\nfunc (o Option_interface{}) AndThen(fn func(interface{}) Option_interface{}) Option_interface{} {\n\tif o.tag == OptionTag_None {\n\t\treturn o\n\t}\n\treturn fn(*o.some_0)\n}\nfunc (o Option_interface{}) Filter(predicate func(interface{}) bool) Option_interface{} {\n\tif o.tag == OptionTag_None {\n\t\treturn o\n\t}\n\tif predicate(*o.some_0) {\n\t\treturn o\n\t}\n\treturn Option_interface{}{tag: OptionTag_None}\n}\n\ntype ResultTag uint8\n\nconst (\n\tResultTag_Ok ResultTag = iota\n\tResultTag_Err\n)\n\ntype Result_int_error struct {\n\ttag   ResultTag\n\tok_0  *int\n\terr_0 *error\n}\n\nfunc Result_int_error_Ok(arg0 int) Result_int_error {\n\treturn Result_int_error{tag: ResultTag_Ok, ok_0: &arg0}\n}\nfunc Result_int_error_Err(arg0 error) Result_int_error {\n\treturn Result_int_error{tag: ResultTag_Err, err_0: &arg0}\n}\nfunc (r Result_int_error) IsOk() bool {\n\treturn r.tag == ResultTag_Ok\n}\nfunc (r Result_int_error) IsErr() bool {\n\treturn r.tag == ResultTag_Err\n}\nfunc (r Result_int_error) Unwrap() int {\n\tif r.tag != ResultTag_Ok {\n\t\tpanic(\"called Unwrap on Err\")\n\t}\n\tif r.ok_0 == nil {\n\t\tpanic(\"Result contains nil Ok value\")\n\t}\n\treturn *r.ok_0\n}\nfunc (r Result_int_error) UnwrapOr(defaultValue int) int {\n\tif r.tag == ResultTag_Ok {\n\t\treturn *r.ok_0\n\t}\n\treturn defaultValue\n}\nfunc (r Result_int_error) UnwrapErr() error {\n\tif r.tag != ResultTag_Err {\n\t\tpanic(\"called UnwrapErr on Ok\")\n\t}\n\tif r.err_0 == nil {\n\t\tpanic(\"Result contains nil Err value\")\n\t}\n\treturn *r.err_0\n}\nfunc (r Result_int_error) UnwrapOrElse(fn func(error) int) int {\n\tif r.tag == ResultTag_Ok && r.ok_0 != nil {\n\t\treturn *r.ok_0\n\t}\n\tif r.err_0 != nil {\n\t\treturn fn(*r.err_0)\n\t}\n\tpanic(\"Result in invalid state\")\n}\nfunc (r Result_int_error) Map(fn func(int) interface{}) interface{} {\n\tif r.tag == ResultTag_Ok && r.ok_0 != nil {\n\t\tu := fn(*r.ok_0)\n\t\treturn struct {\n\t\t\ttag   ResultTag\n\t\t\tok_0  *interface{}\n\t\t\terr_0 *error\n\t\t}{tag: ResultTag_Ok, ok_0: &u}\n\t}\n\treturn struct {\n\t\ttag   ResultTag\n\t\tok_0  *interface{}\n\t\terr_0 *error\n\t}{tag: r.tag, ok_0: nil, err_0: r.err_0}\n}\nfunc (r Result_int_error) MapErr(fn func(error) interface{}) interface{} {\n\tif r.tag == ResultTag_Err && r.err_0 != nil {\n\t\tf := fn(*r.err_0)\n\t\treturn struct {\n\t\t\ttag   ResultTag\n\t\t\tok_0  *int\n\t\t\terr_0 *interface{}\n\t\t}{tag: ResultTag_Err, ok_0: nil, err_0: &f}\n\t}\n\treturn struct {\n\t\ttag   ResultTag\n\t\tok_0  *int\n\t\terr_0 *interface{}\n\t}{tag: r.tag, ok_0: r.ok_0, err_0: nil}\n}\nfunc (r Result_int_error) Filter(predicate func(int) bool) Result_int_error {\n\tif r.tag == ResultTag_Ok && predicate(*r.ok_0) {\n\t\treturn r\n\t}\n\treturn r\n}\nfunc (r Result_int_error) AndThen(fn func(int) interface{}) interface{} {\n\tif r.tag == ResultTag_Ok && r.ok_0 != nil {\n\t\treturn fn(*r.ok_0)\n\t}\n\treturn struct {\n\t\ttag   ResultTag\n\t\tok_0  *interface{}\n\t\terr_0 *error\n\t}{tag: r.tag, ok_0: nil, err_0: r.err_0}\n}\nfunc (r Result_int_error) OrElse(fn func(error) interface{}) interface{} {\n\tif r.tag == ResultTag_Err && r.err_0 != nil {\n\t\treturn fn(*r.err_0)\n\t}\n\treturn struct {\n\t\ttag   ResultTag\n\t\tok_0  *int\n\t\terr_0 *interface{}\n\t}{tag: r.tag, ok_0: r.ok_0, err_0: nil}\n}\nfunc (r Result_int_error) And(other interface{}) interface{} {\n\tif r.tag == ResultTag_Ok {\n\t\treturn other\n\t}\n\treturn r\n}\nfunc (r Result_int_error) Or(other Result_int_error) Result_int_error {\n\tif r.tag == ResultTag_Ok {\n\t\treturn r\n\t}\n\treturn other\n}\n\ntype Result_unknown_error struct {\n\ttag   ResultTag\n\tok_0  *unknown\n\terr_0 *error\n}\n\nfunc Result_unknown_error_Ok(arg0 unknown) Result_unknown_error {\n\treturn Result_unknown_error{tag: ResultTag_Ok, ok_0: &arg0}\n}\nfunc Result_unknown_error_Err(arg0 error) Result_unknown_error {\n\treturn Result_unknown_error{tag: ResultTag_Err, err_0: &arg0}\n}\nfunc (r Result_unknown_error) IsOk() bool {\n\treturn r.tag == ResultTag_Ok\n}\nfunc (r Result_unknown_error) IsErr() bool {\n\treturn r.tag == ResultTag_Err\n}\nfunc (r Result_unknown_error) Unwrap() unknown {\n\tif r.tag != ResultTag_Ok {\n\t\tpanic(\"called Unwrap on Err\")\n\t}\n\tif r.ok_0 == nil {\n\t\tpanic(\"Result contains nil Ok value\")\n\t}\n\treturn *r.ok_0\n}\nfunc (r Result_unknown_error) UnwrapOr(defaultValue unknown) unknown {\n\tif r.tag == ResultTag_Ok {\n\t\treturn *r.ok_0\n\t}\n\treturn defaultValue\n}\nfunc (r Result_unknown_error) UnwrapErr() error {\n\tif r.tag != ResultTag_Err {\n\t\tpanic(\"called UnwrapErr on Ok\")\n\t}\n\tif r.err_0 == nil {\n\t\tpanic(\"Result contains nil Err value\")\n\t}\n\treturn *r.err_0\n}\nfunc (r Result_unknown_error) UnwrapOrElse(fn func(error) unknown) unknown {\n\tif r.tag == ResultTag_Ok && r.ok_0 != nil {\n\t\treturn *r.ok_0\n\t}\n\tif r.err_0 != nil {\n\t\treturn fn(*r.err_0)\n\t}\n\tpanic(\"Result in invalid state\")\n}\nfunc (r Result_unknown_error) Map(fn func(unknown) interface{}) interface{} {\n\tif r.tag == ResultTag_Ok && r.ok_0 != nil {\n\t\tu := fn(*r.ok_0)\n\t\treturn struct {\n\t\t\ttag   ResultTag\n\t\t\tok_0  *interface{}\n\t\t\terr_0 *error\n\t\t}{tag: ResultTag_Ok, ok_0: &u}\n\t}\n\treturn struct {\n\t\ttag   ResultTag\n\t\tok_0  *interface{}\n\t\terr_0 *error\n\t}{tag: r.tag, ok_0: nil, err_0: r.err_0}\n}\nfunc (r Result_unknown_error) MapErr(fn func(error) interface{}) interface{} {\n\tif r.tag == ResultTag_Err && r.err_0 != nil {\n\t\tf := fn(*r.err_0)\n\t\treturn struct {\n\t\t\ttag   ResultTag\n\t\t\tok_0  *unknown\n\t\t\terr_0 *interface{}\n\t\t}{tag: ResultTag_Err, ok_0: nil, err_0: &f}\n\t}\n\treturn struct {\n\t\ttag   ResultTag\n\t\tok_0  *unknown\n\t\terr_0 *interface{}\n\t}{tag: r.tag, ok_0: r.ok_0, err_0: nil}\n}\nfunc (r Result_unknown_error) Filter(predicate func(unknown) bool) Result_unknown_error {\n\tif r.tag == ResultTag_Ok && predicate(*r.ok_0) {\n\t\treturn r\n\t}\n\treturn r\n}\nfunc (r Result_unknown_error) AndThen(fn func(unknown) interface{}) interface{} {\n\tif r.tag == ResultTag_Ok && r.ok_0 != nil {\n\t\treturn fn(*r.ok_0)\n\t}\n\treturn struct {\n\t\ttag   ResultTag\n\t\tok_0  *interface{}\n\t\terr_0 *error\n\t}{tag: r.tag, ok_0: nil, err_0: r.err_0}\n}\nfunc (r Result_unknown_error) OrElse(fn func(error) interface{}) interface{} {\n\tif r.tag == ResultTag_Err && r.err_0 != nil {\n\t\treturn fn(*r.err_0)\n\t}\n\treturn struct {\n\t\ttag   ResultTag\n\t\tok_0  *unknown\n\t\terr_0 *interface{}\n\t}{tag: r.tag, ok_0: r.ok_0, err_0: nil}\n}\nfunc (r Result_unknown_error) And(other interface{}) interface{} {\n\tif r.tag == ResultTag_Ok {\n\t\treturn other\n\t}\n\treturn r\n}\nfunc (r Result_unknown_error) Or(other Result_unknown_error) Result_unknown_error {\n\tif r.tag == ResultTag_Ok {\n\t\treturn r\n\t}\n\treturn other\n}\n\nimport \"fmt\"\n\nfunc processResult(result Result[int, error]) int {\n\t__match_0 := result\n\tif result.IsOk() {\n\n\t\tvalue := *__match_0.ok_0\n\t\treturn value * 2\n\t}\n\tif result.IsErr() {\n\n\t\te := __match_0.err_0\n\t\treturn 0\n\t}\n\tpanic(\"non-exhaustive match\")\n\n}\n\nfunc processOption(opt Option[string]) string {\n\t__match_1 := opt\n\tif opt.IsSome() {\n\n\t\ts := *__match_1.some_0\n\t\treturn s\n\t}\n\tif opt.IsNone() {\n\t\treturn \"default\"\n\t}\n\tpanic(\"non-exhaustive match\")\n\n}\n\nfunc handleStatus(status Status) string {\n\t__match_2 := status\n\tif status.IsActive() {\n\t\treturn \"running\"\n\t}\n\tif status.IsPending() {\n\t\treturn \"waiting\"\n\t}\n\n}\n\nfunc doubleIfPresent(opt Option[int]) Option[int] {\n\tvar result Option_int\n\t__match_3 := opt\n\tif opt.IsSome() {\n\n\t\tx := *__match_3.some_0\n\t\tresult = Some(x * 2)\n\t}\n\tif opt.IsNone() {\n\n\t\tresult = Option_int_None()\n\t}\n\tpanic(\"non-exhaustive match\")\n\n\treturn result\n}\n\nfunc processNested(result Result[Option[int], error]) int {\n\t__match_4 := result\n\tif result.IsOk() {\n\n\t\tinner := *__match_4.ok_0\n\t\t__match_0 := inner\n\t\tif inner.IsSome() {\n\n\t\t\tval := *__match_0.some_0\n\t\t\treturn val\n\t\t}\n\t\tif inner.IsNone() {\n\t\t\treturn 0\n\t\t}\n\t\tpanic(\"non-exhaustive match\")\n\t}\n\tif result.IsErr() {\n\n\t\te := __match_4.err_0\n\t\treturn -1\n\t}\n\tpanic(\"non-exhaustive match\")\n\n}\n\ntype Status int\n\nconst (\n\tActive Status = iota\n\tPending\n\tCompleted\n)"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -2,73 +2,577 @@
+        	            	 
+        	            	+type OptionTag uint8
+        	            	+
+        	            	+// Simple pattern matching examples for Result[T,E] and Option[T]
+        	            	+const (
+        	            	+	OptionTag_Some OptionTag = iota
+        	            	+	OptionTag_None
+        	            	+)
+        	            	+
+        	            	+type Option_string struct
+        	            	+
+        	            	+// Example 1: Pattern match on Result[T,E]
+        	            	+{
+        	            	+	tag    OptionTag
+        	            	+	some_0 *string
+        	            	+}
+        	            	+
+        	            	+func Option_string_Some(arg0 string) Option_string {
+        	            	+	return Option_string{tag: OptionTag_Some,
+        	            	+
+        	            	+	// DINGO_MATCH_START: result
+        	            	+	some_0: &arg0}
+        	            	+}
+        	            	+func Option_string_None() Option_string {
+        	            	+	return Option_string{
+        	            	+
+        	            	+	// DINGO_PATTERN: Ok(value)
+        	            	+	tag: OptionTag_None}
+        	            	+}
+        	            	+func (o Option_string) IsSome() bool {
+        	            	+	return o.tag == OptionTag_Some
+        	            	+
+        	            	+	// DINGO_PATTERN: Err(e)
+        	            	+}
+        	            	+func (o Option_string) IsNone() bool {
+        	            	+	return o.tag == OptionTag_None
+        	            	+
+        	            	+	// DINGO_MATCH_END
+        	            	+}
+        	            	+func (o Option_string) Unwrap(
+        	            	+
+        	            	+// Example 2: Pattern match on Option[T]
+        	            	+) string {
+        	            	+	if o.tag != OptionTag_Some {
+        	            	+		panic("called Unwrap on None")
+        	            	+	}
+        	            	+	return *o.some_0
+        	            	+}
+        	            	+func (o Option_string) UnwrapOr(
+        	            	+
+        	            	+// DINGO_MATCH_START: opt
+        	            	+defaultValue string) string {
+        	            	+	if o.tag == OptionTag_Some {
+        	            	+		return *
+        	            	+
+        	            	+		// DINGO_PATTERN: Some(s)
+        	            	+		o.some_0
+        	            	+	}
+        	            	+	return defaultValue
+        	            	+}
+        	            	+func (o Option_string) UnwrapOrElse(fn func() string) string {
+        	            	+
+        	            	+	// DINGO_PATTERN: None
+        	            	+	if o.tag == OptionTag_Some {
+        	            	+
+        	            	+		// DINGO_MATCH_END
+        	            	+		return *o.some_0
+        	            	+	}
+        	            	+	return fn(
+        	            	+
+        	            	+	// Example 3: Pattern match with wildcard
+        	            	+	)
+        	            	+}
+        	            	+func (o Option_string) Map(fn func(string) interface{}) Option_string {
+        	            	+	if o.tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	mapped :=
+        	            	+
+        	            	+	// DINGO_MATCH_START: status
+        	            	+	fn(*o.some_0)
+        	            	+	result := mapped.(string)
+        	            	+	return Option_string{tag: OptionTag_Some,
+        	            	+
+        	            	+	// DINGO_PATTERN: Active
+        	            	+	some_0: &result}
+        	            	+}
+        	            	+func (o Option_string) AndThen(
+        	            	+
+        	            	+// DINGO_PATTERN: Pending
+        	            	+fn func(string) Option_string) Option_string {
+        	            	+	if o.
+        	            	+
+        	            	+	// DINGO_PATTERN: _
+        	            	+	tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	return fn(
+        	            	+
+        	            	+	// DINGO_MATCH_END
+        	            	+	*o.some_0)
+        	            	+}
+        	            	+func (o Option_string) Filter(
+        	            	+
+        	            	+// Example 4: Pattern match in assignment context
+        	            	+predicate func(string) bool) Option_string {
+        	            	+	if o.tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	if predicate(*o.some_0) {
+        	            	+		return o
+        	            	+	}
+        	            	+	return Option_string{
+        	            	+
+        	            	+	// DINGO_MATCH_START: opt
+        	            	+	tag: OptionTag_None}
+        	            	+}
+        	            	+
+        	            	+type Option_int struct {
+        	            	+	tag    OptionTag
+        	            	+	some_0 *int
+        	            	+}
+        	            	+
+        	            	+func Option_int_Some(
+        	            	+
+        	            	+// DINGO_PATTERN: Some(x)
+        	            	+arg0 int) Option_int {
+        	            	+	return Option_int{tag: OptionTag_Some, some_0: &arg0}
+        	            	+}
+        	            	+func Option_int_None(
+        	            	+
+        	            	+// DINGO_PATTERN: None
+        	            	+) Option_int {
+        	            	+	return Option_int{tag: OptionTag_None}
+        	            	+
+        	            	+	// DINGO_MATCH_END
+        	            	+}
+        	            	+func (o Option_int) IsSome() bool {
+        	            	+	return o.
+        	            	+
+        	            	+	// Example 5: Nested pattern matching
+        	            	+	tag == OptionTag_Some
+        	            	+}
+        	            	+func (o Option_int) IsNone() bool {
+        	            	+	return o.tag == OptionTag_None
+        	            	+}
+        	            	+func (o Option_int) Unwrap() int {
+        	            	+	if o.
+        	            	+
+        	            	+	// DINGO_MATCH_START: result
+        	            	+	tag != OptionTag_Some {
+        	            	+		panic("called Unwrap on None")
+        	            	+	}
+        	            	+	return *o.some_0
+        	            	+}
+        	            	+func
+        	            	+
+        	            	+// DINGO_PATTERN: Ok(inner)
+        	            	+(o Option_int) UnwrapOr(defaultValue int) int {
+        	            	+	if o.tag == OptionTag_Some {
+        	            	+		return *
+        	            	+
+        	            	+		// DINGO_MATCH_START: inner
+        	            	+		o.some_0
+        	            	+	}
+        	            	+	return defaultValue
+        	            	+}
+        	            	+func (o Option_int) UnwrapOrElse(fn func() int) int {
+        	            	+
+        	            	+	// DINGO_PATTERN: Some(val)
+        	            	+	if o.tag == OptionTag_Some {
+        	            	+		return *o.some_0
+        	            	+	}
+        	            	+	return fn()
+        	            	+}
+        	            	+func (o Option_int) Map(fn func
+        	            	+
+        	            	+// DINGO_PATTERN: None
+        	            	+(int) interface{}) Option_int {
+        	            	+
+        	            	+	// DINGO_MATCH_END
+        	            	+	if o.tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	mapped :=
+        	            	+
+        	            	+	// DINGO_PATTERN: Err(e)
+        	            	+	fn(*o.some_0)
+        	            	+	result := mapped.(int)
+        	            	+	return Option_int{tag:
+        	            	+
+        	            	+	// DINGO_MATCH_END
+        	            	+	OptionTag_Some, some_0:
+        	            	+
+        	            	+	// Helper enum for example 3
+        	            	+	&result}
+        	            	+}
+        	            	+func (o Option_int) AndThen(fn func(int) Option_int) Option_int {
+        	            	+	if o.tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	return fn(*o.some_0)
+        	            	+}
+        	            	+func (o Option_int) Filter(predicate func(int) bool) Option_int {
+        	            	+	if o.tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	if predicate(*o.some_0) {
+        	            	+		return o
+        	            	+	}
+        	            	+	return Option_int{tag: OptionTag_None}
+        	            	+}
+        	            	+
+        	            	+type Option_interface{} struct {
+        	            	+	tag    OptionTag
+        	            	+	some_0 *interface{}
+        	            	+}
+        	            	+
+        	            	+func Option_interface{}_Some(arg0 interface{}) Option_interface{} {
+        	            	+	return Option_interface{}{tag: OptionTag_Some, some_0: &arg0}
+        	            	+}
+        	            	+func Option_interface{}_None() Option_interface{} {
+        	            	+	return Option_interface{}{tag: OptionTag_None}
+        	            	+}
+        	            	+func (o Option_interface{}) IsSome() bool {
+        	            	+	return o.tag == OptionTag_Some
+        	            	+}
+        	            	+func (o Option_interface{}) IsNone() bool {
+        	            	+	return o.tag == OptionTag_None
+        	            	+}
+        	            	+func (o Option_interface{}) Unwrap() interface{} {
+        	            	+	if o.tag != OptionTag_Some {
+        	            	+		panic("called Unwrap on None")
+        	            	+	}
+        	            	+	return *o.some_0
+        	            	+}
+        	            	+func (o Option_interface{}) UnwrapOr(defaultValue interface{}) interface{} {
+        	            	+	if o.tag == OptionTag_Some {
+        	            	+		return *o.some_0
+        	            	+	}
+        	            	+	return defaultValue
+        	            	+}
+        	            	+func (o Option_interface{}) UnwrapOrElse(fn func() interface{}) interface{} {
+        	            	+	if o.tag == OptionTag_Some {
+        	            	+		return *o.some_0
+        	            	+	}
+        	            	+	return fn()
+        	            	+}
+        	            	+func (o Option_interface{}) Map(fn func(interface{}) interface{}) Option_interface{} {
+        	            	+	if o.tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	mapped := fn(*o.some_0)
+        	            	+	result := mapped.(interface{})
+        	            	+	return Option_interface{}{tag: OptionTag_Some, some_0: &result}
+        	            	+}
+        	            	+func (o Option_interface{}) AndThen(fn func(interface{}) Option_interface{}) Option_interface{} {
+        	            	+	if o.tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	return fn(*o.some_0)
+        	            	+}
+        	            	+func (o Option_interface{}) Filter(predicate func(interface{}) bool) Option_interface{} {
+        	            	+	if o.tag == OptionTag_None {
+        	            	+		return o
+        	            	+	}
+        	            	+	if predicate(*o.some_0) {
+        	            	+		return o
+        	            	+	}
+        	            	+	return Option_interface{}{tag: OptionTag_None}
+        	            	+}
+        	            	+
+        	            	+type ResultTag uint8
+        	            	+
+        	            	+const (
+        	            	+	ResultTag_Ok ResultTag = iota
+        	            	+	ResultTag_Err
+        	            	+)
+        	            	+
+        	            	+type Result_int_error struct {
+        	            	+	tag   ResultTag
+        	            	+	ok_0  *int
+        	            	+	err_0 *error
+        	            	+}
+        	            	+
+        	            	+func Result_int_error_Ok(arg0 int) Result_int_error {
+        	            	+	return Result_int_error{tag: ResultTag_Ok, ok_0: &arg0}
+        	            	+}
+        	            	+func Result_int_error_Err(arg0 error) Result_int_error {
+        	            	+	return Result_int_error{tag: ResultTag_Err, err_0: &arg0}
+        	            	+}
+        	            	+func (r Result_int_error) IsOk() bool {
+        	            	+	return r.tag == ResultTag_Ok
+        	            	+}
+        	            	+func (r Result_int_error) IsErr() bool {
+        	            	+	return r.tag == ResultTag_Err
+        	            	+}
+        	            	+func (r Result_int_error) Unwrap() int {
+        	            	+	if r.tag != ResultTag_Ok {
+        	            	+		panic("called Unwrap on Err")
+        	            	+	}
+        	            	+	if r.ok_0 == nil {
+        	            	+		panic("Result contains nil Ok value")
+        	            	+	}
+        	            	+	return *r.ok_0
+        	            	+}
+        	            	+func (r Result_int_error) UnwrapOr(defaultValue int) int {
+        	            	+	if r.tag == ResultTag_Ok {
+        	            	+		return *r.ok_0
+        	            	+	}
+        	            	+	return defaultValue
+        	            	+}
+        	            	+func (r Result_int_error) UnwrapErr() error {
+        	            	+	if r.tag != ResultTag_Err {
+        	            	+		panic("called UnwrapErr on Ok")
+        	            	+	}
+        	            	+	if r.err_0 == nil {
+        	            	+		panic("Result contains nil Err value")
+        	            	+	}
+        	            	+	return *r.err_0
+        	            	+}
+        	            	+func (r Result_int_error) UnwrapOrElse(fn func(error) int) int {
+        	            	+	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        	            	+		return *r.ok_0
+        	            	+	}
+        	            	+	if r.err_0 != nil {
+        	            	+		return fn(*r.err_0)
+        	            	+	}
+        	            	+	panic("Result in invalid state")
+        	            	+}
+        	            	+func (r Result_int_error) Map(fn func(int) interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        	            	+		u := fn(*r.ok_0)
+        	            	+		return struct {
+        	            	+			tag   ResultTag
+        	            	+			ok_0  *interface{}
+        	            	+			err_0 *error
+        	            	+		}{tag: ResultTag_Ok, ok_0: &u}
+        	            	+	}
+        	            	+	return struct {
+        	            	+		tag   ResultTag
+        	            	+		ok_0  *interface{}
+        	            	+		err_0 *error
+        	            	+	}{tag: r.tag, ok_0: nil, err_0: r.err_0}
+        	            	+}
+        	            	+func (r Result_int_error) MapErr(fn func(error) interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Err && r.err_0 != nil {
+        	            	+		f := fn(*r.err_0)
+        	            	+		return struct {
+        	            	+			tag   ResultTag
+        	            	+			ok_0  *int
+        	            	+			err_0 *interface{}
+        	            	+		}{tag: ResultTag_Err, ok_0: nil, err_0: &f}
+        	            	+	}
+        	            	+	return struct {
+        	            	+		tag   ResultTag
+        	            	+		ok_0  *int
+        	            	+		err_0 *interface{}
+        	            	+	}{tag: r.tag, ok_0: r.ok_0, err_0: nil}
+        	            	+}
+        	            	+func (r Result_int_error) Filter(predicate func(int) bool) Result_int_error {
+        	            	+	if r.tag == ResultTag_Ok && predicate(*r.ok_0) {
+        	            	+		return r
+        	            	+	}
+        	            	+	return r
+        	            	+}
+        	            	+func (r Result_int_error) AndThen(fn func(int) interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        	            	+		return fn(*r.ok_0)
+        	            	+	}
+        	            	+	return struct {
+        	            	+		tag   ResultTag
+        	            	+		ok_0  *interface{}
+        	            	+		err_0 *error
+        	            	+	}{tag: r.tag, ok_0: nil, err_0: r.err_0}
+        	            	+}
+        	            	+func (r Result_int_error) OrElse(fn func(error) interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Err && r.err_0 != nil {
+        	            	+		return fn(*r.err_0)
+        	            	+	}
+        	            	+	return struct {
+        	            	+		tag   ResultTag
+        	            	+		ok_0  *int
+        	            	+		err_0 *interface{}
+        	            	+	}{tag: r.tag, ok_0: r.ok_0, err_0: nil}
+        	            	+}
+        	            	+func (r Result_int_error) And(other interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Ok {
+        	            	+		return other
+        	            	+	}
+        	            	+	return r
+        	            	+}
+        	            	+func (r Result_int_error) Or(other Result_int_error) Result_int_error {
+        	            	+	if r.tag == ResultTag_Ok {
+        	            	+		return r
+        	            	+	}
+        	            	+	return other
+        	            	+}
+        	            	+
+        	            	+type Result_unknown_error struct {
+        	            	+	tag   ResultTag
+        	            	+	ok_0  *unknown
+        	            	+	err_0 *error
+        	            	+}
+        	            	+
+        	            	+func Result_unknown_error_Ok(arg0 unknown) Result_unknown_error {
+        	            	+	return Result_unknown_error{tag: ResultTag_Ok, ok_0: &arg0}
+        	            	+}
+        	            	+func Result_unknown_error_Err(arg0 error) Result_unknown_error {
+        	            	+	return Result_unknown_error{tag: ResultTag_Err, err_0: &arg0}
+        	            	+}
+        	            	+func (r Result_unknown_error) IsOk() bool {
+        	            	+	return r.tag == ResultTag_Ok
+        	            	+}
+        	            	+func (r Result_unknown_error) IsErr() bool {
+        	            	+	return r.tag == ResultTag_Err
+        	            	+}
+        	            	+func (r Result_unknown_error) Unwrap() unknown {
+        	            	+	if r.tag != ResultTag_Ok {
+        	            	+		panic("called Unwrap on Err")
+        	            	+	}
+        	            	+	if r.ok_0 == nil {
+        	            	+		panic("Result contains nil Ok value")
+        	            	+	}
+        	            	+	return *r.ok_0
+        	            	+}
+        	            	+func (r Result_unknown_error) UnwrapOr(defaultValue unknown) unknown {
+        	            	+	if r.tag == ResultTag_Ok {
+        	            	+		return *r.ok_0
+        	            	+	}
+        	            	+	return defaultValue
+        	            	+}
+        	            	+func (r Result_unknown_error) UnwrapErr() error {
+        	            	+	if r.tag != ResultTag_Err {
+        	            	+		panic("called UnwrapErr on Ok")
+        	            	+	}
+        	            	+	if r.err_0 == nil {
+        	            	+		panic("Result contains nil Err value")
+        	            	+	}
+        	            	+	return *r.err_0
+        	            	+}
+        	            	+func (r Result_unknown_error) UnwrapOrElse(fn func(error) unknown) unknown {
+        	            	+	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        	            	+		return *r.ok_0
+        	            	+	}
+        	            	+	if r.err_0 != nil {
+        	            	+		return fn(*r.err_0)
+        	            	+	}
+        	            	+	panic("Result in invalid state")
+        	            	+}
+        	            	+func (r Result_unknown_error) Map(fn func(unknown) interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        	            	+		u := fn(*r.ok_0)
+        	            	+		return struct {
+        	            	+			tag   ResultTag
+        	            	+			ok_0  *interface{}
+        	            	+			err_0 *error
+        	            	+		}{tag: ResultTag_Ok, ok_0: &u}
+        	            	+	}
+        	            	+	return struct {
+        	            	+		tag   ResultTag
+        	            	+		ok_0  *interface{}
+        	            	+		err_0 *error
+        	            	+	}{tag: r.tag, ok_0: nil, err_0: r.err_0}
+        	            	+}
+        	            	+func (r Result_unknown_error) MapErr(fn func(error) interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Err && r.err_0 != nil {
+        	            	+		f := fn(*r.err_0)
+        	            	+		return struct {
+        	            	+			tag   ResultTag
+        	            	+			ok_0  *unknown
+        	            	+			err_0 *interface{}
+        	            	+		}{tag: ResultTag_Err, ok_0: nil, err_0: &f}
+        	            	+	}
+        	            	+	return struct {
+        	            	+		tag   ResultTag
+        	            	+		ok_0  *unknown
+        	            	+		err_0 *interface{}
+        	            	+	}{tag: r.tag, ok_0: r.ok_0, err_0: nil}
+        	            	+}
+        	            	+func (r Result_unknown_error) Filter(predicate func(unknown) bool) Result_unknown_error {
+        	            	+	if r.tag == ResultTag_Ok && predicate(*r.ok_0) {
+        	            	+		return r
+        	            	+	}
+        	            	+	return r
+        	            	+}
+        	            	+func (r Result_unknown_error) AndThen(fn func(unknown) interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        	            	+		return fn(*r.ok_0)
+        	            	+	}
+        	            	+	return struct {
+        	            	+		tag   ResultTag
+        	            	+		ok_0  *interface{}
+        	            	+		err_0 *error
+        	            	+	}{tag: r.tag, ok_0: nil, err_0: r.err_0}
+        	            	+}
+        	            	+func (r Result_unknown_error) OrElse(fn func(error) interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Err && r.err_0 != nil {
+        	            	+		return fn(*r.err_0)
+        	            	+	}
+        	            	+	return struct {
+        	            	+		tag   ResultTag
+        	            	+		ok_0  *unknown
+        	            	+		err_0 *interface{}
+        	            	+	}{tag: r.tag, ok_0: r.ok_0, err_0: nil}
+        	            	+}
+        	            	+func (r Result_unknown_error) And(other interface{}) interface{} {
+        	            	+	if r.tag == ResultTag_Ok {
+        	            	+		return other
+        	            	+	}
+        	            	+	return r
+        	            	+}
+        	            	+func (r Result_unknown_error) Or(other Result_unknown_error) Result_unknown_error {
+        	            	+	if r.tag == ResultTag_Ok {
+        	            	+		return r
+        	            	+	}
+        	            	+	return other
+        	            	+}
+        	            	+
+        	            	 import "fmt"
+        	            	 
+        	            	-// DINGO:GENERATED - This file was generated by the Dingo transpiler
+        	            	-
+        	            	-// Simple pattern matching examples for Result<T,E> and Option<T>
+        	            	-
+        	            	-// Example 1: Pattern match on Result<T,E>
+        	            	-func processResult(result Result_int_error) int {
+        	            	+func processResult(result Result[int, error]) int {
+        	            	 	__match_0 := result
+        	            	-	// DINGO_MATCH_START: result
+        	            	-	switch __match_0.tag {
+        	            	-	case ResultTagOk:
+        	            	-		// DINGO_PATTERN: Ok(value)
+        	            	+	if result.IsOk() {
+        	            	+
+        	            	 		value := *__match_0.ok_0
+        	            	-		value * 2
+        	            	-	case ResultTagErr:
+        	            	-		// DINGO_PATTERN: Err(e)
+        	            	+		return value * 2
+        	            	+	}
+        	            	+	if result.IsErr() {
+        	            	+
+        	            	 		e := __match_0.err_0
+        	            	-		0
+        	            	-	}
+        	            	-	// DINGO_MATCH_END
+        	            	-}
+        	            	-
+        	            	-// Example 2: Pattern match on Option<T>
+        	            	-func processOption(opt Option_string) string {
+        	            	+		return 0
+        	            	+	}
+        	            	+	panic("non-exhaustive match")
+        	            	+
+        	            	+}
+        	            	+
+        	            	+func processOption(opt Option[string]) string {
+        	            	 	__match_1 := opt
+        	            	-	// DINGO_MATCH_START: opt
+        	            	-	switch __match_1.tag {
+        	            	-	case OptionTagSome:
+        	            	-		// DINGO_PATTERN: Some(s)
+        	            	+	if opt.IsSome() {
+        	            	+
+        	            	 		s := *__match_1.some_0
+        	            	-		s
+        	            	-	case OptionTagNone:
+        	            	-		// DINGO_PATTERN: None
+        	            	-		"default"
+        	            	-	}
+        	            	-	// DINGO_MATCH_END
+        	            	-}
+        	            	-
+        	            	-// Example 3: Pattern match with wildcard
+        	            	+		return s
+        	            	+	}
+        	            	+	if opt.IsNone() {
+        	            	+		return "default"
+        	            	+	}
+        	            	+	panic("non-exhaustive match")
+        	            	+
+        	            	+}
+        	            	+
+        	            	 func handleStatus(status Status) string {
+        	            	 	__match_2 := status
+        	            	-	// DINGO_MATCH_START: status
+        	            	-	switch __match_2.tag {
+        	            	-	case ActiveTag:
+        	            	-		// DINGO_PATTERN: Active
+        	            	-		"running"
+        	            	-	case PendingTag:
+        	            	-		// DINGO_PATTERN: Pending
+        	            	-		"waiting"
+        	            	-	default:
+        	            	-		// DINGO_PATTERN: _
+        	            	-		"unknown"
+        	            	-	}
+        	            	-	// DINGO_MATCH_END
+        	            	-}
+        	            	-
+        	            	-// Example 4: Pattern match in assignment context
+        	            	-func doubleIfPresent(opt Option_int) Option_int {
+        	            	-	var result = __match_3 := opt
+        	            	-	// DINGO_MATCH_START: opt
+        	            	-	switch __match_3.tag {
+        	            	-	case OptionTagSome:
+        	            	-		// DINGO_PATTERN: Some(x)
+        	            	+	if status.IsActive() {
+        	            	+		return "running"
+        	            	+	}
+        	            	+	if status.IsPending() {
+        	            	+		return "waiting"
+        	            	+	}
+        	            	+
+        	            	+}
+        	            	+
+        	            	+func doubleIfPresent(opt Option[int]) Option[int] {
+        	            	+	var result Option_int
+        	            	+	__match_3 := opt
+        	            	+	if opt.IsSome() {
+        	            	+
+        	            	 		x := *__match_3.some_0
+        	            	-		Some(x * 2)
+        	            	-	case OptionTagNone:
+        	            	-		// DINGO_PATTERN: None
+        	            	-		None
+        	            	-	}
+        	            	-	// DINGO_MATCH_END
+        	            	+		result = Some(x * 2)
+        	            	+	}
+        	            	+	if opt.IsNone() {
+        	            	+
+        	            	+		result = Option_int_None()
+        	            	+	}
+        	            	+	panic("non-exhaustive match")
+        	            	+
+        	            	 	return result
+        	            	@@ -76,31 +580,27 @@
+        	            	 
+        	            	-// Example 5: Nested pattern matching
+        	            	-func processNested(result Result_Option_int_error) int {
+        	            	+func processNested(result Result[Option[int], error]) int {
+        	            	 	__match_4 := result
+        	            	-	// DINGO_MATCH_START: result
+        	            	-	switch __match_4.tag {
+        	            	-	case ResultTagOk:
+        	            	-		// DINGO_PATTERN: Ok(inner)
+        	            	+	if result.IsOk() {
+        	            	+
+        	            	 		inner := *__match_4.ok_0
+        	            	-		__match_5 := inner
+        	            	-		// DINGO_MATCH_START: inner
+        	            	-		switch __match_5.tag {
+        	            	-		case OptionTagSome:
+        	            	-			// DINGO_PATTERN: Some(val)
+        	            	-			val := *__match_5.some_0
+        	            	-			val
+        	            	-		case OptionTagNone:
+        	            	-			// DINGO_PATTERN: None
+        	            	-			0
+        	            	+		__match_0 := inner
+        	            	+		if inner.IsSome() {
+        	            	+
+        	            	+			val := *__match_0.some_0
+        	            	+			return val
+        	            	 		}
+        	            	-		// DINGO_MATCH_END
+        	            	-	case ResultTagErr:
+        	            	-		// DINGO_PATTERN: Err(e)
+        	            	+		if inner.IsNone() {
+        	            	+			return 0
+        	            	+		}
+        	            	+		panic("non-exhaustive match")
+        	            	+	}
+        	            	+	if result.IsErr() {
+        	            	+
+        	            	 		e := __match_4.err_0
+        	            	-		-1
+        	            	-	}
+        	            	-	// DINGO_MATCH_END
+        	            	-}
+        	            	-
+        	            	-// Helper enum for example 3
+        	            	+		return -1
+        	            	+	}
+        	            	+	panic("non-exhaustive match")
+        	            	+
+        	            	+}
+        	            	+
+        	            	 type Status int
+        	Test:       	TestGoldenFiles/pattern_match_01_simple
+        	Messages:   	Generated code doesn't match golden file
+    golden_test.go:144: 
+        === EXPECTED ===
+        package main
+        
+        import "fmt"
+        
+        // DINGO:GENERATED - This file was generated by the Dingo transpiler
+        
+        // Simple pattern matching examples for Result<T,E> and Option<T>
+        
+        // Example 1: Pattern match on Result<T,E>
+        func processResult(result Result_int_error) int {
+        	__match_0 := result
+        	// DINGO_MATCH_START: result
+        	switch __match_0.tag {
+        	case ResultTagOk:
+        		// DINGO_PATTERN: Ok(value)
+        		value := *__match_0.ok_0
+        		value * 2
+        	case ResultTagErr:
+        		// DINGO_PATTERN: Err(e)
+        		e := __match_0.err_0
+        		0
+        	}
+        	// DINGO_MATCH_END
+        }
+        
+        // Example 2: Pattern match on Option<T>
+        func processOption(opt Option_string) string {
+        	__match_1 := opt
+        	// DINGO_MATCH_START: opt
+        	switch __match_1.tag {
+        	case OptionTagSome:
+        		// DINGO_PATTERN: Some(s)
+        		s := *__match_1.some_0
+        		s
+        	case OptionTagNone:
+        		// DINGO_PATTERN: None
+        		"default"
+        	}
+        	// DINGO_MATCH_END
+        }
+        
+        // Example 3: Pattern match with wildcard
+        func handleStatus(status Status) string {
+        	__match_2 := status
+        	// DINGO_MATCH_START: status
+        	switch __match_2.tag {
+        	case ActiveTag:
+        		// DINGO_PATTERN: Active
+        		"running"
+        	case PendingTag:
+        		// DINGO_PATTERN: Pending
+        		"waiting"
+        	default:
+        		// DINGO_PATTERN: _
+        		"unknown"
+        	}
+        	// DINGO_MATCH_END
+        }
+        
+        // Example 4: Pattern match in assignment context
+        func doubleIfPresent(opt Option_int) Option_int {
+        	var result = __match_3 := opt
+        	// DINGO_MATCH_START: opt
+        	switch __match_3.tag {
+        	case OptionTagSome:
+        		// DINGO_PATTERN: Some(x)
+        		x := *__match_3.some_0
+        		Some(x * 2)
+        	case OptionTagNone:
+        		// DINGO_PATTERN: None
+        		None
+        	}
+        	// DINGO_MATCH_END
+        	return result
+        }
+        
+        // Example 5: Nested pattern matching
+        func processNested(result Result_Option_int_error) int {
+        	__match_4 := result
+        	// DINGO_MATCH_START: result
+        	switch __match_4.tag {
+        	case ResultTagOk:
+        		// DINGO_PATTERN: Ok(inner)
+        		inner := *__match_4.ok_0
+        		__match_5 := inner
+        		// DINGO_MATCH_START: inner
+        		switch __match_5.tag {
+        		case OptionTagSome:
+        			// DINGO_PATTERN: Some(val)
+        			val := *__match_5.some_0
+        			val
+        		case OptionTagNone:
+        			// DINGO_PATTERN: None
+        			0
+        		}
+        		// DINGO_MATCH_END
+        	case ResultTagErr:
+        		// DINGO_PATTERN: Err(e)
+        		e := __match_4.err_0
+        		-1
+        	}
+        	// DINGO_MATCH_END
+        }
+        
+        // Helper enum for example 3
+        type Status int
+        
+        const (
+        	Active Status = iota
+        	Pending
+        	Completed
+        )
+        
+    golden_test.go:145: 
+        === ACTUAL ===
+        package main
+        
+        type OptionTag uint8
+        
+        // Simple pattern matching examples for Result[T,E] and Option[T]
+        const (
+        	OptionTag_Some OptionTag = iota
+        	OptionTag_None
+        )
+        
+        type Option_string struct
+        
+        // Example 1: Pattern match on Result[T,E]
+        {
+        	tag    OptionTag
+        	some_0 *string
+        }
+        
+        func Option_string_Some(arg0 string) Option_string {
+        	return Option_string{tag: OptionTag_Some,
+        
+        	// DINGO_MATCH_START: result
+        	some_0: &arg0}
+        }
+        func Option_string_None() Option_string {
+        	return Option_string{
+        
+        	// DINGO_PATTERN: Ok(value)
+        	tag: OptionTag_None}
+        }
+        func (o Option_string) IsSome() bool {
+        	return o.tag == OptionTag_Some
+        
+        	// DINGO_PATTERN: Err(e)
+        }
+        func (o Option_string) IsNone() bool {
+        	return o.tag == OptionTag_None
+        
+        	// DINGO_MATCH_END
+        }
+        func (o Option_string) Unwrap(
+        
+        // Example 2: Pattern match on Option[T]
+        ) string {
+        	if o.tag != OptionTag_Some {
+        		panic("called Unwrap on None")
+        	}
+        	return *o.some_0
+        }
+        func (o Option_string) UnwrapOr(
+        
+        // DINGO_MATCH_START: opt
+        defaultValue string) string {
+        	if o.tag == OptionTag_Some {
+        		return *
+        
+        		// DINGO_PATTERN: Some(s)
+        		o.some_0
+        	}
+        	return defaultValue
+        }
+        func (o Option_string) UnwrapOrElse(fn func() string) string {
+        
+        	// DINGO_PATTERN: None
+        	if o.tag == OptionTag_Some {
+        
+        		// DINGO_MATCH_END
+        		return *o.some_0
+        	}
+        	return fn(
+        
+        	// Example 3: Pattern match with wildcard
+        	)
+        }
+        func (o Option_string) Map(fn func(string) interface{}) Option_string {
+        	if o.tag == OptionTag_None {
+        		return o
+        	}
+        	mapped :=
+        
+        	// DINGO_MATCH_START: status
+        	fn(*o.some_0)
+        	result := mapped.(string)
+        	return Option_string{tag: OptionTag_Some,
+        
+        	// DINGO_PATTERN: Active
+        	some_0: &result}
+        }
+        func (o Option_string) AndThen(
+        
+        // DINGO_PATTERN: Pending
+        fn func(string) Option_string) Option_string {
+        	if o.
+        
+        	// DINGO_PATTERN: _
+        	tag == OptionTag_None {
+        		return o
+        	}
+        	return fn(
+        
+        	// DINGO_MATCH_END
+        	*o.some_0)
+        }
+        func (o Option_string) Filter(
+        
+        // Example 4: Pattern match in assignment context
+        predicate func(string) bool) Option_string {
+        	if o.tag == OptionTag_None {
+        		return o
+        	}
+        	if predicate(*o.some_0) {
+        		return o
+        	}
+        	return Option_string{
+        
+        	// DINGO_MATCH_START: opt
+        	tag: OptionTag_None}
+        }
+        
+        type Option_int struct {
+        	tag    OptionTag
+        	some_0 *int
+        }
+        
+        func Option_int_Some(
+        
+        // DINGO_PATTERN: Some(x)
+        arg0 int) Option_int {
+        	return Option_int{tag: OptionTag_Some, some_0: &arg0}
+        }
+        func Option_int_None(
+        
+        // DINGO_PATTERN: None
+        ) Option_int {
+        	return Option_int{tag: OptionTag_None}
+        
+        	// DINGO_MATCH_END
+        }
+        func (o Option_int) IsSome() bool {
+        	return o.
+        
+        	// Example 5: Nested pattern matching
+        	tag == OptionTag_Some
+        }
+        func (o Option_int) IsNone() bool {
+        	return o.tag == OptionTag_None
+        }
+        func (o Option_int) Unwrap() int {
+        	if o.
+        
+        	// DINGO_MATCH_START: result
+        	tag != OptionTag_Some {
+        		panic("called Unwrap on None")
+        	}
+        	return *o.some_0
+        }
+        func
+        
+        // DINGO_PATTERN: Ok(inner)
+        (o Option_int) UnwrapOr(defaultValue int) int {
+        	if o.tag == OptionTag_Some {
+        		return *
+        
+        		// DINGO_MATCH_START: inner
+        		o.some_0
+        	}
+        	return defaultValue
+        }
+        func (o Option_int) UnwrapOrElse(fn func() int) int {
+        
+        	// DINGO_PATTERN: Some(val)
+        	if o.tag == OptionTag_Some {
+        		return *o.some_0
+        	}
+        	return fn()
+        }
+        func (o Option_int) Map(fn func
+        
+        // DINGO_PATTERN: None
+        (int) interface{}) Option_int {
+        
+        	// DINGO_MATCH_END
+        	if o.tag == OptionTag_None {
+        		return o
+        	}
+        	mapped :=
+        
+        	// DINGO_PATTERN: Err(e)
+        	fn(*o.some_0)
+        	result := mapped.(int)
+        	return Option_int{tag:
+        
+        	// DINGO_MATCH_END
+        	OptionTag_Some, some_0:
+        
+        	// Helper enum for example 3
+        	&result}
+        }
+        func (o Option_int) AndThen(fn func(int) Option_int) Option_int {
+        	if o.tag == OptionTag_None {
+        		return o
+        	}
+        	return fn(*o.some_0)
+        }
+        func (o Option_int) Filter(predicate func(int) bool) Option_int {
+        	if o.tag == OptionTag_None {
+        		return o
+        	}
+        	if predicate(*o.some_0) {
+        		return o
+        	}
+        	return Option_int{tag: OptionTag_None}
+        }
+        
+        type Option_interface{} struct {
+        	tag    OptionTag
+        	some_0 *interface{}
+        }
+        
+        func Option_interface{}_Some(arg0 interface{}) Option_interface{} {
+        	return Option_interface{}{tag: OptionTag_Some, some_0: &arg0}
+        }
+        func Option_interface{}_None() Option_interface{} {
+        	return Option_interface{}{tag: OptionTag_None}
+        }
+        func (o Option_interface{}) IsSome() bool {
+        	return o.tag == OptionTag_Some
+        }
+        func (o Option_interface{}) IsNone() bool {
+        	return o.tag == OptionTag_None
+        }
+        func (o Option_interface{}) Unwrap() interface{} {
+        	if o.tag != OptionTag_Some {
+        		panic("called Unwrap on None")
+        	}
+        	return *o.some_0
+        }
+        func (o Option_interface{}) UnwrapOr(defaultValue interface{}) interface{} {
+        	if o.tag == OptionTag_Some {
+        		return *o.some_0
+        	}
+        	return defaultValue
+        }
+        func (o Option_interface{}) UnwrapOrElse(fn func() interface{}) interface{} {
+        	if o.tag == OptionTag_Some {
+        		return *o.some_0
+        	}
+        	return fn()
+        }
+        func (o Option_interface{}) Map(fn func(interface{}) interface{}) Option_interface{} {
+        	if o.tag == OptionTag_None {
+        		return o
+        	}
+        	mapped := fn(*o.some_0)
+        	result := mapped.(interface{})
+        	return Option_interface{}{tag: OptionTag_Some, some_0: &result}
+        }
+        func (o Option_interface{}) AndThen(fn func(interface{}) Option_interface{}) Option_interface{} {
+        	if o.tag == OptionTag_None {
+        		return o
+        	}
+        	return fn(*o.some_0)
+        }
+        func (o Option_interface{}) Filter(predicate func(interface{}) bool) Option_interface{} {
+        	if o.tag == OptionTag_None {
+        		return o
+        	}
+        	if predicate(*o.some_0) {
+        		return o
+        	}
+        	return Option_interface{}{tag: OptionTag_None}
+        }
+        
+        type ResultTag uint8
+        
+        const (
+        	ResultTag_Ok ResultTag = iota
+        	ResultTag_Err
+        )
+        
+        type Result_int_error struct {
+        	tag   ResultTag
+        	ok_0  *int
+        	err_0 *error
+        }
+        
+        func Result_int_error_Ok(arg0 int) Result_int_error {
+        	return Result_int_error{tag: ResultTag_Ok, ok_0: &arg0}
+        }
+        func Result_int_error_Err(arg0 error) Result_int_error {
+        	return Result_int_error{tag: ResultTag_Err, err_0: &arg0}
+        }
+        func (r Result_int_error) IsOk() bool {
+        	return r.tag == ResultTag_Ok
+        }
+        func (r Result_int_error) IsErr() bool {
+        	return r.tag == ResultTag_Err
+        }
+        func (r Result_int_error) Unwrap() int {
+        	if r.tag != ResultTag_Ok {
+        		panic("called Unwrap on Err")
+        	}
+        	if r.ok_0 == nil {
+        		panic("Result contains nil Ok value")
+        	}
+        	return *r.ok_0
+        }
+        func (r Result_int_error) UnwrapOr(defaultValue int) int {
+        	if r.tag == ResultTag_Ok {
+        		return *r.ok_0
+        	}
+        	return defaultValue
+        }
+        func (r Result_int_error) UnwrapErr() error {
+        	if r.tag != ResultTag_Err {
+        		panic("called UnwrapErr on Ok")
+        	}
+        	if r.err_0 == nil {
+        		panic("Result contains nil Err value")
+        	}
+        	return *r.err_0
+        }
+        func (r Result_int_error) UnwrapOrElse(fn func(error) int) int {
+        	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        		return *r.ok_0
+        	}
+        	if r.err_0 != nil {
+        		return fn(*r.err_0)
+        	}
+        	panic("Result in invalid state")
+        }
+        func (r Result_int_error) Map(fn func(int) interface{}) interface{} {
+        	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        		u := fn(*r.ok_0)
+        		return struct {
+        			tag   ResultTag
+        			ok_0  *interface{}
+        			err_0 *error
+        		}{tag: ResultTag_Ok, ok_0: &u}
+        	}
+        	return struct {
+        		tag   ResultTag
+        		ok_0  *interface{}
+        		err_0 *error
+        	}{tag: r.tag, ok_0: nil, err_0: r.err_0}
+        }
+        func (r Result_int_error) MapErr(fn func(error) interface{}) interface{} {
+        	if r.tag == ResultTag_Err && r.err_0 != nil {
+        		f := fn(*r.err_0)
+        		return struct {
+        			tag   ResultTag
+        			ok_0  *int
+        			err_0 *interface{}
+        		}{tag: ResultTag_Err, ok_0: nil, err_0: &f}
+        	}
+        	return struct {
+        		tag   ResultTag
+        		ok_0  *int
+        		err_0 *interface{}
+        	}{tag: r.tag, ok_0: r.ok_0, err_0: nil}
+        }
+        func (r Result_int_error) Filter(predicate func(int) bool) Result_int_error {
+        	if r.tag == ResultTag_Ok && predicate(*r.ok_0) {
+        		return r
+        	}
+        	return r
+        }
+        func (r Result_int_error) AndThen(fn func(int) interface{}) interface{} {
+        	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        		return fn(*r.ok_0)
+        	}
+        	return struct {
+        		tag   ResultTag
+        		ok_0  *interface{}
+        		err_0 *error
+        	}{tag: r.tag, ok_0: nil, err_0: r.err_0}
+        }
+        func (r Result_int_error) OrElse(fn func(error) interface{}) interface{} {
+        	if r.tag == ResultTag_Err && r.err_0 != nil {
+        		return fn(*r.err_0)
+        	}
+        	return struct {
+        		tag   ResultTag
+        		ok_0  *int
+        		err_0 *interface{}
+        	}{tag: r.tag, ok_0: r.ok_0, err_0: nil}
+        }
+        func (r Result_int_error) And(other interface{}) interface{} {
+        	if r.tag == ResultTag_Ok {
+        		return other
+        	}
+        	return r
+        }
+        func (r Result_int_error) Or(other Result_int_error) Result_int_error {
+        	if r.tag == ResultTag_Ok {
+        		return r
+        	}
+        	return other
+        }
+        
+        type Result_unknown_error struct {
+        	tag   ResultTag
+        	ok_0  *unknown
+        	err_0 *error
+        }
+        
+        func Result_unknown_error_Ok(arg0 unknown) Result_unknown_error {
+        	return Result_unknown_error{tag: ResultTag_Ok, ok_0: &arg0}
+        }
+        func Result_unknown_error_Err(arg0 error) Result_unknown_error {
+        	return Result_unknown_error{tag: ResultTag_Err, err_0: &arg0}
+        }
+        func (r Result_unknown_error) IsOk() bool {
+        	return r.tag == ResultTag_Ok
+        }
+        func (r Result_unknown_error) IsErr() bool {
+        	return r.tag == ResultTag_Err
+        }
+        func (r Result_unknown_error) Unwrap() unknown {
+        	if r.tag != ResultTag_Ok {
+        		panic("called Unwrap on Err")
+        	}
+        	if r.ok_0 == nil {
+        		panic("Result contains nil Ok value")
+        	}
+        	return *r.ok_0
+        }
+        func (r Result_unknown_error) UnwrapOr(defaultValue unknown) unknown {
+        	if r.tag == ResultTag_Ok {
+        		return *r.ok_0
+        	}
+        	return defaultValue
+        }
+        func (r Result_unknown_error) UnwrapErr() error {
+        	if r.tag != ResultTag_Err {
+        		panic("called UnwrapErr on Ok")
+        	}
+        	if r.err_0 == nil {
+        		panic("Result contains nil Err value")
+        	}
+        	return *r.err_0
+        }
+        func (r Result_unknown_error) UnwrapOrElse(fn func(error) unknown) unknown {
+        	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        		return *r.ok_0
+        	}
+        	if r.err_0 != nil {
+        		return fn(*r.err_0)
+        	}
+        	panic("Result in invalid state")
+        }
+        func (r Result_unknown_error) Map(fn func(unknown) interface{}) interface{} {
+        	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        		u := fn(*r.ok_0)
+        		return struct {
+        			tag   ResultTag
+        			ok_0  *interface{}
+        			err_0 *error
+        		}{tag: ResultTag_Ok, ok_0: &u}
+        	}
+        	return struct {
+        		tag   ResultTag
+        		ok_0  *interface{}
+        		err_0 *error
+        	}{tag: r.tag, ok_0: nil, err_0: r.err_0}
+        }
+        func (r Result_unknown_error) MapErr(fn func(error) interface{}) interface{} {
+        	if r.tag == ResultTag_Err && r.err_0 != nil {
+        		f := fn(*r.err_0)
+        		return struct {
+        			tag   ResultTag
+        			ok_0  *unknown
+        			err_0 *interface{}
+        		}{tag: ResultTag_Err, ok_0: nil, err_0: &f}
+        	}
+        	return struct {
+        		tag   ResultTag
+        		ok_0  *unknown
+        		err_0 *interface{}
+        	}{tag: r.tag, ok_0: r.ok_0, err_0: nil}
+        }
+        func (r Result_unknown_error) Filter(predicate func(unknown) bool) Result_unknown_error {
+        	if r.tag == ResultTag_Ok && predicate(*r.ok_0) {
+        		return r
+        	}
+        	return r
+        }
+        func (r Result_unknown_error) AndThen(fn func(unknown) interface{}) interface{} {
+        	if r.tag == ResultTag_Ok && r.ok_0 != nil {
+        		return fn(*r.ok_0)
+        	}
+        	return struct {
+        		tag   ResultTag
+        		ok_0  *interface{}
+        		err_0 *error
+        	}{tag: r.tag, ok_0: nil, err_0: r.err_0}
+        }
+        func (r Result_unknown_error) OrElse(fn func(error) interface{}) interface{} {
+        	if r.tag == ResultTag_Err && r.err_0 != nil {
+        		return fn(*r.err_0)
+        	}
+        	return struct {
+        		tag   ResultTag
+        		ok_0  *unknown
+        		err_0 *interface{}
+        	}{tag: r.tag, ok_0: r.ok_0, err_0: nil}
+        }
+        func (r Result_unknown_error) And(other interface{}) interface{} {
+        	if r.tag == ResultTag_Ok {
+        		return other
+        	}
+        	return r
+        }
+        func (r Result_unknown_error) Or(other Result_unknown_error) Result_unknown_error {
+        	if r.tag == ResultTag_Ok {
+        		return r
+        	}
+        	return other
+        }
+        
+        import "fmt"
+        
+        func processResult(result Result[int, error]) int {
+        	__match_0 := result
+        	if result.IsOk() {
+        
+        		value := *__match_0.ok_0
+        		return value * 2
+        	}
+        	if result.IsErr() {
+        
+        		e := __match_0.err_0
+        		return 0
+        	}
+        	panic("non-exhaustive match")
+        
+        }
+        
+        func processOption(opt Option[string]) string {
+        	__match_1 := opt
+        	if opt.IsSome() {
+        
+        		s := *__match_1.some_0
+        		return s
+        	}
+        	if opt.IsNone() {
+        		return "default"
+        	}
+        	panic("non-exhaustive match")
+        
+        }
+        
+        func handleStatus(status Status) string {
+        	__match_2 := status
+        	if status.IsActive() {
+        		return "running"
+        	}
+        	if status.IsPending() {
+        		return "waiting"
+        	}
+        
+        }
+        
+        func doubleIfPresent(opt Option[int]) Option[int] {
+        	var result Option_int
+        	__match_3 := opt
+        	if opt.IsSome() {
+        
+        		x := *__match_3.some_0
+        		result = Some(x * 2)
+        	}
+        	if opt.IsNone() {
+        
+        		result = Option_int_None()
+        	}
+        	panic("non-exhaustive match")
+        
+        	return result
+        }
+        
+        func processNested(result Result[Option[int], error]) int {
+        	__match_4 := result
+        	if result.IsOk() {
+        
+        		inner := *__match_4.ok_0
+        		__match_0 := inner
+        		if inner.IsSome() {
+        
+        			val := *__match_0.some_0
+        			return val
+        		}
+        		if inner.IsNone() {
+        			return 0
+        		}
+        		panic("non-exhaustive match")
+        	}
+        	if result.IsErr() {
+        
+        		e := __match_4.err_0
+        		return -1
+        	}
+        	panic("non-exhaustive match")
+        
+        }
+        
+        type Status int
+        
+        const (
+        	Active Status = iota
+        	Pending
+        	Completed
+        )
+        
+    golden_test.go:150: Actual output written to: golden/pattern_match_01_simple.go.actual
+=== RUN   TestGoldenFiles/pattern_match_02_guards
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:38:17: __match_0.value_int_0 undefined (type Value has no field or method value_int_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:39:2: "Positive number" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:40:6: duplicate case ValueTag_Int (constant 0 of uint8 type ValueTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:36:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:42:17: __match_0.value_int_0 undefined (type Value has no field or method value_int_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:43:2: "Negative number" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:44:6: duplicate case ValueTag_Int (constant 0 of uint8 type ValueTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:36:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:46:17: __match_0.value_int_0 undefined (type Value has no field or method value_int_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:46:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:47:2: "Zero" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:50:17: __match_0.value_string_0 undefined (type Value has no field or method value_string_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:51:2: "Long string" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:52:6: duplicate case ValueTag_String (constant 1 of uint8 type ValueTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:48:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:54:17: __match_0.value_string_0 undefined (type Value has no field or method value_string_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:54:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:55:2: "Short string" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:59:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:38:2: declared and not used: n
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:42:2: declared and not used: n
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:50:2: declared and not used: s
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_02_guards.dingo:38:17: __match_0.value_int_0 undefined (type Value has no field or method value_int_0)
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+    golden_test.go:143: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:143
+        	Error:      	Not equal: 
+        	            	expected: "package main\n\ntype ValueTag uint8\n\nconst (\n\tValueTag_Int ValueTag = iota\n\tValueTag_String\n)\n\ntype Value struct {\n\ttag      ValueTag\n\tint_0    *int\n\tstring_0 *string\n}\n\nfunc Value_Int(arg0 int) Value {\n\treturn Value{tag: ValueTag_Int, int_0: &arg0}\n}\nfunc Value_String(arg0 string) Value {\n\treturn Value{tag: ValueTag_String, string_0: &arg0}\n}\nfunc (e Value) IsInt() bool {\n\treturn e.tag == ValueTag_Int\n}\nfunc (e Value) IsString() bool {\n\treturn e.tag == ValueTag_String\n}\nfunc describe(v Value) string {\n\t// match with guards transpiles to if-else with conditions\n\tif v.IsInt() {\n\t\tn := *v.int_0\n\t\tif n > 0 {\n\t\t\treturn \"Positive number\"\n\t\t}\n\t}\n\tif v.IsInt() {\n\t\tn := *v.int_0\n\t\tif n < 0 {\n\t\t\treturn \"Negative number\"\n\t\t}\n\t}\n\tif v.IsInt() {\n\t\t_ = *v.int_0\n\t\treturn \"Zero\"\n\t}\n\tif v.IsString() {\n\t\ts := *v.string_0\n\t\tif len(s) > 5 {\n\t\t\treturn \"Long string\"\n\t\t}\n\t}\n\tif v.IsString() {\n\t\t_ = *v.string_0\n\t\treturn \"Short string\"\n\t}\n\tpanic(\"non-exhaustive match\")\n}\nfunc main() {\n\tval1 := Value_Int(42)\n\tval2 := Value_String(\"hello world\")\n\tprintln(describe(val1))\n\tprintln(describe(val2))\n}"
+        	            	actual  : "package main\n\n// Test: Pattern matching with guards\n// Feature: Match with conditional guards\n// Complexity: intermediate\n\ntype ValueTag uint8\n\nconst (\n\tValueTag_Int ValueTag = iota\n\tValueTag_String\n)\n\ntype Value struct {\n\ttag      ValueTag\n\tint_0    *int\n\tstring_0 *string\n}\n\nfunc Value_Int(arg0 int) Value {\n\treturn Value{tag: ValueTag_Int, int_0: &arg0}\n}\nfunc Value_String(arg0 string) Value {\n\treturn Value{tag: ValueTag_String, string_0: &arg0}\n}\nfunc (e Value) IsInt() bool {\n\treturn e.tag == ValueTag_Int\n}\nfunc (e Value) IsString() bool {\n\treturn e.tag == ValueTag_String\n}\nfunc describe(v Value) string {\n\t__match_0 := v\n\tif\n\t// DINGO_MATCH_START: v\n\tv.IsInt() {\n\n\t\t// DINGO_PATTERN: Value_Int(n) | DINGO_GUARD: n > 0\n\t\tn := __match_0.value_int_0\n\t\treturn \"Positive number\"\n\t}\n\tif v.IsInt() {\n\n\t\t// DINGO_PATTERN: Value_Int(n) | DINGO_GUARD: n < 0\n\t\tn := __match_0.value_int_0\n\t\treturn \"Negative number\"\n\t}\n\tif v.IsInt() {\n\n\t\t// DINGO_PATTERN: Value_Int(_)\n\t\t_ := __match_0.value_int_0\n\t\treturn \"Zero\"\n\t}\n\tif v.IsString() {\n\n\t\t// DINGO_PATTERN: Value_String(s) | DINGO_GUARD: len(s) > 5\n\t\ts := __match_0.value_string_0\n\t\treturn \"Long string\"\n\t}\n\tif v.IsString() {\n\n\t\t// DINGO_PATTERN: Value_String(_)\n\t\t_ := __match_0.value_string_0\n\t\treturn \"Short string\"\n\t}\n\tpanic(\n\n\t\t// DINGO_MATCH_END\n\t\t\"non-exhaustive match\")\n\n}\nfunc main() {\n\tval1 := Value_Int(42)\n\tval2 := Value_String(\"hello world\")\n\n\tprintln(describe(val1))\n\tprintln(describe(val2))\n}"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,6 @@
+        	            	 package main
+        	            	+
+        	            	+// Test: Pattern matching with guards
+        	            	+// Feature: Match with conditional guards
+        	            	+// Complexity: intermediate
+        	            	 
+        	            	@@ -28,17 +32,21 @@
+        	            	 func describe(v Value) string {
+        	            	-	// match with guards transpiles to if-else with conditions
+        	            	-	if v.IsInt() {
+        	            	-		n := *v.int_0
+        	            	-		if n > 0 {
+        	            	-			return "Positive number"
+        	            	-		}
+        	            	+	__match_0 := v
+        	            	+	if
+        	            	+	// DINGO_MATCH_START: v
+        	            	+	v.IsInt() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Value_Int(n) | DINGO_GUARD: n > 0
+        	            	+		n := __match_0.value_int_0
+        	            	+		return "Positive number"
+        	            	 	}
+        	            	 	if v.IsInt() {
+        	            	-		n := *v.int_0
+        	            	-		if n < 0 {
+        	            	-			return "Negative number"
+        	            	-		}
+        	            	+
+        	            	+		// DINGO_PATTERN: Value_Int(n) | DINGO_GUARD: n < 0
+        	            	+		n := __match_0.value_int_0
+        	            	+		return "Negative number"
+        	            	 	}
+        	            	 	if v.IsInt() {
+        	            	-		_ = *v.int_0
+        	            	+
+        	            	+		// DINGO_PATTERN: Value_Int(_)
+        	            	+		_ := __match_0.value_int_0
+        	            	 		return "Zero"
+        	            	@@ -46,12 +54,18 @@
+        	            	 	if v.IsString() {
+        	            	-		s := *v.string_0
+        	            	-		if len(s) > 5 {
+        	            	-			return "Long string"
+        	            	-		}
+        	            	+
+        	            	+		// DINGO_PATTERN: Value_String(s) | DINGO_GUARD: len(s) > 5
+        	            	+		s := __match_0.value_string_0
+        	            	+		return "Long string"
+        	            	 	}
+        	            	 	if v.IsString() {
+        	            	-		_ = *v.string_0
+        	            	+
+        	            	+		// DINGO_PATTERN: Value_String(_)
+        	            	+		_ := __match_0.value_string_0
+        	            	 		return "Short string"
+        	            	 	}
+        	            	-	panic("non-exhaustive match")
+        	            	+	panic(
+        	            	+
+        	            	+		// DINGO_MATCH_END
+        	            	+		"non-exhaustive match")
+        	            	+
+        	            	 }
+        	            	@@ -60,2 +74,3 @@
+        	            	 	val2 := Value_String("hello world")
+        	            	+
+        	            	 	println(describe(val1))
+        	Test:       	TestGoldenFiles/pattern_match_02_guards
+        	Messages:   	Generated code doesn't match golden file
+    golden_test.go:144: 
+        === EXPECTED ===
+        package main
+        
+        type ValueTag uint8
+        
+        const (
+        	ValueTag_Int ValueTag = iota
+        	ValueTag_String
+        )
+        
+        type Value struct {
+        	tag      ValueTag
+        	int_0    *int
+        	string_0 *string
+        }
+        
+        func Value_Int(arg0 int) Value {
+        	return Value{tag: ValueTag_Int, int_0: &arg0}
+        }
+        func Value_String(arg0 string) Value {
+        	return Value{tag: ValueTag_String, string_0: &arg0}
+        }
+        func (e Value) IsInt() bool {
+        	return e.tag == ValueTag_Int
+        }
+        func (e Value) IsString() bool {
+        	return e.tag == ValueTag_String
+        }
+        func describe(v Value) string {
+        	// match with guards transpiles to if-else with conditions
+        	if v.IsInt() {
+        		n := *v.int_0
+        		if n > 0 {
+        			return "Positive number"
+        		}
+        	}
+        	if v.IsInt() {
+        		n := *v.int_0
+        		if n < 0 {
+        			return "Negative number"
+        		}
+        	}
+        	if v.IsInt() {
+        		_ = *v.int_0
+        		return "Zero"
+        	}
+        	if v.IsString() {
+        		s := *v.string_0
+        		if len(s) > 5 {
+        			return "Long string"
+        		}
+        	}
+        	if v.IsString() {
+        		_ = *v.string_0
+        		return "Short string"
+        	}
+        	panic("non-exhaustive match")
+        }
+        func main() {
+        	val1 := Value_Int(42)
+        	val2 := Value_String("hello world")
+        	println(describe(val1))
+        	println(describe(val2))
+        }
+        
+    golden_test.go:145: 
+        === ACTUAL ===
+        package main
+        
+        // Test: Pattern matching with guards
+        // Feature: Match with conditional guards
+        // Complexity: intermediate
+        
+        type ValueTag uint8
+        
+        const (
+        	ValueTag_Int ValueTag = iota
+        	ValueTag_String
+        )
+        
+        type Value struct {
+        	tag      ValueTag
+        	int_0    *int
+        	string_0 *string
+        }
+        
+        func Value_Int(arg0 int) Value {
+        	return Value{tag: ValueTag_Int, int_0: &arg0}
+        }
+        func Value_String(arg0 string) Value {
+        	return Value{tag: ValueTag_String, string_0: &arg0}
+        }
+        func (e Value) IsInt() bool {
+        	return e.tag == ValueTag_Int
+        }
+        func (e Value) IsString() bool {
+        	return e.tag == ValueTag_String
+        }
+        func describe(v Value) string {
+        	__match_0 := v
+        	if
+        	// DINGO_MATCH_START: v
+        	v.IsInt() {
+        
+        		// DINGO_PATTERN: Value_Int(n) | DINGO_GUARD: n > 0
+        		n := __match_0.value_int_0
+        		return "Positive number"
+        	}
+        	if v.IsInt() {
+        
+        		// DINGO_PATTERN: Value_Int(n) | DINGO_GUARD: n < 0
+        		n := __match_0.value_int_0
+        		return "Negative number"
+        	}
+        	if v.IsInt() {
+        
+        		// DINGO_PATTERN: Value_Int(_)
+        		_ := __match_0.value_int_0
+        		return "Zero"
+        	}
+        	if v.IsString() {
+        
+        		// DINGO_PATTERN: Value_String(s) | DINGO_GUARD: len(s) > 5
+        		s := __match_0.value_string_0
+        		return "Long string"
+        	}
+        	if v.IsString() {
+        
+        		// DINGO_PATTERN: Value_String(_)
+        		_ := __match_0.value_string_0
+        		return "Short string"
+        	}
+        	panic(
+        
+        		// DINGO_MATCH_END
+        		"non-exhaustive match")
+        
+        }
+        func main() {
+        	val1 := Value_Int(42)
+        	val2 := Value_String("hello world")
+        
+        	println(describe(val1))
+        	println(describe(val2))
+        }
+        
+    golden_test.go:150: Actual output written to: golden/pattern_match_02_guards.go.actual
+=== RUN   TestGoldenFiles/pattern_match_03_nested
+    golden_test.go:124: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:124
+        	Error:      	Received unexpected error:
+        	            	golden/pattern_match_03_nested.dingo:62:14: missing ',' in argument list (and 3 more errors)
+        	Test:       	TestGoldenFiles/pattern_match_03_nested
+        	Messages:   	Failed to parse preprocessed Dingo file: golden/pattern_match_03_nested.dingo
+=== RUN   TestGoldenFiles/pattern_match_04_exhaustive
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:53:2: "#FF0000" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:56:2: "#00FF00" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:59:2: "#0000FF" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:60:6: ColorTag_RGB is not a type
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:60:19: undefined: r
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:60:22: undefined: g
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:60:25: undefined: b
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:62:14: undefined: r
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:62:25: undefined: g
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:62:36: undefined: b
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:62:2: "#" + toHex(r) + toHex(g) + toHex(b) (value of type string) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:66:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:78:12: Color_RGB is not a type
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_04_exhaustive.dingo:53:2: "#FF0000" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+    golden_test.go:39: WARN: Failed to format generated code: 60:13: expected 1 expression (and 1 more errors)
+    golden_test.go:143: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:143
+        	Error:      	Not equal: 
+        	            	expected: "package main\n\ntype ColorTag uint8\n\nconst (\n\tColorTag_Red ColorTag = iota\n\tColorTag_Green\n\tColorTag_Blue\n\tColorTag_RGB\n)\n\ntype Color struct {\n\ttag   ColorTag\n\trgb_r *int\n\trgb_g *int\n\trgb_b *int\n}\n\nfunc Color_Red() Color {\n\treturn Color{tag: ColorTag_Red}\n}\nfunc Color_Green() Color {\n\treturn Color{tag: ColorTag_Green}\n}\nfunc Color_Blue() Color {\n\treturn Color{tag: ColorTag_Blue}\n}\nfunc Color_RGB(r int, g int, b int) Color {\n\treturn Color{tag: ColorTag_RGB, rgb_r: &r, rgb_g: &g, rgb_b: &b}\n}\nfunc (e Color) IsRed() bool {\n\treturn e.tag == ColorTag_Red\n}\nfunc (e Color) IsGreen() bool {\n\treturn e.tag == ColorTag_Green\n}\nfunc (e Color) IsBlue() bool {\n\treturn e.tag == ColorTag_Blue\n}\nfunc (e Color) IsRGB() bool {\n\treturn e.tag == ColorTag_RGB\n}\nfunc colorToHex(c Color) string {\n\tif c.IsRed() {\n\t\treturn \"#FF0000\"\n\t}\n\tif c.IsGreen() {\n\t\treturn \"#00FF00\"\n\t}\n\tif c.IsBlue() {\n\t\treturn \"#0000FF\"\n\t}\n\tif c.IsRGB() {\n\t\tr := *c.rgb_r\n\t\tg := *c.rgb_g\n\t\tb := *c.rgb_b\n\t\treturn \"#\" + toHex(r) + toHex(g) + toHex(b)\n\t}\n\tpanic(\"non-exhaustive match\")\n}\nfunc toHex(n int) string {\n\t// Simplified hex conversion\n\tif n < 16 {\n\t\treturn \"0\" + string(n)\n\t}\n\treturn string(n)\n}\nfunc main() {\n\tred := Color_Red()\n\tcustom := Color_RGB(128, 64, 32)\n\tprintln(\"Red:\", colorToHex(red))\n\tprintln(\"Custom:\", colorToHex(custom))\n}"
+        	            	actual  : "package main\n\n// Test: Exhaustive pattern matching\n// Feature: Compiler ensures all cases covered\n// Complexity: intermediate\n\ntype ColorTag uint8\n\nconst (\n\tColorTag_Red ColorTag = iota\n\tColorTag_Green\n\tColorTag_Blue\n\tColorTag_RGB\n)\n\ntype Color struct {\n\ttag   ColorTag\n\trgb_r *int\n\trgb_g *int\n\trgb_b *int\n}\n\nfunc Color_Red() Color {\n\treturn Color{tag: ColorTag_Red}\n}\nfunc Color_Green() Color {\n\treturn Color{tag: ColorTag_Green}\n}\nfunc Color_Blue() Color {\n\treturn Color{tag: ColorTag_Blue}\n}\nfunc Color_RGB(r int, g int, b int) Color {\n\treturn Color{tag: ColorTag_RGB, rgb_r: &r, rgb_g: &g, rgb_b: &b}\n}\nfunc (e Color) IsRed() bool {\n\treturn e.tag == ColorTag_Red\n}\nfunc (e Color) IsGreen() bool {\n\treturn e.tag == ColorTag_Green\n}\nfunc (e Color) IsBlue() bool {\n\treturn e.tag == ColorTag_Blue\n}\nfunc (e Color) IsRGB() bool {\n\treturn e.tag == ColorTag_RGB\n}\nfunc colorToHex(c Color) string {\n\t__match_0 := c\n\tif\n\t// DINGO_MATCH_START: c\n\tc.IsRed() {\n\t\treturn \"#FF0000\"// DINGO_PATTERN: Color_Red\n\t}\n\tif c.IsGreen() {\n\t\treturn \"#00FF00\"// DINGO_PATTERN: Color_Green\n\t}\n\tif c.IsBlue() {\n\t\treturn \"#0000FF\"// DINGO_PATTERN: Color_Blue\n\t}\n\tif c.IsRGB{r, g, b}() {\n\t\treturn \"#\" +// DINGO_PATTERN: Color_RGB{r, g, b}\n\t\ttoHex(r) + toHex(g) + toHex(b)\n\t}\n\tpanic(\n\n\t// DINGO_MATCH_END\n\t\"non-exhaustive match\")\n\n}\n\nfunc toHex(n int) string {\n\t// Simplified hex conversion\n\tif n < 16 {\n\t\treturn \"0\" + string(n)\n\t}\n\treturn string(n)\n}\n\nfunc main() {\n\tred := Color_Red()\n\tcustom := Color_RGB{r: 128, g: 64, b: 32}\n\n\tprintln(\"Red:\", colorToHex(red))\n\tprintln(\"Custom:\", colorToHex(custom))\n}"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,6 @@
+        	            	 package main
+        	            	+
+        	            	+// Test: Exhaustive pattern matching
+        	            	+// Feature: Compiler ensures all cases covered
+        	            	+// Complexity: intermediate
+        	            	 
+        	            	@@ -43,19 +47,25 @@
+        	            	 func colorToHex(c Color) string {
+        	            	-	if c.IsRed() {
+        	            	-		return "#FF0000"
+        	            	+	__match_0 := c
+        	            	+	if
+        	            	+	// DINGO_MATCH_START: c
+        	            	+	c.IsRed() {
+        	            	+		return "#FF0000"// DINGO_PATTERN: Color_Red
+        	            	 	}
+        	            	 	if c.IsGreen() {
+        	            	-		return "#00FF00"
+        	            	+		return "#00FF00"// DINGO_PATTERN: Color_Green
+        	            	 	}
+        	            	 	if c.IsBlue() {
+        	            	-		return "#0000FF"
+        	            	+		return "#0000FF"// DINGO_PATTERN: Color_Blue
+        	            	 	}
+        	            	-	if c.IsRGB() {
+        	            	-		r := *c.rgb_r
+        	            	-		g := *c.rgb_g
+        	            	-		b := *c.rgb_b
+        	            	-		return "#" + toHex(r) + toHex(g) + toHex(b)
+        	            	+	if c.IsRGB{r, g, b}() {
+        	            	+		return "#" +// DINGO_PATTERN: Color_RGB{r, g, b}
+        	            	+		toHex(r) + toHex(g) + toHex(b)
+        	            	 	}
+        	            	-	panic("non-exhaustive match")
+        	            	+	panic(
+        	            	+
+        	            	+	// DINGO_MATCH_END
+        	            	+	"non-exhaustive match")
+        	            	+
+        	            	 }
+        	            	+
+        	            	 func toHex(n int) string {
+        	            	@@ -67,5 +77,7 @@
+        	            	 }
+        	            	+
+        	            	 func main() {
+        	            	 	red := Color_Red()
+        	            	-	custom := Color_RGB(128, 64, 32)
+        	            	+	custom := Color_RGB{r: 128, g: 64, b: 32}
+        	            	+
+        	            	 	println("Red:", colorToHex(red))
+        	Test:       	TestGoldenFiles/pattern_match_04_exhaustive
+        	Messages:   	Generated code doesn't match golden file
+    golden_test.go:144: 
+        === EXPECTED ===
+        package main
+        
+        type ColorTag uint8
+        
+        const (
+        	ColorTag_Red ColorTag = iota
+        	ColorTag_Green
+        	ColorTag_Blue
+        	ColorTag_RGB
+        )
+        
+        type Color struct {
+        	tag   ColorTag
+        	rgb_r *int
+        	rgb_g *int
+        	rgb_b *int
+        }
+        
+        func Color_Red() Color {
+        	return Color{tag: ColorTag_Red}
+        }
+        func Color_Green() Color {
+        	return Color{tag: ColorTag_Green}
+        }
+        func Color_Blue() Color {
+        	return Color{tag: ColorTag_Blue}
+        }
+        func Color_RGB(r int, g int, b int) Color {
+        	return Color{tag: ColorTag_RGB, rgb_r: &r, rgb_g: &g, rgb_b: &b}
+        }
+        func (e Color) IsRed() bool {
+        	return e.tag == ColorTag_Red
+        }
+        func (e Color) IsGreen() bool {
+        	return e.tag == ColorTag_Green
+        }
+        func (e Color) IsBlue() bool {
+        	return e.tag == ColorTag_Blue
+        }
+        func (e Color) IsRGB() bool {
+        	return e.tag == ColorTag_RGB
+        }
+        func colorToHex(c Color) string {
+        	if c.IsRed() {
+        		return "#FF0000"
+        	}
+        	if c.IsGreen() {
+        		return "#00FF00"
+        	}
+        	if c.IsBlue() {
+        		return "#0000FF"
+        	}
+        	if c.IsRGB() {
+        		r := *c.rgb_r
+        		g := *c.rgb_g
+        		b := *c.rgb_b
+        		return "#" + toHex(r) + toHex(g) + toHex(b)
+        	}
+        	panic("non-exhaustive match")
+        }
+        func toHex(n int) string {
+        	// Simplified hex conversion
+        	if n < 16 {
+        		return "0" + string(n)
+        	}
+        	return string(n)
+        }
+        func main() {
+        	red := Color_Red()
+        	custom := Color_RGB(128, 64, 32)
+        	println("Red:", colorToHex(red))
+        	println("Custom:", colorToHex(custom))
+        }
+        
+    golden_test.go:145: 
+        === ACTUAL ===
+        package main
+        
+        // Test: Exhaustive pattern matching
+        // Feature: Compiler ensures all cases covered
+        // Complexity: intermediate
+        
+        type ColorTag uint8
+        
+        const (
+        	ColorTag_Red ColorTag = iota
+        	ColorTag_Green
+        	ColorTag_Blue
+        	ColorTag_RGB
+        )
+        
+        type Color struct {
+        	tag   ColorTag
+        	rgb_r *int
+        	rgb_g *int
+        	rgb_b *int
+        }
+        
+        func Color_Red() Color {
+        	return Color{tag: ColorTag_Red}
+        }
+        func Color_Green() Color {
+        	return Color{tag: ColorTag_Green}
+        }
+        func Color_Blue() Color {
+        	return Color{tag: ColorTag_Blue}
+        }
+        func Color_RGB(r int, g int, b int) Color {
+        	return Color{tag: ColorTag_RGB, rgb_r: &r, rgb_g: &g, rgb_b: &b}
+        }
+        func (e Color) IsRed() bool {
+        	return e.tag == ColorTag_Red
+        }
+        func (e Color) IsGreen() bool {
+        	return e.tag == ColorTag_Green
+        }
+        func (e Color) IsBlue() bool {
+        	return e.tag == ColorTag_Blue
+        }
+        func (e Color) IsRGB() bool {
+        	return e.tag == ColorTag_RGB
+        }
+        func colorToHex(c Color) string {
+        	__match_0 := c
+        	if
+        	// DINGO_MATCH_START: c
+        	c.IsRed() {
+        		return "#FF0000"// DINGO_PATTERN: Color_Red
+        	}
+        	if c.IsGreen() {
+        		return "#00FF00"// DINGO_PATTERN: Color_Green
+        	}
+        	if c.IsBlue() {
+        		return "#0000FF"// DINGO_PATTERN: Color_Blue
+        	}
+        	if c.IsRGB{r, g, b}() {
+        		return "#" +// DINGO_PATTERN: Color_RGB{r, g, b}
+        		toHex(r) + toHex(g) + toHex(b)
+        	}
+        	panic(
+        
+        	// DINGO_MATCH_END
+        	"non-exhaustive match")
+        
+        }
+        
+        func toHex(n int) string {
+        	// Simplified hex conversion
+        	if n < 16 {
+        		return "0" + string(n)
+        	}
+        	return string(n)
+        }
+        
+        func main() {
+        	red := Color_Red()
+        	custom := Color_RGB{r: 128, g: 64, b: 32}
+        
+        	println("Red:", colorToHex(red))
+        	println("Custom:", colorToHex(custom))
+        }
+        
+    golden_test.go:150: Actual output written to: golden/pattern_match_04_exhaustive.go.actual
+=== RUN   TestGoldenFiles/pattern_match_05_guards_basic
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:39:17: __match_0.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:40:2: "positive" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:41:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:37:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:43:17: __match_0.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:44:2: "negative" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:45:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:37:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:47:17: __match_0.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:47:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:48:2: "zero" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:51:17: __match_0.result_err_0 undefined (type Result has no field or method result_err_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:52:2: "error" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:56:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:39:2: declared and not used: x
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:43:2: declared and not used: x
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:51:2: declared and not used: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:65:19: __match_1.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:66:2: "adult" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:67:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:63:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:69:19: __match_1.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:70:2: "senior" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:71:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:63:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:73:17: __match_1.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:73:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:74:2: "minor" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:77:17: __match_1.result_err_0 undefined (type Result has no field or method result_err_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:77:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:78:2: "invalid" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:82:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:65:2: declared and not used: age
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:69:2: declared and not used: age
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:91:17: __match_2.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:92:2: "even" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:93:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:89:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:95:17: __match_2.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:95:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:96:2: "odd" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:99:17: __match_2.result_err_0 undefined (type Result has no field or method result_err_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:99:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:100:2: "error" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:104:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:91:2: declared and not used: n
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_05_guards_basic.dingo:39:17: __match_0.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+    golden_test.go:143: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:143
+        	Error:      	Not equal: 
+        	            	expected: "package main\n\ntype ResultTag uint8\n\nconst (\n\tResultTag_Ok ResultTag = iota\n\tResultTag_Err\n)\n\ntype Result struct {\n\ttag   ResultTag\n\tok_0  *int\n\terr_0 *error\n}\n\nfunc Result_Ok(arg0 int) Result {\n\treturn Result{tag: ResultTag_Ok, ok_0: &arg0}\n}\nfunc Result_Err(arg0 error) Result {\n\treturn Result{tag: ResultTag_Err, err_0: &arg0}\n}\nfunc (e Result) IsOk() bool {\n\treturn e.tag == ResultTag_Ok\n}\nfunc (e Result) IsErr() bool {\n\treturn e.tag == ResultTag_Err\n}\n\n// Simple guard on Result type\nfunc classifyNumber(result Result) string {\n\t__match_0 := result\n\t// DINGO_MATCH_START: result\n\tswitch __match_0.tag {\n\tcase ResultTag_Ok:\n\t\t// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0\n\t\tx := *__match_0.ok_0\n\t\tif x > 0 {\n\t\t\treturn \"positive\"\n\t\t}\n\tcase ResultTag_Ok:\n\t\t// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x < 0\n\t\tx := *__match_0.ok_0\n\t\tif x < 0 {\n\t\t\treturn \"negative\"\n\t\t}\n\tcase ResultTag_Ok:\n\t\t// DINGO_PATTERN: Ok(_)\n\t\t_ = *__match_0.ok_0\n\t\treturn \"zero\"\n\tcase ResultTag_Err:\n\t\t// DINGO_PATTERN: Err(e)\n\t\te := *__match_0.err_0\n\t\treturn \"error\"\n\t}\n\t// DINGO_MATCH_END\n\tpanic(\"unreachable: exhaustive match\")\n}\n\n// Guard with multiple conditions\nfunc validateAge(result Result) string {\n\t__match_1 := result\n\t// DINGO_MATCH_START: result\n\tswitch __match_1.tag {\n\tcase ResultTag_Ok:\n\t\t// DINGO_PATTERN: Ok(age) | DINGO_GUARD: age >= 18 && age < 65\n\t\tage := *__match_1.ok_0\n\t\tif age >= 18 && age < 65 {\n\t\t\treturn \"adult\"\n\t\t}\n\tcase ResultTag_Ok:\n\t\t// DINGO_PATTERN: Ok(age) | DINGO_GUARD: age >= 65\n\t\tage := *__match_1.ok_0\n\t\tif age >= 65 {\n\t\t\treturn \"senior\"\n\t\t}\n\tcase ResultTag_Ok:\n\t\t// DINGO_PATTERN: Ok(_)\n\t\t_ = *__match_1.ok_0\n\t\treturn \"minor\"\n\tcase ResultTag_Err:\n\t\t// DINGO_PATTERN: Err(_)\n\t\t_ = *__match_1.err_0\n\t\treturn \"invalid\"\n\t}\n\t// DINGO_MATCH_END\n\tpanic(\"unreachable: exhaustive match\")\n}\n\n// Guard with function call\nfunc checkLength(result Result) string {\n\t__match_2 := result\n\t// DINGO_MATCH_START: result\n\tswitch __match_2.tag {\n\tcase ResultTag_Ok:\n\t\t// DINGO_PATTERN: Ok(n) | DINGO_GUARD: isEven(n)\n\t\tn := *__match_2.ok_0\n\t\tif isEven(n) {\n\t\t\treturn \"even\"\n\t\t}\n\tcase ResultTag_Ok:\n\t\t// DINGO_PATTERN: Ok(_)\n\t\t_ = *__match_2.ok_0\n\t\treturn \"odd\"\n\tcase ResultTag_Err:\n\t\t// DINGO_PATTERN: Err(_)\n\t\t_ = *__match_2.err_0\n\t\treturn \"error\"\n\t}\n\t// DINGO_MATCH_END\n\tpanic(\"unreachable: exhaustive match\")\n}\n\nfunc isEven(n int) bool {\n\treturn n%2 == 0\n}\nfunc main() {\n\tprintln(classifyNumber(Result_Ok(42)))\n\tprintln(validateAge(Result_Ok(25)))\n\tprintln(checkLength(Result_Ok(10)))\n}"
+        	            	actual  : "package main\n\n// Test: Basic pattern guards with 'if' keyword\n// Feature: Pattern matching with runtime guard conditions\n// Complexity: basic\n\ntype ResultTag uint8\n\nconst (\n\tResultTag_Ok ResultTag = iota\n\tResultTag_Err\n)\n\ntype Result struct {\n\ttag   ResultTag\n\tok_0  *int\n\terr_0 *error\n}\n\nfunc Result_Ok(arg0 int) Result {\n\treturn Result{tag: ResultTag_Ok, ok_0: &arg0}\n}\nfunc Result_Err(arg0 error) Result {\n\treturn Result{tag: ResultTag_Err, err_0: &arg0}\n}\nfunc (e Result) IsOk() bool {\n\treturn e.tag == ResultTag_Ok\n}\nfunc (e Result) IsErr() bool {\n\treturn e.tag == ResultTag_Err\n}\n\n// Simple guard on Result type\nfunc classifyNumber(result Result) string {\n\t__match_0 := result\n\tif\n\t// DINGO_MATCH_START: result\n\tresult.IsOk() {\n\n\t\t// DINGO_PATTERN: Result_Ok(x) | DINGO_GUARD: x > 0\n\t\tx := __match_0.result_ok_0\n\t\treturn \"positive\"\n\t}\n\tif result.IsOk() {\n\n\t\t// DINGO_PATTERN: Result_Ok(x) | DINGO_GUARD: x < 0\n\t\tx := __match_0.result_ok_0\n\t\treturn \"negative\"\n\t}\n\tif result.IsOk() {\n\n\t\t// DINGO_PATTERN: Result_Ok(_)\n\t\t_ := __match_0.result_ok_0\n\t\treturn \"zero\"\n\t}\n\tif result.IsErr() {\n\n\t\t// DINGO_PATTERN: Result_Err(e)\n\t\te := __match_0.result_err_0\n\t\treturn \"error\"\n\t}\n\tpanic(\n\n\t\t// DINGO_MATCH_END\n\t\t\"non-exhaustive match\")\n\n}\n\n// Guard with multiple conditions\nfunc validateAge(result Result) string {\n\t__match_1 := result\n\tif\n\t// DINGO_MATCH_START: result\n\tresult.IsOk() {\n\n\t\t// DINGO_PATTERN: Result_Ok(age) | DINGO_GUARD: age >= 18 && age < 65\n\t\tage := __match_1.result_ok_0\n\t\treturn \"adult\"\n\t}\n\tif result.IsOk() {\n\n\t\t// DINGO_PATTERN: Result_Ok(age) | DINGO_GUARD: age >= 65\n\t\tage := __match_1.result_ok_0\n\t\treturn \"senior\"\n\t}\n\tif result.IsOk() {\n\n\t\t// DINGO_PATTERN: Result_Ok(_)\n\t\t_ := __match_1.result_ok_0\n\t\treturn \"minor\"\n\t}\n\tif result.IsErr() {\n\n\t\t// DINGO_PATTERN: Result_Err(_)\n\t\t_ := __match_1.result_err_0\n\t\treturn \"invalid\"\n\t}\n\tpanic(\n\n\t\t// DINGO_MATCH_END\n\t\t\"non-exhaustive match\")\n\n}\n\n// Guard with function call\nfunc checkLength(result Result) string {\n\t__match_2 := result\n\tif\n\t// DINGO_MATCH_START: result\n\tresult.IsOk() {\n\n\t\t// DINGO_PATTERN: Result_Ok(n) | DINGO_GUARD: isEven(n)\n\t\tn := __match_2.result_ok_0\n\t\treturn \"even\"\n\t}\n\tif result.IsOk() {\n\n\t\t// DINGO_PATTERN: Result_Ok(_)\n\t\t_ := __match_2.result_ok_0\n\t\treturn \"odd\"\n\t}\n\tif result.IsErr() {\n\n\t\t// DINGO_PATTERN: Result_Err(_)\n\t\t_ := __match_2.result_err_0\n\t\treturn \"error\"\n\t}\n\tpanic(\n\n\t\t// DINGO_MATCH_END\n\t\t\"non-exhaustive match\")\n\n}\nfunc isEven(n int) bool {\n\treturn n%2 == 0\n}\nfunc main() {\n\tprintln(classifyNumber(Result_Ok(42)))\n\tprintln(validateAge(Result_Ok(25)))\n\tprintln(checkLength(Result_Ok(10)))\n}"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,6 @@
+        	            	 package main
+        	            	+
+        	            	+// Test: Basic pattern guards with 'if' keyword
+        	            	+// Feature: Pattern matching with runtime guard conditions
+        	            	+// Complexity: basic
+        	            	 
+        	            	@@ -31,27 +35,33 @@
+        	            	 	__match_0 := result
+        	            	+	if
+        	            	 	// DINGO_MATCH_START: result
+        	            	-	switch __match_0.tag {
+        	            	-	case ResultTag_Ok:
+        	            	-		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0
+        	            	-		x := *__match_0.ok_0
+        	            	-		if x > 0 {
+        	            	-			return "positive"
+        	            	-		}
+        	            	-	case ResultTag_Ok:
+        	            	-		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x < 0
+        	            	-		x := *__match_0.ok_0
+        	            	-		if x < 0 {
+        	            	-			return "negative"
+        	            	-		}
+        	            	-	case ResultTag_Ok:
+        	            	-		// DINGO_PATTERN: Ok(_)
+        	            	-		_ = *__match_0.ok_0
+        	            	+	result.IsOk() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Ok(x) | DINGO_GUARD: x > 0
+        	            	+		x := __match_0.result_ok_0
+        	            	+		return "positive"
+        	            	+	}
+        	            	+	if result.IsOk() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Ok(x) | DINGO_GUARD: x < 0
+        	            	+		x := __match_0.result_ok_0
+        	            	+		return "negative"
+        	            	+	}
+        	            	+	if result.IsOk() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Ok(_)
+        	            	+		_ := __match_0.result_ok_0
+        	            	 		return "zero"
+        	            	-	case ResultTag_Err:
+        	            	-		// DINGO_PATTERN: Err(e)
+        	            	-		e := *__match_0.err_0
+        	            	+	}
+        	            	+	if result.IsErr() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Err(e)
+        	            	+		e := __match_0.result_err_0
+        	            	 		return "error"
+        	            	 	}
+        	            	-	// DINGO_MATCH_END
+        	            	-	panic("unreachable: exhaustive match")
+        	            	+	panic(
+        	            	+
+        	            	+		// DINGO_MATCH_END
+        	            	+		"non-exhaustive match")
+        	            	+
+        	            	 }
+        	            	@@ -61,27 +71,33 @@
+        	            	 	__match_1 := result
+        	            	+	if
+        	            	 	// DINGO_MATCH_START: result
+        	            	-	switch __match_1.tag {
+        	            	-	case ResultTag_Ok:
+        	            	-		// DINGO_PATTERN: Ok(age) | DINGO_GUARD: age >= 18 && age < 65
+        	            	-		age := *__match_1.ok_0
+        	            	-		if age >= 18 && age < 65 {
+        	            	-			return "adult"
+        	            	-		}
+        	            	-	case ResultTag_Ok:
+        	            	-		// DINGO_PATTERN: Ok(age) | DINGO_GUARD: age >= 65
+        	            	-		age := *__match_1.ok_0
+        	            	-		if age >= 65 {
+        	            	-			return "senior"
+        	            	-		}
+        	            	-	case ResultTag_Ok:
+        	            	-		// DINGO_PATTERN: Ok(_)
+        	            	-		_ = *__match_1.ok_0
+        	            	+	result.IsOk() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Ok(age) | DINGO_GUARD: age >= 18 && age < 65
+        	            	+		age := __match_1.result_ok_0
+        	            	+		return "adult"
+        	            	+	}
+        	            	+	if result.IsOk() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Ok(age) | DINGO_GUARD: age >= 65
+        	            	+		age := __match_1.result_ok_0
+        	            	+		return "senior"
+        	            	+	}
+        	            	+	if result.IsOk() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Ok(_)
+        	            	+		_ := __match_1.result_ok_0
+        	            	 		return "minor"
+        	            	-	case ResultTag_Err:
+        	            	-		// DINGO_PATTERN: Err(_)
+        	            	-		_ = *__match_1.err_0
+        	            	+	}
+        	            	+	if result.IsErr() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Err(_)
+        	            	+		_ := __match_1.result_err_0
+        	            	 		return "invalid"
+        	            	 	}
+        	            	-	// DINGO_MATCH_END
+        	            	-	panic("unreachable: exhaustive match")
+        	            	+	panic(
+        	            	+
+        	            	+		// DINGO_MATCH_END
+        	            	+		"non-exhaustive match")
+        	            	+
+        	            	 }
+        	            	@@ -91,23 +107,28 @@
+        	            	 	__match_2 := result
+        	            	+	if
+        	            	 	// DINGO_MATCH_START: result
+        	            	-	switch __match_2.tag {
+        	            	-	case ResultTag_Ok:
+        	            	-		// DINGO_PATTERN: Ok(n) | DINGO_GUARD: isEven(n)
+        	            	-		n := *__match_2.ok_0
+        	            	-		if isEven(n) {
+        	            	-			return "even"
+        	            	-		}
+        	            	-	case ResultTag_Ok:
+        	            	-		// DINGO_PATTERN: Ok(_)
+        	            	-		_ = *__match_2.ok_0
+        	            	+	result.IsOk() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Ok(n) | DINGO_GUARD: isEven(n)
+        	            	+		n := __match_2.result_ok_0
+        	            	+		return "even"
+        	            	+	}
+        	            	+	if result.IsOk() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Ok(_)
+        	            	+		_ := __match_2.result_ok_0
+        	            	 		return "odd"
+        	            	-	case ResultTag_Err:
+        	            	-		// DINGO_PATTERN: Err(_)
+        	            	-		_ = *__match_2.err_0
+        	            	+	}
+        	            	+	if result.IsErr() {
+        	            	+
+        	            	+		// DINGO_PATTERN: Result_Err(_)
+        	            	+		_ := __match_2.result_err_0
+        	            	 		return "error"
+        	            	 	}
+        	            	-	// DINGO_MATCH_END
+        	            	-	panic("unreachable: exhaustive match")
+        	            	+	panic(
+        	            	+
+        	            	+		// DINGO_MATCH_END
+        	            	+		"non-exhaustive match")
+        	            	+
+        	            	 }
+        	            	-
+        	            	 func isEven(n int) bool {
+        	Test:       	TestGoldenFiles/pattern_match_05_guards_basic
+        	Messages:   	Generated code doesn't match golden file
+    golden_test.go:144: 
+        === EXPECTED ===
+        package main
+        
+        type ResultTag uint8
+        
+        const (
+        	ResultTag_Ok ResultTag = iota
+        	ResultTag_Err
+        )
+        
+        type Result struct {
+        	tag   ResultTag
+        	ok_0  *int
+        	err_0 *error
+        }
+        
+        func Result_Ok(arg0 int) Result {
+        	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+        }
+        func Result_Err(arg0 error) Result {
+        	return Result{tag: ResultTag_Err, err_0: &arg0}
+        }
+        func (e Result) IsOk() bool {
+        	return e.tag == ResultTag_Ok
+        }
+        func (e Result) IsErr() bool {
+        	return e.tag == ResultTag_Err
+        }
+        
+        // Simple guard on Result type
+        func classifyNumber(result Result) string {
+        	__match_0 := result
+        	// DINGO_MATCH_START: result
+        	switch __match_0.tag {
+        	case ResultTag_Ok:
+        		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x > 0
+        		x := *__match_0.ok_0
+        		if x > 0 {
+        			return "positive"
+        		}
+        	case ResultTag_Ok:
+        		// DINGO_PATTERN: Ok(x) | DINGO_GUARD: x < 0
+        		x := *__match_0.ok_0
+        		if x < 0 {
+        			return "negative"
+        		}
+        	case ResultTag_Ok:
+        		// DINGO_PATTERN: Ok(_)
+        		_ = *__match_0.ok_0
+        		return "zero"
+        	case ResultTag_Err:
+        		// DINGO_PATTERN: Err(e)
+        		e := *__match_0.err_0
+        		return "error"
+        	}
+        	// DINGO_MATCH_END
+        	panic("unreachable: exhaustive match")
+        }
+        
+        // Guard with multiple conditions
+        func validateAge(result Result) string {
+        	__match_1 := result
+        	// DINGO_MATCH_START: result
+        	switch __match_1.tag {
+        	case ResultTag_Ok:
+        		// DINGO_PATTERN: Ok(age) | DINGO_GUARD: age >= 18 && age < 65
+        		age := *__match_1.ok_0
+        		if age >= 18 && age < 65 {
+        			return "adult"
+        		}
+        	case ResultTag_Ok:
+        		// DINGO_PATTERN: Ok(age) | DINGO_GUARD: age >= 65
+        		age := *__match_1.ok_0
+        		if age >= 65 {
+        			return "senior"
+        		}
+        	case ResultTag_Ok:
+        		// DINGO_PATTERN: Ok(_)
+        		_ = *__match_1.ok_0
+        		return "minor"
+        	case ResultTag_Err:
+        		// DINGO_PATTERN: Err(_)
+        		_ = *__match_1.err_0
+        		return "invalid"
+        	}
+        	// DINGO_MATCH_END
+        	panic("unreachable: exhaustive match")
+        }
+        
+        // Guard with function call
+        func checkLength(result Result) string {
+        	__match_2 := result
+        	// DINGO_MATCH_START: result
+        	switch __match_2.tag {
+        	case ResultTag_Ok:
+        		// DINGO_PATTERN: Ok(n) | DINGO_GUARD: isEven(n)
+        		n := *__match_2.ok_0
+        		if isEven(n) {
+        			return "even"
+        		}
+        	case ResultTag_Ok:
+        		// DINGO_PATTERN: Ok(_)
+        		_ = *__match_2.ok_0
+        		return "odd"
+        	case ResultTag_Err:
+        		// DINGO_PATTERN: Err(_)
+        		_ = *__match_2.err_0
+        		return "error"
+        	}
+        	// DINGO_MATCH_END
+        	panic("unreachable: exhaustive match")
+        }
+        
+        func isEven(n int) bool {
+        	return n%2 == 0
+        }
+        func main() {
+        	println(classifyNumber(Result_Ok(42)))
+        	println(validateAge(Result_Ok(25)))
+        	println(checkLength(Result_Ok(10)))
+        }
+        
+    golden_test.go:145: 
+        === ACTUAL ===
+        package main
+        
+        // Test: Basic pattern guards with 'if' keyword
+        // Feature: Pattern matching with runtime guard conditions
+        // Complexity: basic
+        
+        type ResultTag uint8
+        
+        const (
+        	ResultTag_Ok ResultTag = iota
+        	ResultTag_Err
+        )
+        
+        type Result struct {
+        	tag   ResultTag
+        	ok_0  *int
+        	err_0 *error
+        }
+        
+        func Result_Ok(arg0 int) Result {
+        	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+        }
+        func Result_Err(arg0 error) Result {
+        	return Result{tag: ResultTag_Err, err_0: &arg0}
+        }
+        func (e Result) IsOk() bool {
+        	return e.tag == ResultTag_Ok
+        }
+        func (e Result) IsErr() bool {
+        	return e.tag == ResultTag_Err
+        }
+        
+        // Simple guard on Result type
+        func classifyNumber(result Result) string {
+        	__match_0 := result
+        	if
+        	// DINGO_MATCH_START: result
+        	result.IsOk() {
+        
+        		// DINGO_PATTERN: Result_Ok(x) | DINGO_GUARD: x > 0
+        		x := __match_0.result_ok_0
+        		return "positive"
+        	}
+        	if result.IsOk() {
+        
+        		// DINGO_PATTERN: Result_Ok(x) | DINGO_GUARD: x < 0
+        		x := __match_0.result_ok_0
+        		return "negative"
+        	}
+        	if result.IsOk() {
+        
+        		// DINGO_PATTERN: Result_Ok(_)
+        		_ := __match_0.result_ok_0
+        		return "zero"
+        	}
+        	if result.IsErr() {
+        
+        		// DINGO_PATTERN: Result_Err(e)
+        		e := __match_0.result_err_0
+        		return "error"
+        	}
+        	panic(
+        
+        		// DINGO_MATCH_END
+        		"non-exhaustive match")
+        
+        }
+        
+        // Guard with multiple conditions
+        func validateAge(result Result) string {
+        	__match_1 := result
+        	if
+        	// DINGO_MATCH_START: result
+        	result.IsOk() {
+        
+        		// DINGO_PATTERN: Result_Ok(age) | DINGO_GUARD: age >= 18 && age < 65
+        		age := __match_1.result_ok_0
+        		return "adult"
+        	}
+        	if result.IsOk() {
+        
+        		// DINGO_PATTERN: Result_Ok(age) | DINGO_GUARD: age >= 65
+        		age := __match_1.result_ok_0
+        		return "senior"
+        	}
+        	if result.IsOk() {
+        
+        		// DINGO_PATTERN: Result_Ok(_)
+        		_ := __match_1.result_ok_0
+        		return "minor"
+        	}
+        	if result.IsErr() {
+        
+        		// DINGO_PATTERN: Result_Err(_)
+        		_ := __match_1.result_err_0
+        		return "invalid"
+        	}
+        	panic(
+        
+        		// DINGO_MATCH_END
+        		"non-exhaustive match")
+        
+        }
+        
+        // Guard with function call
+        func checkLength(result Result) string {
+        	__match_2 := result
+        	if
+        	// DINGO_MATCH_START: result
+        	result.IsOk() {
+        
+        		// DINGO_PATTERN: Result_Ok(n) | DINGO_GUARD: isEven(n)
+        		n := __match_2.result_ok_0
+        		return "even"
+        	}
+        	if result.IsOk() {
+        
+        		// DINGO_PATTERN: Result_Ok(_)
+        		_ := __match_2.result_ok_0
+        		return "odd"
+        	}
+        	if result.IsErr() {
+        
+        		// DINGO_PATTERN: Result_Err(_)
+        		_ := __match_2.result_err_0
+        		return "error"
+        	}
+        	panic(
+        
+        		// DINGO_MATCH_END
+        		"non-exhaustive match")
+        
+        }
+        func isEven(n int) bool {
+        	return n%2 == 0
+        }
+        func main() {
+        	println(classifyNumber(Result_Ok(42)))
+        	println(validateAge(Result_Ok(25)))
+        	println(checkLength(Result_Ok(10)))
+        }
+        
+    golden_test.go:150: Actual output written to: golden/pattern_match_05_guards_basic.go.actual
+=== RUN   TestGoldenFiles/pattern_match_06_guards_nested
+    golden_test.go:124: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:124
+        	Error:      	Received unexpected error:
+        	            	golden/pattern_match_06_guards_nested.dingo:92:18: missing ',' in argument list (and 5 more errors)
+        	Test:       	TestGoldenFiles/pattern_match_06_guards_nested
+        	Messages:   	Failed to parse preprocessed Dingo file: golden/pattern_match_06_guards_nested.dingo
+=== RUN   TestGoldenFiles/pattern_match_07_guards_complex
+    golden_test.go:124: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:124
+        	Error:      	Received unexpected error:
+        	            	golden/pattern_match_07_guards_complex.dingo:153:10: expected ':', found where (and 6 more errors)
+        	Test:       	TestGoldenFiles/pattern_match_07_guards_complex
+        	Messages:   	Failed to parse preprocessed Dingo file: golden/pattern_match_07_guards_complex.dingo
+=== RUN   TestGoldenFiles/pattern_match_08_guards_edge_cases
+    golden_test.go:124: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:124
+        	Error:      	Received unexpected error:
+        	            	golden/pattern_match_08_guards_edge_cases.dingo:82:8: expected ':', found where
+        	Test:       	TestGoldenFiles/pattern_match_08_guards_edge_cases
+        	Messages:   	Failed to parse preprocessed Dingo file: golden/pattern_match_08_guards_edge_cases.dingo
+=== RUN   TestGoldenFiles/pattern_match_09_tuple_pairs
+    golden_test.go:121: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:121
+        	Error:      	Received unexpected error:
+        	            	rust_match preprocessing failed: line 35: parsing tuple pattern arms: expected tuple pattern at position 54
+        	Test:       	TestGoldenFiles/pattern_match_09_tuple_pairs
+        	Messages:   	Failed to preprocess Dingo file: golden/pattern_match_09_tuple_pairs.dingo
+=== RUN   TestGoldenFiles/pattern_match_10_tuple_triples
+    golden_test.go:121: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:121
+        	Error:      	Received unexpected error:
+        	            	rust_match preprocessing failed: line 35: parsing tuple pattern arms: expected tuple pattern at position 144
+        	Test:       	TestGoldenFiles/pattern_match_10_tuple_triples
+        	Messages:   	Failed to preprocess Dingo file: golden/pattern_match_10_tuple_triples.dingo
+=== RUN   TestGoldenFiles/pattern_match_11_tuple_wildcards
+    golden_test.go:121: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:121
+        	Error:      	Received unexpected error:
+        	            	rust_match preprocessing failed: line 35: parsing tuple pattern arms: expected tuple pattern at position 109
+        	Test:       	TestGoldenFiles/pattern_match_11_tuple_wildcards
+        	Messages:   	Failed to preprocess Dingo file: golden/pattern_match_11_tuple_wildcards.dingo
+=== RUN   TestGoldenFiles/pattern_match_12_tuple_exhaustiveness
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:49:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:52:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:55:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:58:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:40:6: undefined: ResultTagOk
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:42:2: "All 6 steps succeeded" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:43:6: undefined: ResultTagErr
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:45:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:48:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:51:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:54:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:57:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:60:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:64:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:18: declared and not used: __match_0_elem1
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:35: declared and not used: __match_0_elem2
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:52: declared and not used: __match_0_elem3
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:69: declared and not used: __match_0_elem4
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:86: declared and not used: __match_0_elem5
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:72:6: undefined: ResultTagOk
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:74:22: undefined: a
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:74:24: undefined: b
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:74:26: undefined: c
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:74:28: undefined: d
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:77:2: "At least one error occurred" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:81:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:69:18: declared and not used: __match_1_elem1
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:69:35: declared and not used: __match_1_elem2
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:69:52: declared and not used: __match_1_elem3
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_12_tuple_exhaustiveness.dingo:49:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+    golden_test.go:143: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:143
+        	Error:      	Not equal: 
+        	            	expected: "package main\n\nimport \"errors\"\n\n// Test: Exhaustiveness checking with max 6-element tuple\n// Feature: Tuple pattern destructuring - exhaustiveness\n// Complexity: advanced\n\ntype ResultTag uint8\n\nconst (\n\tResultTagOk ResultTag = iota\n\tResultTagErr\n)\n\ntype Result struct {\n\ttag   ResultTag\n\tok_0  *int\n\terr_0 *error\n}\n\nfunc Result_Ok(v0 int) Result {\n\treturn Result{tag: ResultTagOk, ok_0: &v0}\n}\n\nfunc Result_Err(v0 error) Result {\n\treturn Result{tag: ResultTagErr, err_0: &v0}\n}\n\n// 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards\nfunc validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {\n\t// DINGO_MATCH_START: (s1, s2, s3, s4, s5, s6)\n\t__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6\n\t// DINGO_TUPLE_PATTERN: (Ok, Ok, Ok, Ok, Ok, Ok) | (Err, _, _, _, _, _) | (_, Err, _, _, _, _) | (_, _, Err, _, _, _) | (_, _, _, Err, _, _) | (_, _, _, _, Err, _) | (_, _, _, _, _, Err) | ARITY: 6\n\tswitch __match_0_elem0.tag {\n\tcase ResultTagOk:\n\t\tswitch __match_0_elem1.tag {\n\t\tcase ResultTagOk:\n\t\t\tswitch __match_0_elem2.tag {\n\t\t\tcase ResultTagOk:\n\t\t\t\tswitch __match_0_elem3.tag {\n\t\t\t\tcase ResultTagOk:\n\t\t\t\t\tswitch __match_0_elem4.tag {\n\t\t\t\t\tcase ResultTagOk:\n\t\t\t\t\t\tswitch __match_0_elem5.tag {\n\t\t\t\t\t\tcase ResultTagOk:\n\t\t\t\t\t\t\treturn \"All 6 steps succeeded\"\n\t\t\t\t\t\tcase ResultTagErr:\n\t\t\t\t\t\t\te := *__match_0_elem5.err_0\n\t\t\t\t\t\t\treturn \"Step 6 failed: \" + e.Error()\n\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\tpanic(\"unreachable: exhaustive match\")\n\t\t\t\t\t\t}\n\t\t\t\t\tcase ResultTagErr:\n\t\t\t\t\t\te := *__match_0_elem4.err_0\n\t\t\t\t\t\t// Wildcard at position 5: matches all\n\t\t\t\t\t\treturn \"Step 5 failed: \" + e.Error()\n\t\t\t\t\tdefault:\n\t\t\t\t\t\tpanic(\"unreachable: exhaustive match\")\n\t\t\t\t\t}\n\t\t\t\tcase ResultTagErr:\n\t\t\t\t\te := *__match_0_elem3.err_0\n\t\t\t\t\t// Wildcards at positions 4, 5: match all\n\t\t\t\t\treturn \"Step 4 failed: \" + e.Error()\n\t\t\t\tdefault:\n\t\t\t\t\tpanic(\"unreachable: exhaustive match\")\n\t\t\t\t}\n\t\t\tcase ResultTagErr:\n\t\t\t\te := *__match_0_elem2.err_0\n\t\t\t\t// Wildcards at positions 3, 4, 5: match all\n\t\t\t\treturn \"Step 3 failed: \" + e.Error()\n\t\t\tdefault:\n\t\t\t\tpanic(\"unreachable: exhaustive match\")\n\t\t\t}\n\t\tcase ResultTagErr:\n\t\t\te := *__match_0_elem1.err_0\n\t\t\t// Wildcards at positions 2, 3, 4, 5: match all\n\t\t\treturn \"Step 2 failed: \" + e.Error()\n\t\tdefault:\n\t\t\tpanic(\"unreachable: exhaustive match\")\n\t\t}\n\tcase ResultTagErr:\n\t\te := *__match_0_elem0.err_0\n\t\t// Wildcards at positions 1, 2, 3, 4, 5: match all\n\t\treturn \"Step 1 failed: \" + e.Error()\n\tdefault:\n\t\tpanic(\"unreachable: exhaustive match\")\n\t}\n\t// DINGO_MATCH_END\n}\n\n// Example of exhaustive 4-element tuple\nfunc processFourResults(r1, r2, r3, r4 Result) string {\n\t// DINGO_MATCH_START: (r1, r2, r3, r4)\n\t__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4\n\t// DINGO_TUPLE_PATTERN: (Ok, Ok, Ok, Ok) | (_, _, _, _) | ARITY: 4\n\tswitch __match_1_elem0.tag {\n\tcase ResultTagOk:\n\t\ta := *__match_1_elem0.ok_0\n\t\tswitch __match_1_elem1.tag {\n\t\tcase ResultTagOk:\n\t\t\tb := *__match_1_elem1.ok_0\n\t\t\tswitch __match_1_elem2.tag {\n\t\t\tcase ResultTagOk:\n\t\t\t\tc := *__match_1_elem2.ok_0\n\t\t\t\tswitch __match_1_elem3.tag {\n\t\t\t\tcase ResultTagOk:\n\t\t\t\t\td := *__match_1_elem3.ok_0\n\t\t\t\t\treturn \"All ok: \" + string(a+b+c+d)\n\t\t\t\tcase ResultTagErr:\n\t\t\t\t\t// Wildcards catch-all\n\t\t\t\t\treturn \"At least one error occurred\"\n\t\t\t\tdefault:\n\t\t\t\t\tpanic(\"unreachable: exhaustive match\")\n\t\t\t\t}\n\t\t\tcase ResultTagErr:\n\t\t\t\t// Wildcards at positions 3: match all\n\t\t\t\treturn \"At least one error occurred\"\n\t\t\tdefault:\n\t\t\t\tpanic(\"unreachable: exhaustive match\")\n\t\t\t}\n\t\tcase ResultTagErr:\n\t\t\t// Wildcards at positions 2, 3: match all\n\t\t\treturn \"At least one error occurred\"\n\t\tdefault:\n\t\t\tpanic(\"unreachable: exhaustive match\")\n\t\t}\n\tcase ResultTagErr:\n\t\t// Wildcards at positions 1, 2, 3: match all\n\t\treturn \"At least one error occurred\"\n\tdefault:\n\t\tpanic(\"unreachable: exhaustive match\")\n\t}\n\t// DINGO_MATCH_END\n}\n\nfunc main() {\n\tr1 := Result_Ok(1)\n\tr2 := Result_Ok(2)\n\tr3 := Result_Err(errors.New(\"step 3 error\"))\n\tr4 := Result_Ok(4)\n\tr5 := Result_Ok(5)\n\tr6 := Result_Ok(6)\n\n\tresult := validateSixSteps(r1, r2, r3, r4, r5, r6)\n\tprintln(result)\n\n\tresult2 := processFourResults(r1, r2, r3, r4)\n\tprintln(result2)\n}\n\n// Non-exhaustive example (would fail - commented out):\n// func nonExhaustive(r1, r2 Result) string {\n//     return match (r1, r2) {\n//         (Ok(x), Ok(y)) => \"both ok\",\n//         (Ok(x), Err(e)) => \"second error\"\n//         // Missing: (Err, Ok) and (Err, Err)\n//     }\n// }"
+        	            	actual  : "package main\n\nimport \"errors\"\n\n// Test: Exhaustiveness checking with max 6-element tuple\n// Feature: Tuple pattern destructuring - exhaustiveness\n// Complexity: advanced\n\ntype ResultTag uint8\n\nconst (\n\tResultTag_Ok ResultTag = iota\n\tResultTag_Err\n)\n\ntype Result struct {\n\ttag   ResultTag\n\tok_0  *int\n\terr_0 *error\n}\n\nfunc Result_Ok(arg0 int) Result {\n\treturn Result{tag: ResultTag_Ok, ok_0: &arg0}\n}\nfunc Result_Err(arg0 error) Result {\n\treturn Result{tag: ResultTag_Err, err_0: &arg0}\n}\nfunc (e Result) IsOk() bool {\n\treturn e.tag == ResultTag_Ok\n}\nfunc (e Result) IsErr() bool {\n\treturn e.tag == ResultTag_Err\n}\n\n// 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards\nfunc validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {\n\t// DINGO_MATCH_START: (s1, s2, s3, s4, s5, s6)\n\t__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6\n\t// DINGO_TUPLE_PATTERN: (Ok, Ok, Ok, Ok, Ok, Ok) | (Err, _, _, _, _, _) | (_, Err, _, _, _, _) | (_, _, Err, _, _, _) | (_, _, _, Err, _, _) | (_, _, _, _, Err, _) | (_, _, _, _, _, Err) | ARITY: 6\n\tswitch __match_0_elem0.tag {\n\tcase ResultTagOk:\n\t\t// DINGO_TUPLE_ARM: (Ok(_), Ok(_), Ok(_), Ok(_), Ok(_), Ok(_))\n\t\t\"All 6 steps succeeded\"\n\tcase ResultTagErr:\n\t\t// DINGO_TUPLE_ARM: (Err(e), _, _, _, _, _)\n\t\t\"Step 1 failed: \" + e.Error()\n\tdefault:\n\t\t// DINGO_TUPLE_ARM: (_, Err(e), _, _, _, _)\n\t\t\"Step 2 failed: \" + e.Error()\n\tdefault:\n\t\t// DINGO_TUPLE_ARM: (_, _, Err(e), _, _, _)\n\t\t\"Step 3 failed: \" + e.Error()\n\tdefault:\n\t\t// DINGO_TUPLE_ARM: (_, _, _, Err(e), _, _)\n\t\t\"Step 4 failed: \" + e.Error()\n\tdefault:\n\t\t// DINGO_TUPLE_ARM: (_, _, _, _, Err(e), _)\n\t\t\"Step 5 failed: \" + e.Error()\n\tdefault:\n\t\t// DINGO_TUPLE_ARM: (_, _, _, _, _, Err(e))\n\t\t\"Step 6 failed: \" + e.Error()\n\t}\n\t// DINGO_MATCH_END\n\n}\n\n// Example of exhaustive 4-element tuple\nfunc processFourResults(r1, r2, r3, r4 Result) string {\n\t// DINGO_MATCH_START: (r1, r2, r3, r4)\n\t__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4\n\t// DINGO_TUPLE_PATTERN: (Ok, Ok, Ok, Ok) | (_, _, _, _) | ARITY: 4\n\tswitch __match_1_elem0.tag {\n\tcase ResultTagOk:\n\t\t// DINGO_TUPLE_ARM: (Ok(a), Ok(b), Ok(c), Ok(d))\n\t\t\"All ok: \" + string(a+b+c+d)\n\tdefault:\n\t\t// DINGO_TUPLE_ARM: (_, _, _, _)\n\t\t\"At least one error occurred\"\n\t}\n\t// DINGO_MATCH_END\n\n}\nfunc main() {\n\tr1 := Result_Ok(1)\n\tr2 := Result_Ok(2)\n\tr3 := Result_Err(errors.New(\"step 3 error\"))\n\tr4 := Result_Ok(4)\n\tr5 := Result_Ok(5)\n\tr6 := Result_Ok(6)\n\n\tresult := validateSixSteps(r1, r2, r3, r4, r5, r6)\n\tprintln(result)\n\n\tresult2 := processFourResults(r1, r2, r3, r4)\n\tprintln(result2)\n}\n\n// Non-exhaustive example (would fail - commented out):\n// func nonExhaustive(r1, r2 Result) string {\n//     return match (r1, r2) {\n//         (Ok(x), Ok(y)) => \"both ok\",\n//         (Ok(x), Err(e)) => \"second error\"\n//         // Missing: (Err, Ok) and (Err, Err)\n//     }\n// }"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -11,4 +11,4 @@
+        	            	 const (
+        	            	-	ResultTagOk ResultTag = iota
+        	            	-	ResultTagErr
+        	            	+	ResultTag_Ok ResultTag = iota
+        	            	+	ResultTag_Err
+        	            	 )
+        	            	@@ -21,8 +21,13 @@
+        	            	 
+        	            	-func Result_Ok(v0 int) Result {
+        	            	-	return Result{tag: ResultTagOk, ok_0: &v0}
+        	            	+func Result_Ok(arg0 int) Result {
+        	            	+	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+        	            	 }
+        	            	-
+        	            	-func Result_Err(v0 error) Result {
+        	            	-	return Result{tag: ResultTagErr, err_0: &v0}
+        	            	+func Result_Err(arg0 error) Result {
+        	            	+	return Result{tag: ResultTag_Err, err_0: &arg0}
+        	            	+}
+        	            	+func (e Result) IsOk() bool {
+        	            	+	return e.tag == ResultTag_Ok
+        	            	+}
+        	            	+func (e Result) IsErr() bool {
+        	            	+	return e.tag == ResultTag_Err
+        	            	 }
+        	            	@@ -36,55 +41,25 @@
+        	            	 	case ResultTagOk:
+        	            	-		switch __match_0_elem1.tag {
+        	            	-		case ResultTagOk:
+        	            	-			switch __match_0_elem2.tag {
+        	            	-			case ResultTagOk:
+        	            	-				switch __match_0_elem3.tag {
+        	            	-				case ResultTagOk:
+        	            	-					switch __match_0_elem4.tag {
+        	            	-					case ResultTagOk:
+        	            	-						switch __match_0_elem5.tag {
+        	            	-						case ResultTagOk:
+        	            	-							return "All 6 steps succeeded"
+        	            	-						case ResultTagErr:
+        	            	-							e := *__match_0_elem5.err_0
+        	            	-							return "Step 6 failed: " + e.Error()
+        	            	-						default:
+        	            	-							panic("unreachable: exhaustive match")
+        	            	-						}
+        	            	-					case ResultTagErr:
+        	            	-						e := *__match_0_elem4.err_0
+        	            	-						// Wildcard at position 5: matches all
+        	            	-						return "Step 5 failed: " + e.Error()
+        	            	-					default:
+        	            	-						panic("unreachable: exhaustive match")
+        	            	-					}
+        	            	-				case ResultTagErr:
+        	            	-					e := *__match_0_elem3.err_0
+        	            	-					// Wildcards at positions 4, 5: match all
+        	            	-					return "Step 4 failed: " + e.Error()
+        	            	-				default:
+        	            	-					panic("unreachable: exhaustive match")
+        	            	-				}
+        	            	-			case ResultTagErr:
+        	            	-				e := *__match_0_elem2.err_0
+        	            	-				// Wildcards at positions 3, 4, 5: match all
+        	            	-				return "Step 3 failed: " + e.Error()
+        	            	-			default:
+        	            	-				panic("unreachable: exhaustive match")
+        	            	-			}
+        	            	-		case ResultTagErr:
+        	            	-			e := *__match_0_elem1.err_0
+        	            	-			// Wildcards at positions 2, 3, 4, 5: match all
+        	            	-			return "Step 2 failed: " + e.Error()
+        	            	-		default:
+        	            	-			panic("unreachable: exhaustive match")
+        	            	-		}
+        	            	+		// DINGO_TUPLE_ARM: (Ok(_), Ok(_), Ok(_), Ok(_), Ok(_), Ok(_))
+        	            	+		"All 6 steps succeeded"
+        	            	 	case ResultTagErr:
+        	            	-		e := *__match_0_elem0.err_0
+        	            	-		// Wildcards at positions 1, 2, 3, 4, 5: match all
+        	            	-		return "Step 1 failed: " + e.Error()
+        	            	+		// DINGO_TUPLE_ARM: (Err(e), _, _, _, _, _)
+        	            	+		"Step 1 failed: " + e.Error()
+        	            	 	default:
+        	            	-		panic("unreachable: exhaustive match")
+        	            	+		// DINGO_TUPLE_ARM: (_, Err(e), _, _, _, _)
+        	            	+		"Step 2 failed: " + e.Error()
+        	            	+	default:
+        	            	+		// DINGO_TUPLE_ARM: (_, _, Err(e), _, _, _)
+        	            	+		"Step 3 failed: " + e.Error()
+        	            	+	default:
+        	            	+		// DINGO_TUPLE_ARM: (_, _, _, Err(e), _, _)
+        	            	+		"Step 4 failed: " + e.Error()
+        	            	+	default:
+        	            	+		// DINGO_TUPLE_ARM: (_, _, _, _, Err(e), _)
+        	            	+		"Step 5 failed: " + e.Error()
+        	            	+	default:
+        	            	+		// DINGO_TUPLE_ARM: (_, _, _, _, _, Err(e))
+        	            	+		"Step 6 failed: " + e.Error()
+        	            	 	}
+        	            	 	// DINGO_MATCH_END
+        	            	+
+        	            	 }
+        	            	@@ -98,40 +73,11 @@
+        	            	 	case ResultTagOk:
+        	            	-		a := *__match_1_elem0.ok_0
+        	            	-		switch __match_1_elem1.tag {
+        	            	-		case ResultTagOk:
+        	            	-			b := *__match_1_elem1.ok_0
+        	            	-			switch __match_1_elem2.tag {
+        	            	-			case ResultTagOk:
+        	            	-				c := *__match_1_elem2.ok_0
+        	            	-				switch __match_1_elem3.tag {
+        	            	-				case ResultTagOk:
+        	            	-					d := *__match_1_elem3.ok_0
+        	            	-					return "All ok: " + string(a+b+c+d)
+        	            	-				case ResultTagErr:
+        	            	-					// Wildcards catch-all
+        	            	-					return "At least one error occurred"
+        	            	-				default:
+        	            	-					panic("unreachable: exhaustive match")
+        	            	-				}
+        	            	-			case ResultTagErr:
+        	            	-				// Wildcards at positions 3: match all
+        	            	-				return "At least one error occurred"
+        	            	-			default:
+        	            	-				panic("unreachable: exhaustive match")
+        	            	-			}
+        	            	-		case ResultTagErr:
+        	            	-			// Wildcards at positions 2, 3: match all
+        	            	-			return "At least one error occurred"
+        	            	-		default:
+        	            	-			panic("unreachable: exhaustive match")
+        	            	-		}
+        	            	-	case ResultTagErr:
+        	            	-		// Wildcards at positions 1, 2, 3: match all
+        	            	-		return "At least one error occurred"
+        	            	+		// DINGO_TUPLE_ARM: (Ok(a), Ok(b), Ok(c), Ok(d))
+        	            	+		"All ok: " + string(a+b+c+d)
+        	            	 	default:
+        	            	-		panic("unreachable: exhaustive match")
+        	            	+		// DINGO_TUPLE_ARM: (_, _, _, _)
+        	            	+		"At least one error occurred"
+        	            	 	}
+        	            	 	// DINGO_MATCH_END
+        	            	+
+        	            	 }
+        	            	-
+        	            	 func main() {
+        	Test:       	TestGoldenFiles/pattern_match_12_tuple_exhaustiveness
+        	Messages:   	Generated code doesn't match golden file
+    golden_test.go:144: 
+        === EXPECTED ===
+        package main
+        
+        import "errors"
+        
+        // Test: Exhaustiveness checking with max 6-element tuple
+        // Feature: Tuple pattern destructuring - exhaustiveness
+        // Complexity: advanced
+        
+        type ResultTag uint8
+        
+        const (
+        	ResultTagOk ResultTag = iota
+        	ResultTagErr
+        )
+        
+        type Result struct {
+        	tag   ResultTag
+        	ok_0  *int
+        	err_0 *error
+        }
+        
+        func Result_Ok(v0 int) Result {
+        	return Result{tag: ResultTagOk, ok_0: &v0}
+        }
+        
+        func Result_Err(v0 error) Result {
+        	return Result{tag: ResultTagErr, err_0: &v0}
+        }
+        
+        // 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards
+        func validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {
+        	// DINGO_MATCH_START: (s1, s2, s3, s4, s5, s6)
+        	__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6
+        	// DINGO_TUPLE_PATTERN: (Ok, Ok, Ok, Ok, Ok, Ok) | (Err, _, _, _, _, _) | (_, Err, _, _, _, _) | (_, _, Err, _, _, _) | (_, _, _, Err, _, _) | (_, _, _, _, Err, _) | (_, _, _, _, _, Err) | ARITY: 6
+        	switch __match_0_elem0.tag {
+        	case ResultTagOk:
+        		switch __match_0_elem1.tag {
+        		case ResultTagOk:
+        			switch __match_0_elem2.tag {
+        			case ResultTagOk:
+        				switch __match_0_elem3.tag {
+        				case ResultTagOk:
+        					switch __match_0_elem4.tag {
+        					case ResultTagOk:
+        						switch __match_0_elem5.tag {
+        						case ResultTagOk:
+        							return "All 6 steps succeeded"
+        						case ResultTagErr:
+        							e := *__match_0_elem5.err_0
+        							return "Step 6 failed: " + e.Error()
+        						default:
+        							panic("unreachable: exhaustive match")
+        						}
+        					case ResultTagErr:
+        						e := *__match_0_elem4.err_0
+        						// Wildcard at position 5: matches all
+        						return "Step 5 failed: " + e.Error()
+        					default:
+        						panic("unreachable: exhaustive match")
+        					}
+        				case ResultTagErr:
+        					e := *__match_0_elem3.err_0
+        					// Wildcards at positions 4, 5: match all
+        					return "Step 4 failed: " + e.Error()
+        				default:
+        					panic("unreachable: exhaustive match")
+        				}
+        			case ResultTagErr:
+        				e := *__match_0_elem2.err_0
+        				// Wildcards at positions 3, 4, 5: match all
+        				return "Step 3 failed: " + e.Error()
+        			default:
+        				panic("unreachable: exhaustive match")
+        			}
+        		case ResultTagErr:
+        			e := *__match_0_elem1.err_0
+        			// Wildcards at positions 2, 3, 4, 5: match all
+        			return "Step 2 failed: " + e.Error()
+        		default:
+        			panic("unreachable: exhaustive match")
+        		}
+        	case ResultTagErr:
+        		e := *__match_0_elem0.err_0
+        		// Wildcards at positions 1, 2, 3, 4, 5: match all
+        		return "Step 1 failed: " + e.Error()
+        	default:
+        		panic("unreachable: exhaustive match")
+        	}
+        	// DINGO_MATCH_END
+        }
+        
+        // Example of exhaustive 4-element tuple
+        func processFourResults(r1, r2, r3, r4 Result) string {
+        	// DINGO_MATCH_START: (r1, r2, r3, r4)
+        	__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4
+        	// DINGO_TUPLE_PATTERN: (Ok, Ok, Ok, Ok) | (_, _, _, _) | ARITY: 4
+        	switch __match_1_elem0.tag {
+        	case ResultTagOk:
+        		a := *__match_1_elem0.ok_0
+        		switch __match_1_elem1.tag {
+        		case ResultTagOk:
+        			b := *__match_1_elem1.ok_0
+        			switch __match_1_elem2.tag {
+        			case ResultTagOk:
+        				c := *__match_1_elem2.ok_0
+        				switch __match_1_elem3.tag {
+        				case ResultTagOk:
+        					d := *__match_1_elem3.ok_0
+        					return "All ok: " + string(a+b+c+d)
+        				case ResultTagErr:
+        					// Wildcards catch-all
+        					return "At least one error occurred"
+        				default:
+        					panic("unreachable: exhaustive match")
+        				}
+        			case ResultTagErr:
+        				// Wildcards at positions 3: match all
+        				return "At least one error occurred"
+        			default:
+        				panic("unreachable: exhaustive match")
+        			}
+        		case ResultTagErr:
+        			// Wildcards at positions 2, 3: match all
+        			return "At least one error occurred"
+        		default:
+        			panic("unreachable: exhaustive match")
+        		}
+        	case ResultTagErr:
+        		// Wildcards at positions 1, 2, 3: match all
+        		return "At least one error occurred"
+        	default:
+        		panic("unreachable: exhaustive match")
+        	}
+        	// DINGO_MATCH_END
+        }
+        
+        func main() {
+        	r1 := Result_Ok(1)
+        	r2 := Result_Ok(2)
+        	r3 := Result_Err(errors.New("step 3 error"))
+        	r4 := Result_Ok(4)
+        	r5 := Result_Ok(5)
+        	r6 := Result_Ok(6)
+        
+        	result := validateSixSteps(r1, r2, r3, r4, r5, r6)
+        	println(result)
+        
+        	result2 := processFourResults(r1, r2, r3, r4)
+        	println(result2)
+        }
+        
+        // Non-exhaustive example (would fail - commented out):
+        // func nonExhaustive(r1, r2 Result) string {
+        //     return match (r1, r2) {
+        //         (Ok(x), Ok(y)) => "both ok",
+        //         (Ok(x), Err(e)) => "second error"
+        //         // Missing: (Err, Ok) and (Err, Err)
+        //     }
+        // }
+        
+    golden_test.go:145: 
+        === ACTUAL ===
+        package main
+        
+        import "errors"
+        
+        // Test: Exhaustiveness checking with max 6-element tuple
+        // Feature: Tuple pattern destructuring - exhaustiveness
+        // Complexity: advanced
+        
+        type ResultTag uint8
+        
+        const (
+        	ResultTag_Ok ResultTag = iota
+        	ResultTag_Err
+        )
+        
+        type Result struct {
+        	tag   ResultTag
+        	ok_0  *int
+        	err_0 *error
+        }
+        
+        func Result_Ok(arg0 int) Result {
+        	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+        }
+        func Result_Err(arg0 error) Result {
+        	return Result{tag: ResultTag_Err, err_0: &arg0}
+        }
+        func (e Result) IsOk() bool {
+        	return e.tag == ResultTag_Ok
+        }
+        func (e Result) IsErr() bool {
+        	return e.tag == ResultTag_Err
+        }
+        
+        // 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards
+        func validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {
+        	// DINGO_MATCH_START: (s1, s2, s3, s4, s5, s6)
+        	__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6
+        	// DINGO_TUPLE_PATTERN: (Ok, Ok, Ok, Ok, Ok, Ok) | (Err, _, _, _, _, _) | (_, Err, _, _, _, _) | (_, _, Err, _, _, _) | (_, _, _, Err, _, _) | (_, _, _, _, Err, _) | (_, _, _, _, _, Err) | ARITY: 6
+        	switch __match_0_elem0.tag {
+        	case ResultTagOk:
+        		// DINGO_TUPLE_ARM: (Ok(_), Ok(_), Ok(_), Ok(_), Ok(_), Ok(_))
+        		"All 6 steps succeeded"
+        	case ResultTagErr:
+        		// DINGO_TUPLE_ARM: (Err(e), _, _, _, _, _)
+        		"Step 1 failed: " + e.Error()
+        	default:
+        		// DINGO_TUPLE_ARM: (_, Err(e), _, _, _, _)
+        		"Step 2 failed: " + e.Error()
+        	default:
+        		// DINGO_TUPLE_ARM: (_, _, Err(e), _, _, _)
+        		"Step 3 failed: " + e.Error()
+        	default:
+        		// DINGO_TUPLE_ARM: (_, _, _, Err(e), _, _)
+        		"Step 4 failed: " + e.Error()
+        	default:
+        		// DINGO_TUPLE_ARM: (_, _, _, _, Err(e), _)
+        		"Step 5 failed: " + e.Error()
+        	default:
+        		// DINGO_TUPLE_ARM: (_, _, _, _, _, Err(e))
+        		"Step 6 failed: " + e.Error()
+        	}
+        	// DINGO_MATCH_END
+        
+        }
+        
+        // Example of exhaustive 4-element tuple
+        func processFourResults(r1, r2, r3, r4 Result) string {
+        	// DINGO_MATCH_START: (r1, r2, r3, r4)
+        	__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4
+        	// DINGO_TUPLE_PATTERN: (Ok, Ok, Ok, Ok) | (_, _, _, _) | ARITY: 4
+        	switch __match_1_elem0.tag {
+        	case ResultTagOk:
+        		// DINGO_TUPLE_ARM: (Ok(a), Ok(b), Ok(c), Ok(d))
+        		"All ok: " + string(a+b+c+d)
+        	default:
+        		// DINGO_TUPLE_ARM: (_, _, _, _)
+        		"At least one error occurred"
+        	}
+        	// DINGO_MATCH_END
+        
+        }
+        func main() {
+        	r1 := Result_Ok(1)
+        	r2 := Result_Ok(2)
+        	r3 := Result_Err(errors.New("step 3 error"))
+        	r4 := Result_Ok(4)
+        	r5 := Result_Ok(5)
+        	r6 := Result_Ok(6)
+        
+        	result := validateSixSteps(r1, r2, r3, r4, r5, r6)
+        	println(result)
+        
+        	result2 := processFourResults(r1, r2, r3, r4)
+        	println(result2)
+        }
+        
+        // Non-exhaustive example (would fail - commented out):
+        // func nonExhaustive(r1, r2 Result) string {
+        //     return match (r1, r2) {
+        //         (Ok(x), Ok(y)) => "both ok",
+        //         (Ok(x), Err(e)) => "second error"
+        //         // Missing: (Err, Ok) and (Err, Err)
+        //     }
+        // }
+        
+    golden_test.go:150: Actual output written to: golden/pattern_match_12_tuple_exhaustiveness.go.actual
+=== RUN   TestGoldenFiles/result_03_pattern_match
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+--- FAIL: TestGoldenFiles (0.10s)
+    --- SKIP: TestGoldenFiles/option_02_pattern_match (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_01_basic (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_01_simple (0.05s)
+    --- FAIL: TestGoldenFiles/pattern_match_02_guards (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_03_nested (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_04_exhaustive (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_05_guards_basic (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_06_guards_nested (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_07_guards_complex (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_08_guards_edge_cases (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_09_tuple_pairs (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_10_tuple_triples (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_11_tuple_wildcards (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_12_tuple_exhaustiveness (0.04s)
+    --- SKIP: TestGoldenFiles/result_03_pattern_match (0.00s)
+=== RUN   TestGoldenFilesCompilation
+=== RUN   TestGoldenFilesCompilation/option_02_pattern_match_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_01_simple_compiles
+    golden_test.go:219: Compilation output:
+        /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/TestGoldenFilesCompilationpattern_match_01_simple_compiles604658170/001/test.go:62:25: expected ';', found ':='
+    golden_test.go:220: Generated code does not compile
+=== RUN   TestGoldenFilesCompilation/pattern_match_02_guards_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_03_nested_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_04_exhaustive_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_05_guards_basic_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_06_guards_nested_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_07_guards_complex_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_08_guards_edge_cases_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_09_tuple_pairs_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_10_tuple_triples_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_11_tuple_wildcards_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_12_tuple_exhaustiveness_compiles
+=== RUN   TestGoldenFilesCompilation/result_03_pattern_match_compiles
+--- FAIL: TestGoldenFilesCompilation (0.01s)
+    --- PASS: TestGoldenFilesCompilation/option_02_pattern_match_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_01_basic_compiles (0.00s)
+    --- FAIL: TestGoldenFilesCompilation/pattern_match_01_simple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_02_guards_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_03_nested_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_04_exhaustive_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_05_guards_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_06_guards_nested_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_07_guards_complex_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_08_guards_edge_cases_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_09_tuple_pairs_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_10_tuple_triples_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_11_tuple_wildcards_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_12_tuple_exhaustiveness_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_03_pattern_match_compiles (0.00s)
+FAIL
+FAIL	github.com/MadAppGang/dingo/tests	0.399s
+FAIL

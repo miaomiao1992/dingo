@@ -1,0 +1,20 @@
+# dingo-lsp JSON-RPC Crash Investigation (2025-11-18)
+
+## Symptoms
+- VS Code reports `Error: Cannot call write after a stream was destroyed` immediately after launching dingo-lsp.
+- dingo-lsp exits at startup; child gopls process terminates alongside it.
+
+## Root Cause
+1. `pkg/lsp/gopls_client.go:49-112` creates a jsonrpc2 connection around gopls’ stdio pipes, but the supervising goroutine closes those pipes as soon as the gopls process dies, even if requests are still in flight.
+2. `pkg/lsp/server.go:108-170` synchronously calls `s.gopls.Initialize` on the same connection without guarding for premature gopls exit, so jsonrpc2 attempts to write to closed pipes and VS Code surfaces the stream error before the handler can log a failure.
+3. Because the main loop in `cmd/dingo-lsp/main.go:34-77` immediately blocks on `<-conn.Done()`, the server shuts down whenever the gopls client connection errors, severing the IDE link instead of reporting a recoverable failure.
+
+## Recommended Fixes
+1. Add connection-health checks and error propagation around every `Call`/`Notify` in `pkg/lsp/gopls_client.go:130-205`, returning structured errors to `pkg/lsp/server.go` so initialize can respond with `serverNotInitialized` rather than letting jsonrpc2 panic.
+2. Introduce a supervisor loop (with exponential backoff) that restarts gopls if it exits unexpectedly, instead of closing the pipes permanently; keep the IDE-side jsonrpc2 connection alive in `cmd/dingo-lsp/main.go` until the VS Code client issues `shutdown`.
+3. When gopls termination is intentional (e.g., after `exit`), set the shutdown flag in `pkg/lsp/gopls_client.go:208-245` before tearing down pipes so lingering requests aren’t allowed to write to destroyed streams.
+4. Forward crash details to the IDE via stored `conn`/`ctx` in `pkg/lsp/server.go:20-67`, e.g., send `window/showMessage` or diagnostics so users see why language features are unavailable.
+
+## Follow-Up
+- Enhance stderr logging in `pkg/lsp/gopls_client.go:114-128` and plumb those logs into `window/logMessage` so VS Code users receive actionable errors instead of silent disconnects.
+- Add integration tests that simulate gopls crashes to ensure the proxy survives and reports errors gracefully.

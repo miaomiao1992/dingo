@@ -7,27 +7,27 @@ import (
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
 	tag   ResultTag
-	ok_0  *float64
-	err_0 *error
+	ok  *float64
+	err *error
 }
 
 func Result_Ok(arg0 float64) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 func divide(a float64, b float64) Result {
 	if b == 0.0 {
@@ -39,13 +39,13 @@ func handleResult(r Result) string {
 
 	__match_0 := r
 	switch __match_0.tag {
-	case ResultTag_Ok:
+	case ResultTagOk:
 
-		val := __match_0.result_ok_0
+		val := __match_0.result_ok
 		"Success: " + string(int(val))
-	case ResultTag_Err:
+	case ResultTagErr:
 
-		e := __match_0.result_err_0
+		e := __match_0.result_err
 		"Error: " + e.Error()
 	}
 

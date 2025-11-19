@@ -3,9 +3,9 @@ package main
 type ShapeTag uint8
 
 const (
-	ShapeTag_Point ShapeTag = iota
-	ShapeTag_Circle
-	ShapeTag_Rectangle
+	ShapeTagPoint ShapeTag = iota
+	ShapeTagCircle
+	ShapeTagRectangle
 )
 
 type Shape struct {
@@ -16,20 +16,20 @@ type Shape struct {
 }
 
 func Shape_Point() Shape {
-	return Shape{tag: ShapeTag_Point}
+	return Shape{tag: ShapeTagPoint}
 }
 func Shape_Circle(radius float64) Shape {
-	return Shape{tag: ShapeTag_Circle, circle_radius: &radius}
+	return Shape{tag: ShapeTagCircle, circle_radius: &radius}
 }
 func Shape_Rectangle(width float64, height float64) Shape {
-	return Shape{tag: ShapeTag_Rectangle, rectangle_width: &width, rectangle_height: &height}
+	return Shape{tag: ShapeTagRectangle, rectangle_width: &width, rectangle_height: &height}
 }
 func (e Shape) IsPoint() bool {
-	return e.tag == ShapeTag_Point
+	return e.tag == ShapeTagPoint
 }
 func (e Shape) IsCircle() bool {
-	return e.tag == ShapeTag_Circle
+	return e.tag == ShapeTagCircle
 }
 func (e Shape) IsRectangle() bool {
-	return e.tag == ShapeTag_Rectangle
+	return e.tag == ShapeTagRectangle
 }

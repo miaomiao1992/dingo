@@ -1,0 +1,42 @@
+[
+  {
+    "question": "Should we prioritize fixing the position information bug first, or implement pattern destructuring first?",
+    "rationale": "Position info bug blocks all golden tests (integration validation), but pattern destructuring is core functionality. Position fix is simpler (2-3 hours) while destructuring is more complex (4-6 hours). Recommendation: Fix position info first to unblock testing, then implement destructuring with immediate validation."
+  },
+  {
+    "question": "For pattern destructuring nil safety, should we add runtime nil checks or rely on constructor guarantees?",
+    "rationale": "Current implementation uses pointer fields for variant data. Constructors always initialize fields, making nil impossible in normal usage. However, users could theoretically create union structs manually. Options: (A) Trust constructors, no checks - fastest but risky, (B) Add nil checks with panic - safe but overhead, (C) Add validation in debug builds only. Recommendation: Option B (always check) for Phase 2 safety, optimize in Phase 6."
+  },
+  {
+    "question": "Should match expression IIFE wrapping be implemented in Phase 2.5, or deferred to Phase 3?",
+    "rationale": "User request lists this as Item 8 (IMPORTANT), but it's complex (4-6 hours) and the current error handling is correct. Implementing now adds risk and delays merge. Deferring allows focused testing of core enum features. Current implementation already detects expression context and errors clearly. Recommendation: Defer to Phase 3, improve error message in Phase 2.5."
+  },
+  {
+    "question": "For field name collision detection, should we error immediately or implement automatic disambiguation?",
+    "rationale": "Collision example: enum with variants Foo{bar_baz} and FooBar{baz} both generate 'foobar_baz'. Options: (A) Error and require user to rename - simple, safe, (B) Auto-add numeric suffix like 'foobar_baz_0', 'foobar_baz_1' - convenient but confusing, (C) Use different naming scheme like 'Foo__bar_baz' - breaks consistency. Recommendation: Option A (error) for Phase 2, document limitation."
+  },
+  {
+    "question": "Should the end-to-end verification examples use match expressions as statements only, or should we create examples that demonstrate the current limitations?",
+    "rationale": "User wants to verify end-to-end functionality works. If we only test working features (match as statement), we validate current state but don't demonstrate limitations. If we include examples of unsupported features (match as expression), we verify error handling but add complexity. Recommendation: Create both - positive tests (working features) and negative tests (proper errors)."
+  },
+  {
+    "question": "For the memory overhead documentation (Item 16), should we include actual benchmarks or just theoretical analysis?",
+    "rationale": "Documentation task is 15 minutes (comments only), but adding benchmarks would be valuable for Phase 6 optimization planning. Options: (A) Comments only - fast, meets requirement, (B) Add benchmark stubs - moderate effort, future value, (C) Full benchmark implementation - slow, not Phase 2 scope. Recommendation: Option B (add benchmark test skeletons with TODO comments)."
+  },
+  {
+    "question": "Should we fix the error_propagation_test.go compilation errors as part of this session, or file as separate issue?",
+    "rationale": "Test output shows error_propagation_test.go has undefined fields/methods (errorVarCounter, tmpVarCounter, temporaryStmtWrapper, nextTmpVar, nextErrVar). This is unrelated to sum types work but blocks running the full test suite. Options: (A) Fix now (30 min) - enables full testing, (B) Skip for now - focus on sum types only, (C) Disable broken tests - partial validation. Recommendation: Option C (comment out broken tests temporarily), file issue for cleanup."
+  },
+  {
+    "question": "Should the comprehensive match transformation tests (Item 17) be unit tests or integration tests?",
+    "rationale": "Code review asks for 'comprehensive match transformation tests' but doesn't specify level. Unit tests are faster and test transformation logic in isolation. Integration tests verify end-to-end behavior including compilation. Options: (A) Unit tests only - fast, focused, (B) Integration tests only - slow, realistic, (C) Both - thorough but time-consuming. Recommendation: Option C (both) - unit tests for transformation logic, integration tests for compilation."
+  },
+  {
+    "question": "What level of error message quality is required for Phase 2.5 merge?",
+    "rationale": "Current errors are functional but basic (e.g., 'match expressions not yet supported'). Rust-quality errors include code snippets, suggestions, and help text. Options: (A) Basic errors - fast, meets requirement, (B) Enhanced errors with suggestions - moderate effort, better UX, (C) Rust-level errors with highlighting - slow, Phase 3+ feature. Recommendation: Option B (add suggestions and hints to critical errors)."
+  },
+  {
+    "question": "Should we update the previous session's test results documentation after fixes are applied?",
+    "rationale": "Previous session has detailed test results showing position info bug and blocked golden tests. After fixing, these docs will be outdated. Options: (A) Leave as historical record - preserves context, (B) Update with 'FIXED' annotations - shows progress, (C) Create new results doc for this session - cleaner but duplicates info. Recommendation: Option C (new session results) - cleaner separation, previous session remains historical record."
+  }
+]

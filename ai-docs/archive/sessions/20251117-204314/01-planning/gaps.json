@@ -1,0 +1,18 @@
+[
+  {
+    "question": "Should we implement automatic import detection (Option A - 2 hours) or use a quick manual fix for golden tests (Option B - 30 min)?",
+    "rationale": "Option A is production-ready and scales, but takes longer. Option B is immediate but technical debt. This affects timeline and long-term maintainability."
+  },
+  {
+    "question": "Are there any other features besides error propagation currently using the pkg/transform pipeline?",
+    "rationale": "Need to verify that removing error_prop.go won't break other transformation logic. If lambdas or pattern matching are partially implemented, we need to preserve that code."
+  },
+  {
+    "question": "Should the preprocessor handle ALL import detection, or only for error propagation contexts?",
+    "rationale": "If we detect imports for ALL function calls, we might add unnecessary imports. Scope affects implementation complexity and correctness."
+  },
+  {
+    "question": "Do you want to preserve the error_prop.go file as a reference/backup, or completely delete it?",
+    "rationale": "The file contains 262 lines of implementation that might be useful for future reference, even though it's not being used. Archive vs delete decision."
+  }
+]

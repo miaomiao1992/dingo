@@ -1,0 +1,68 @@
+# RustMatchProcessor Investigation Summary
+
+## Problem Overview
+- **Failure**: tests/golden/pattern_match_01_simple.dingo fails with `rust_match preprocessing failed: line 21: extracting match components: no closing brace found in match expression`.
+- **Scope**: Specific to processOption function; other match expressions in same file succeed.
+
+## Execution Trace
+1. **Detection**: `Process` scans lines; sees `match result {` and `match opt {` sequences.
+2. **Collection**: `collectMatchExpression` grabs the full `match opt { ... }` (lines 17-21), returning the raw snippet and line count.
+3. **Extraction**: `extractScrutineeAndArms` works for initial pass, splitting `scrutinee="opt"`, `armsText="Some(s) => s, ..."`.
+4. **Transformation**: `generateSwitch` emits Go code, but because subsequent processors (keyword, etc.) run after rust_match, the transformed code now contains `panic("unreachable: match is exhaustive")` and trailing braces.
+5. **Second pass bug**: Later, when `Process` continues scanning the post-transform source buffer, the line `panic("unreachable: match is exhaustive")` still contains the substring `match` (in "unreachable: match is..."). The heuristic (`strings.Contains(line, "match ") && !isAlphanumeric(prev)`) mistakenly flags this line as another match expression. `collectMatchExpression` then reads until the next closing brace **in the already-transformed Go code**, grabbing `panic(...) ... // DINGO_MATCH_END ... }`, which lacks a matching trailing `}` for the synthetic switch block, causing `extractScrutineeAndArms` to fail with "no closing brace found". Because `parseArms` never runs, the user sees `no pattern arms found` (downstream error once error propagates to reporting layer).
+
+## Root Cause
+- **File/Line**: `pkg/preprocessor/rust_match.go`, detection loop in `Process` (lines 49-93) and `collectMatchExpression`.
+- **Issue**: The preprocessor re-scans the transformed output buffer line-by-line. After injecting Go code, lines like `panic("unreachable: match is exhaustive")` still include the substring `match `. The current check only ensures the previous character isnt alphanumeric, so the colon `:` qualifies, and the line is treated as a new match expression even though it is just part of emitted Go code, not Dingo syntax. The extracted chunk lacks a closing brace (because it stops at the first `}`), so `extractScrutineeAndArms` reports "no closing brace found", which surfaces as the reported error.
+- **Difference vs Passing Example**: `pattern_match_01_basic.dingo` only generates one match expression, so the erroneous second detection never triggers. In `pattern_match_01_simple.dingo`, there are multiple matches plus assignment-mode transformation lines; the extra `panic(...match...)` line resides directly after the failing arm, triggering the false positive.
+
+## Detailed Flow for processOption Failure
+1. `collectMatchExpression` reads original match (lines 17-21) -> success.
+2. `transformMatch` emits Go switch + `panic(... match ...)`.
+3. Back in main loop, `output` buffer contains transformed code.
+4. Next iteration, `line` is `panic("unreachable: match is exhaustive")`.
+5. `strings.Index(line, "match ")` returns 19 (character after colon). `idx == 19`, preceding rune is `':'`, which is not alphanumeric, so `isMatchExpr = true`.
+6. `collectMatchExpression` starts at panic line, accumulates text until encountering the first `}` (closing the function). Brace counting sees braces from panic line onwards but never finds matching closing brace for the synthetic `switch {` (already closed earlier), so after hitting the function's closing brace it returns substring lacking braces (or zero). Eventually `extractScrutineeAndArms` fails, raising `no closing brace found` → reported as "no pattern arms found".
+
+## Fix Proposal
+1. **Stateful scanning**: Maintain a flag after transforming a match expression to skip re-processing the generated block. The simplest approach: after writing transformed code, advance `inputLineNum` to skip the original lines and also set a guard to skip the same number of lines in the output buffer. But because processing is line-by-line through original source, the real fix is to avoid scanning the newly-written transformed code altogether.
+2. **Better detection heuristic**: Replace `strings.Contains(line, "match ")` with a regex anchored at line start ignoring indentation, e.g. `^	*match`. Ensures `panic("...match..."` is ignored. Could implement by trimming leading whitespace and requiring the line to start with `match` or `let ... = match`. Additional check: ensure substring preceding `match` is start-of-line or whitespace, not punctuation like `:`.
+3. **One-pass transformation**: Instead of scanning the mutated buffer line-by-line (which now contains Go code), process the original source lines array only once; do not inspect lines derived from transformed output.
+
+**Recommended change** (low-risk): update detection logic to require trimmed line to start with `match`, `let ... match`, or `return match`.
+```diff
+@@ func (r *RustMatchProcessor) Process
+-	trimmed := strings.TrimSpace(line)
+-	isMatchExpr := false
+-	if !strings.HasPrefix(trimmed, "//") && !strings.HasPrefix(trimmed, "/*") {
+-		if strings.Contains(line, "match ") {
+-			idx := strings.Index(line, "match ")
+-			if idx == 0 || !isAlphanumeric(rune(line[idx-1])) {
+-				isMatchExpr = true
+-			}
+-		}
+-	}
++	trimmed := strings.TrimSpace(line)
++	isMatchExpr := false
++	if !strings.HasPrefix(trimmed, "//") && !strings.HasPrefix(trimmed, "/*") {
++		// Only treat as match if line actually starts with match keyword (optionally prefixed by let/var/return)
++		if strings.HasPrefix(trimmed, "match ") || strings.HasPrefix(trimmed, "let ") || strings.HasPrefix(trimmed, "var ") || strings.HasPrefix(trimmed, "return ") {
++			// Ensure the substring "match" occurs as a standalone word at the start
++			matchIdx := strings.Index(trimmed, "match ")
++			if matchIdx != -1 && (matchIdx == 0 || trimmed[:matchIdx] == "return" || strings.HasPrefix(trimmed, "let ") || strings.HasPrefix(trimmed, "var ")) {
++				isMatchExpr = true
++			}
++		}
++	}
+```
+(Actual code should be more precise: parse for `match` preceded only by whitespace or keywords, ignoring strings.)
+
+## Validation Plan
+1. Add regression test in `pkg/preprocessor/rust_match_test.go` covering synthetic scenario: feed in snippet containing legitimate match and subsequent `panic("unreachable: match is ...")` to ensure only first match is processed.
+2. Re-run `go test ./pkg/preprocessor -run RustMatch` and `go test ./tests -run TestGoldenFiles/pattern_match_01_simple -count=1`.
+3. Optionally run entire golden suite to ensure no other match expressions regress.
+
+## Confidence & Assumptions
+- **Confidence**: 0.78. Reason: Execution trace via `go test` logs shows re-entrant detection triggered by `panic` line; root cause matches observed failure path.
+- **Assumptions**: Preprocessor processes original source sequentially without revisiting already-transformed sections; detection fix will not miss valid matches that start mid-line (e.g., `if condition { match ... }`), so additional heuristics may be required for inline matches.
+

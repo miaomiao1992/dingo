@@ -1,0 +1,8 @@
+{
+  "internal": true,
+  "external_models": [
+    "openrouter/x-ai/grok-4-fast",
+    "openrouter/google/gemini-3-pro-preview",
+    "openrouter/minimax/minimax-m2"
+  ]
+}

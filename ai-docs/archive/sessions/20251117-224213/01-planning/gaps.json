@@ -1,0 +1,22 @@
+[
+  {
+    "question": "Should `return expr?` be constrained to single non-error returns, or must we support multi-value success propagation?",
+    "rationale": "The current implementation already supports multi-value returns (e.g., `(A, B, C, error)`), as evidenced by test `error_prop_09_multi_value`. However, this may have been an accidental feature rather than intentional design. We need spec clarity on whether to: (a) Keep full multi-value support (recommended - matches Rust's behavior), (b) Restrict to single values only, or (c) Make it configurable. This affects API stability and user expectations."
+  },
+  {
+    "question": "Will future preprocessors emit mappings before import insertion? If yes, we need a policy for offset handling to avoid repeated adjustments.",
+    "rationale": "The current architecture assumes all processors run before import injection, and offsets are applied once at the end. If a future processor (e.g., lambda, sum types) needs to run AFTER import injection, its mappings won't be offset correctly. We need to establish a policy: (a) All processors MUST run before import injection (recommended - simplest), (b) Support multi-phase processing with incremental offsets (complex), or (c) Add post-import processors that don't generate source maps. This affects extensibility and architectural decisions."
+  },
+  {
+    "question": "Should the source map offset adjustment compare GeneratedLine or OriginalLine to importInsertionLine?",
+    "rationale": "After deep analysis, I believe the current implementation uses `GeneratedLine >= importInsertionLine`, but the correct fix might be `GeneratedLine > importInsertionLine` (excluding the insertion line itself). However, there's ambiguity about whether `importInsertionLine` represents: (a) The line in the ORIGINAL source where imports logically belong, or (b) The line in the GENERATED source where imports are inserted. Clarifying this will ensure the fix is correct and doesn't introduce new edge cases."
+  },
+  {
+    "question": "Issue #2 (multi-value returns) and Issue #3 (import collision) appear to be already fixed in the codebase. Should we skip implementation and only add tests?",
+    "rationale": "My analysis shows that both issues are already addressed: (1) Multi-value returns are handled correctly in `expandReturn()` lines 416-430 and 519-530, with test coverage in `error_prop_09_multi_value`. (2) Import collision is prevented by requiring qualified calls (pkg.Function) in `trackFunctionCallInExpr()` lines 859-866. The code review might be outdated. We should: (a) Verify fixes work by running tests, (b) Add negative tests to prevent regression, (c) Mark as 'already fixed' rather than re-implementing. Please confirm this approach or provide specific failing test cases if the issues persist."
+  },
+  {
+    "question": "What is the expected behavior for package-level declarations (variables, constants, types) that appear BEFORE the first function?",
+    "rationale": "Issue #1 mentions 'package-level mappings' being shifted incorrectly. However, the current error propagation processor only creates mappings for `?` operators inside functions. It's unclear if: (a) Future processors will create mappings for package-level declarations, (b) The issue refers to mappings for the package declaration itself (line 1), or (c) There are existing edge cases with top-level variable initialization (e.g., `var config = loadConfig()?` at package scope). Clarifying this will help design the correct test cases for Issue #1."
+  }
+]

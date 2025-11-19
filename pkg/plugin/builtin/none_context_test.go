@@ -52,15 +52,15 @@ func TestNoneContextPlugin_ReturnContext(t *testing.T) {
 	src := `package main
 
 type Option_int struct {
-	tag    OptionTag
-	some_0 *int
+	tag  OptionTag
+	some *int
 }
 
 type OptionTag int
 
 const (
-	OptionTag_None OptionTag = iota
-	OptionTag_Some
+	OptionTagNone OptionTag = iota
+	OptionTagSome
 )
 
 func getAge() Option_int {
@@ -302,15 +302,15 @@ func TestNoneContextPlugin_Transform(t *testing.T) {
 	src := `package main
 
 type Option_int struct {
-	tag    OptionTag
-	some_0 *int
+	tag  OptionTag
+	some *int
 }
 
 type OptionTag int
 
 const (
-	OptionTag_None OptionTag = iota
-	OptionTag_Some
+	OptionTagNone OptionTag = iota
+	OptionTagSome
 )
 
 func getAge() Option_int {
@@ -356,7 +356,7 @@ func getAge() Option_int {
 		if compLit, ok := n.(*ast.CompositeLit); ok {
 			if ident, ok := compLit.Type.(*ast.Ident); ok {
 				if ident.Name == "Option_int" {
-					// Check that it has tag and some_0 fields
+					// Check that it has tag and some fields
 					if len(compLit.Elts) == 2 {
 						foundComposite = true
 					}
@@ -508,17 +508,17 @@ func TestNoneContextPlugin_CreateNoneValue(t *testing.T) {
 			}
 		}
 		if val, ok := kv.Value.(*ast.Ident); ok {
-			if val.Name != "OptionTag_None" {
-				t.Errorf("Expected value 'OptionTag_None', got %s", val.Name)
+			if val.Name != "OptionTagNone" {
+				t.Errorf("Expected value 'OptionTagNone', got %s", val.Name)
 			}
 		}
 	}
 
-	// Check some_0 field
+	// Check some field
 	if kv, ok := compLit.Elts[1].(*ast.KeyValueExpr); ok {
 		if key, ok := kv.Key.(*ast.Ident); ok {
-			if key.Name != "some_0" {
-				t.Errorf("Expected field 'some_0', got %s", key.Name)
+			if key.Name != "some" {
+				t.Errorf("Expected field 'some', got %s", key.Name)
 			}
 		}
 		if val, ok := kv.Value.(*ast.Ident); ok {

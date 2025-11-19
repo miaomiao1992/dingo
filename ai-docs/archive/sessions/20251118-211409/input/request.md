@@ -1,0 +1,1 @@
+Fix LSP startup 'stream destroyed' based on investigation: https://pastebin.com/raw/abc123 (or attach report). Prioritize: 1. main.go SetConn before conn.Go. 2. Gopls handler cancellable ctx. 3. Graceful shutdown logging. 4. Gopls cleanup. 5. Diagnostics publishing. Write details to output/, return 3-5 sentence summary with file paths. Do not delegate to self.

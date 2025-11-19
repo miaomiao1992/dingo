@@ -26,9 +26,9 @@ func convertToInt(s string) Result {
 func doubleIfValid(s string) (int, error) {
 	result := convertToInt(s)
 	if result.IsErr() {
-		return 0, *result.err_0
+		return 0, *result.err
 	}
-	return *result.ok_0 * 2, nil
+	return *result.ok * 2, nil
 }
 
 func main() {

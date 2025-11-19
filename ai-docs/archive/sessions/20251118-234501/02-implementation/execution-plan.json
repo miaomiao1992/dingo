@@ -1,0 +1,111 @@
+{
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "description": "Core infrastructure - independent components",
+      "tasks": [
+        {
+          "task_id": "A",
+          "description": "Implement FunctionExclusionCache with 3-tier caching",
+          "files": ["pkg/preprocessor/function_cache.go", "pkg/preprocessor/function_cache_test.go"],
+          "agent": "golang-developer",
+          "features": [
+            "FunctionExclusionCache struct with memory/disk caching",
+            "IsLocalSymbol() method for quick lookups",
+            "ScanPackage() with go/parser integration",
+            "SaveToDisk/LoadFromDisk for .dingo-cache.json",
+            "QuickScanFile with hash-based invalidation",
+            "Thread-safe with RWMutex"
+          ]
+        },
+        {
+          "task_id": "B",
+          "description": "Implement PackageContext orchestrator",
+          "files": ["pkg/preprocessor/package_context.go", "pkg/preprocessor/package_context_test.go"],
+          "agent": "golang-developer",
+          "features": [
+            "PackageContext struct for package-level transpilation",
+            "NewPackageContext with .dingo file discovery",
+            "Cache initialization and loading logic",
+            "TranspileAll and TranspileFile methods",
+            "Integration with build options (incremental, force)"
+          ]
+        },
+        {
+          "task_id": "C",
+          "description": "Create Stdlib Function Registry with ambiguity detection",
+          "files": ["pkg/preprocessor/stdlib_registry.go", "pkg/preprocessor/stdlib_registry_test.go"],
+          "agent": "golang-developer",
+          "features": [
+            "StdlibRegistry map of function → packages",
+            "Comprehensive stdlib coverage (~500 functions, 40 packages)",
+            "GetPackageForFunction with ambiguity detection",
+            "AmbiguousFunctionError with fix-it hints",
+            "Unit tests for common functions and edge cases"
+          ]
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "depends_on": [1],
+      "description": "Transformation logic - depends on core infrastructure",
+      "tasks": [
+        {
+          "task_id": "D",
+          "description": "Create UnqualifiedImportProcessor",
+          "files": ["pkg/preprocessor/unqualified_imports.go", "pkg/preprocessor/unqualified_imports_test.go"],
+          "agent": "golang-developer",
+          "features": [
+            "UnqualifiedImportProcessor struct",
+            "Integration with FunctionExclusionCache",
+            "Integration with StdlibRegistry",
+            "Transform unqualified → qualified calls",
+            "Add imports automatically",
+            "Conservative error handling for ambiguous functions"
+          ]
+        },
+        {
+          "task_id": "E",
+          "description": "Enhance Preprocessor and ImportTracker",
+          "files": ["pkg/preprocessor/preprocessor.go", "pkg/preprocessor/import_tracker.go"],
+          "agent": "golang-developer",
+          "features": [
+            "Add cache field to Preprocessor",
+            "NewWithCache constructor",
+            "Early bailout optimization (GPT-5.1)",
+            "Integration with UnqualifiedImportProcessor",
+            "Update ImportTracker with exclusion checking"
+          ]
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "depends_on": [2],
+      "description": "Testing and validation",
+      "tasks": [
+        {
+          "task_id": "F",
+          "description": "Create comprehensive golden tests",
+          "files": [
+            "tests/golden/unqualified_import_01_basic.dingo",
+            "tests/golden/unqualified_import_01_basic.go.golden",
+            "tests/golden/unqualified_import_02_local_function.dingo",
+            "tests/golden/unqualified_import_02_local_function.go.golden",
+            "tests/golden/unqualified_import_03_cross_file/",
+            "tests/golden/unqualified_import_04_ambiguous.dingo"
+          ],
+          "agent": "golang-tester",
+          "features": [
+            "Test basic unqualified imports (ReadFile → os.ReadFile)",
+            "Test local function exclusion (user's ReadFile NOT transformed)",
+            "Test cross-file package-wide scanning",
+            "Test ambiguous function error handling",
+            "Update existing error_prop tests to work with new system"
+          ]
+        }
+      ]
+    }
+  ]
+}

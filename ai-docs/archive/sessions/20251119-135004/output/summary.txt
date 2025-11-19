@@ -1,0 +1,5 @@
+Recommendation: B (Pure CamelCase like ValueInt)
+Rationale: Fully idiomatic Go exported naming (CamelCase, no underscores), matching stdlib patterns like http.StatusOK and errors.ErrNoProgress.
+Trade-offs: Slightly less explicit separation than underscores, but vastly superior long-term readability and tooling support.
+Migration Path: Regex replace '_' with '' in variant names during codegen; update golden tests.
+Edge Cases: Handle collisions (e.g., ValueInt exists) via scoped constants or prefix tweaks if needed.

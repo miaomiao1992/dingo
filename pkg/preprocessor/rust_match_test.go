@@ -24,16 +24,16 @@ func TestRustMatchProcessor_SimpleResult(t *testing.T) {
 
 	// Check for key components
 	expected := []string{
-		"__match_0 := result",
+		"scrutinee := result",
 		"// DINGO_MATCH_START: result",
-		"switch __match_0.tag {",
+		"switch scrutinee.tag {",
 		"case ResultTagOk:",
 		"// DINGO_PATTERN: Ok(x)",
-		"x := *__match_0.ok_0",
+		"x := *scrutinee.ok",
 		"x * 2",
 		"case ResultTagErr:",
 		"// DINGO_PATTERN: Err(e)",
-		"e := __match_0.err_0",
+		"e := scrutinee.err",
 		"// DINGO_MATCH_END",
 	}
 
@@ -66,12 +66,12 @@ func TestRustMatchProcessor_SimpleOption(t *testing.T) {
 
 	// Check for key components
 	expected := []string{
-		"__match_0 := value",
+		"scrutinee := value",
 		"// DINGO_MATCH_START: value",
-		"switch __match_0.tag {",
+		"switch scrutinee.tag {",
 		"case OptionTagSome:",
 		"// DINGO_PATTERN: Some(v)",
-		"v := *__match_0.some_0",
+		"v := *scrutinee.some",
 		"case OptionTagNone:",
 		"// DINGO_PATTERN: None",
 		"\t\"default\"",
@@ -141,11 +141,11 @@ match result2 {
 	result := string(output)
 
 	// Check that both matches are processed with different counter values
-	if !strings.Contains(result, "__match_0") {
-		t.Error("Expected first match to use __match_0")
+	if !strings.Contains(result, "scrutinee := ") {
+		t.Error("Expected first match to use scrutinee")
 	}
-	if !strings.Contains(result, "__match_1") {
-		t.Error("Expected second match to use __match_1")
+	if !strings.Contains(result, "scrutinee2 := ") {
+		t.Error("Expected second match to use scrutinee2")
 	}
 }
 
@@ -195,7 +195,7 @@ func TestRustMatchProcessor_MultilineMatch(t *testing.T) {
 	result := string(output)
 
 	// Check basic structure is present
-	if !strings.Contains(result, "__match_0 := result") {
+	if !strings.Contains(result, "scrutinee := result") {
 		t.Error("Expected match transformation")
 	}
 	if !strings.Contains(result, "case ResultTagOk:") {
@@ -222,7 +222,7 @@ func TestRustMatchProcessor_ComplexExpression(t *testing.T) {
 	result := string(output)
 
 	// Check that scrutinee is preserved
-	if !strings.Contains(result, "__match_0 := fetchUser(id)") {
+	if !strings.Contains(result, "scrutinee := fetchUser(id)") {
 		t.Errorf("Expected scrutinee to be preserved.\nGot:\n%s", result)
 	}
 }
@@ -338,15 +338,15 @@ func TestRustMatchProcessor_GenerateBinding(t *testing.T) {
 		binding string
 		want    string
 	}{
-		{"Ok", "x", "x := *__match_0.ok_0"},
-		{"Err", "e", "e := __match_0.err_0"},
-		{"Some", "v", "v := *__match_0.some_0"},
-		{"Active", "id", "id := __match_0.active_0"},
+		{"Ok", "x", "x := *scrutinee.ok"},
+		{"Err", "e", "e := scrutinee.err"},
+		{"Some", "v", "v := *scrutinee.some"},
+		{"Active", "id", "id := *scrutinee.active"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.pattern, func(t *testing.T) {
-			got := processor.generateBinding("__match_0", tt.pattern, tt.binding)
+			got := processor.generateBinding("scrutinee", tt.pattern, tt.binding)
 			if got != tt.want {
 				t.Errorf("generateBinding(%q, %q) = %q, want %q", tt.pattern, tt.binding, got, tt.want)
 			}

@@ -1,0 +1,1 @@
+Request: Investigate jsonrpc2 connection lifecycle crash per latest user instructions.

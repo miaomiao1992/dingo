@@ -1,0 +1,1718 @@
+?   	github.com/MadAppGang/dingo/cmd/dingo	[no test files]
+?   	github.com/MadAppGang/dingo/cmd/dingo-lsp	[no test files]
+?   	github.com/MadAppGang/dingo/editors/vscode	[no test files]
+?   	github.com/MadAppGang/dingo/examples/hello	[no test files]
+?   	github.com/MadAppGang/dingo/pkg/ast	[no test files]
+=== RUN   TestDefaultConfig
+--- PASS: TestDefaultConfig (0.00s)
+=== RUN   TestSyntaxStyleValidation
+=== RUN   TestSyntaxStyleValidation/question
+=== RUN   TestSyntaxStyleValidation/bang
+=== RUN   TestSyntaxStyleValidation/try
+=== RUN   TestSyntaxStyleValidation/invalid
+=== RUN   TestSyntaxStyleValidation/#00
+=== RUN   TestSyntaxStyleValidation/QUESTION
+--- PASS: TestSyntaxStyleValidation (0.00s)
+    --- PASS: TestSyntaxStyleValidation/question (0.00s)
+    --- PASS: TestSyntaxStyleValidation/bang (0.00s)
+    --- PASS: TestSyntaxStyleValidation/try (0.00s)
+    --- PASS: TestSyntaxStyleValidation/invalid (0.00s)
+    --- PASS: TestSyntaxStyleValidation/#00 (0.00s)
+    --- PASS: TestSyntaxStyleValidation/QUESTION (0.00s)
+=== RUN   TestConfigValidation
+=== RUN   TestConfigValidation/valid_default_config
+=== RUN   TestConfigValidation/valid_bang_syntax
+=== RUN   TestConfigValidation/invalid_syntax
+=== RUN   TestConfigValidation/invalid_source_map_format
+=== RUN   TestConfigValidation/valid_result_go_interop_opt-in
+=== RUN   TestConfigValidation/valid_result_go_interop_auto
+=== RUN   TestConfigValidation/valid_result_go_interop_disabled
+=== RUN   TestConfigValidation/invalid_result_go_interop
+=== RUN   TestConfigValidation/valid_option_go_interop_opt-in
+=== RUN   TestConfigValidation/valid_option_go_interop_auto
+=== RUN   TestConfigValidation/valid_option_go_interop_disabled
+=== RUN   TestConfigValidation/invalid_option_go_interop
+=== RUN   TestConfigValidation/both_result_and_option_configured
+=== RUN   TestConfigValidation/valid_match_syntax_rust
+=== RUN   TestConfigValidation/valid_match_syntax_swift
+=== RUN   TestConfigValidation/invalid_match_syntax
+=== RUN   TestConfigValidation/empty_match_syntax_uses_default
+--- PASS: TestConfigValidation (0.00s)
+    --- PASS: TestConfigValidation/valid_default_config (0.00s)
+    --- PASS: TestConfigValidation/valid_bang_syntax (0.00s)
+    --- PASS: TestConfigValidation/invalid_syntax (0.00s)
+    --- PASS: TestConfigValidation/invalid_source_map_format (0.00s)
+    --- PASS: TestConfigValidation/valid_result_go_interop_opt-in (0.00s)
+    --- PASS: TestConfigValidation/valid_result_go_interop_auto (0.00s)
+    --- PASS: TestConfigValidation/valid_result_go_interop_disabled (0.00s)
+    --- PASS: TestConfigValidation/invalid_result_go_interop (0.00s)
+    --- PASS: TestConfigValidation/valid_option_go_interop_opt-in (0.00s)
+    --- PASS: TestConfigValidation/valid_option_go_interop_auto (0.00s)
+    --- PASS: TestConfigValidation/valid_option_go_interop_disabled (0.00s)
+    --- PASS: TestConfigValidation/invalid_option_go_interop (0.00s)
+    --- PASS: TestConfigValidation/both_result_and_option_configured (0.00s)
+    --- PASS: TestConfigValidation/valid_match_syntax_rust (0.00s)
+    --- PASS: TestConfigValidation/valid_match_syntax_swift (0.00s)
+    --- PASS: TestConfigValidation/invalid_match_syntax (0.00s)
+    --- PASS: TestConfigValidation/empty_match_syntax_uses_default (0.00s)
+=== RUN   TestLoadConfigNoFiles
+--- PASS: TestLoadConfigNoFiles (0.00s)
+=== RUN   TestLoadConfigProjectFile
+--- PASS: TestLoadConfigProjectFile (0.00s)
+=== RUN   TestLoadConfigCLIOverride
+--- PASS: TestLoadConfigCLIOverride (0.00s)
+=== RUN   TestLoadConfigInvalidTOML
+--- PASS: TestLoadConfigInvalidTOML (0.00s)
+=== RUN   TestLoadConfigInvalidValue
+--- PASS: TestLoadConfigInvalidValue (0.00s)
+=== RUN   TestLoadConfigMatchSyntax
+--- PASS: TestLoadConfigMatchSyntax (0.00s)
+=== RUN   TestLoadConfigInvalidMatchSyntax
+--- PASS: TestLoadConfigInvalidMatchSyntax (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/config	(cached)
+=== RUN   TestCompileError_Error
+=== RUN   TestCompileError_Error/type_inference_error
+=== RUN   TestCompileError_Error/code_generation_error
+=== RUN   TestCompileError_Error/syntax_error
+--- PASS: TestCompileError_Error (0.00s)
+    --- PASS: TestCompileError_Error/type_inference_error (0.00s)
+    --- PASS: TestCompileError_Error/code_generation_error (0.00s)
+    --- PASS: TestCompileError_Error/syntax_error (0.00s)
+=== RUN   TestNewTypeInferenceError
+--- PASS: TestNewTypeInferenceError (0.00s)
+=== RUN   TestNewCodeGenerationError
+--- PASS: TestNewCodeGenerationError (0.00s)
+=== RUN   TestFormatWithPosition
+--- PASS: TestFormatWithPosition (0.00s)
+=== RUN   TestFormatWithPosition_NoFileSet
+--- PASS: TestFormatWithPosition_NoFileSet (0.00s)
+=== RUN   TestTypeInferenceFailure
+--- PASS: TestTypeInferenceFailure (0.00s)
+=== RUN   TestLiteralAddressError
+--- PASS: TestLiteralAddressError (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/errors	(cached)
+=== RUN   TestMarkerInjector_InjectMarkers
+=== RUN   TestMarkerInjector_InjectMarkers/disabled_-_no_markers
+=== RUN   TestMarkerInjector_InjectMarkers/enabled_-_adds_markers
+=== RUN   TestMarkerInjector_InjectMarkers/enabled_-_multiple_error_checks
+--- PASS: TestMarkerInjector_InjectMarkers (0.00s)
+    --- PASS: TestMarkerInjector_InjectMarkers/disabled_-_no_markers (0.00s)
+    --- PASS: TestMarkerInjector_InjectMarkers/enabled_-_adds_markers (0.00s)
+    --- PASS: TestMarkerInjector_InjectMarkers/enabled_-_multiple_error_checks (0.00s)
+=== RUN   TestGetIndentation
+--- PASS: TestGetIndentation (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/generator	(cached)
+# github.com/MadAppGang/dingo/tests/golden
+tests/golden/option_04_go_interop.go:40:6: main redeclared in this block
+	tests/golden/error_prop_09_multi_value.go:33:6: other declaration of main
+tests/golden/option_05_helpers.go:5:6: Config redeclared in this block
+	tests/golden/error_prop_08_chained_calls.go:5:6: other declaration of Config
+tests/golden/option_05_helpers.go:67:6: main redeclared in this block
+	tests/golden/error_prop_09_multi_value.go:33:6: other declaration of main
+tests/golden/result_01_basic.go:37:6: main redeclared in this block
+	tests/golden/error_prop_09_multi_value.go:33:6: other declaration of main
+tests/golden/result_05_go_interop.go:8:6: ResultTag redeclared in this block
+	tests/golden/result_01_basic.go:5:6: other declaration of ResultTag
+tests/golden/result_05_go_interop.go:11:2: ResultTag_Ok redeclared in this block
+	tests/golden/result_01_basic.go:8:2: other declaration of ResultTag_Ok
+tests/golden/result_05_go_interop.go:12:2: ResultTag_Err redeclared in this block
+	tests/golden/result_01_basic.go:9:2: other declaration of ResultTag_Err
+tests/golden/result_05_go_interop.go:15:6: Result redeclared in this block
+	tests/golden/result_01_basic.go:12:6: other declaration of Result
+tests/golden/result_05_go_interop.go:21:6: Result_Ok redeclared in this block
+	tests/golden/result_01_basic.go:18:6: other declaration of Result_Ok
+tests/golden/result_05_go_interop.go:24:6: Result_Err redeclared in this block
+	tests/golden/result_01_basic.go:21:6: other declaration of Result_Err
+tests/golden/result_05_go_interop.go:24:6: too many errors
+=== RUN   TestTranslateCompletionList
+--- PASS: TestTranslateCompletionList (0.00s)
+=== RUN   TestTranslateHover
+--- PASS: TestTranslateHover (0.00s)
+=== RUN   TestTranslateDefinitionLocations
+--- PASS: TestTranslateDefinitionLocations (0.00s)
+=== RUN   TestTranslateDiagnostics
+--- PASS: TestTranslateDiagnostics (0.00s)
+=== RUN   TestTranslateDiagnostics_WithRelatedInformation
+--- PASS: TestTranslateDiagnostics_WithRelatedInformation (0.00s)
+=== RUN   TestTranslateCompletionList_EmptyList
+--- PASS: TestTranslateCompletionList_EmptyList (0.00s)
+=== RUN   TestTranslateDefinitionLocations_EmptyList
+--- PASS: TestTranslateDefinitionLocations_EmptyList (0.00s)
+=== RUN   TestTranslateDiagnostics_EmptyList
+--- PASS: TestTranslateDiagnostics_EmptyList (0.00s)
+=== RUN   TestTranslateHover_NoRange
+--- PASS: TestTranslateHover_NoRange (0.00s)
+=== RUN   TestTranslateCompletionList_WithAdditionalTextEdits
+--- PASS: TestTranslateCompletionList_WithAdditionalTextEdits (0.00s)
+=== RUN   TestLogger_Levels
+=== RUN   TestLogger_Levels/debug_logs_at_debug_level
+=== RUN   TestLogger_Levels/debug_hidden_at_info_level
+=== RUN   TestLogger_Levels/info_logs_at_info_level
+=== RUN   TestLogger_Levels/info_logs_at_debug_level
+=== RUN   TestLogger_Levels/warn_always_logs
+=== RUN   TestLogger_Levels/error_always_logs
+--- PASS: TestLogger_Levels (0.00s)
+    --- PASS: TestLogger_Levels/debug_logs_at_debug_level (0.00s)
+    --- PASS: TestLogger_Levels/debug_hidden_at_info_level (0.00s)
+    --- PASS: TestLogger_Levels/info_logs_at_info_level (0.00s)
+    --- PASS: TestLogger_Levels/info_logs_at_debug_level (0.00s)
+    --- PASS: TestLogger_Levels/warn_always_logs (0.00s)
+    --- PASS: TestLogger_Levels/error_always_logs (0.00s)
+=== RUN   TestLogger_ParseLevel
+=== RUN   TestLogger_ParseLevel/debug
+=== RUN   TestLogger_ParseLevel/DEBUG
+=== RUN   TestLogger_ParseLevel/info
+=== RUN   TestLogger_ParseLevel/INFO
+=== RUN   TestLogger_ParseLevel/warn
+=== RUN   TestLogger_ParseLevel/warning
+=== RUN   TestLogger_ParseLevel/error
+=== RUN   TestLogger_ParseLevel/unknown
+=== RUN   TestLogger_ParseLevel/#00
+--- PASS: TestLogger_ParseLevel (0.00s)
+    --- PASS: TestLogger_ParseLevel/debug (0.00s)
+    --- PASS: TestLogger_ParseLevel/DEBUG (0.00s)
+    --- PASS: TestLogger_ParseLevel/info (0.00s)
+    --- PASS: TestLogger_ParseLevel/INFO (0.00s)
+    --- PASS: TestLogger_ParseLevel/warn (0.00s)
+    --- PASS: TestLogger_ParseLevel/warning (0.00s)
+    --- PASS: TestLogger_ParseLevel/error (0.00s)
+    --- PASS: TestLogger_ParseLevel/unknown (0.00s)
+    --- PASS: TestLogger_ParseLevel/#00 (0.00s)
+=== RUN   TestLogger_Format
+--- PASS: TestLogger_Format (0.00s)
+=== RUN   TestSourceMapCache_HitAndMiss
+--- PASS: TestSourceMapCache_HitAndMiss (0.00s)
+=== RUN   TestSourceMapCache_VersionValidation
+=== RUN   TestSourceMapCache_VersionValidation/version_1_(supported)
+=== RUN   TestSourceMapCache_VersionValidation/version_0_(legacy,_defaults_to_1)
+=== RUN   TestSourceMapCache_VersionValidation/version_99_(unsupported)
+--- PASS: TestSourceMapCache_VersionValidation (0.00s)
+    --- PASS: TestSourceMapCache_VersionValidation/version_1_(supported) (0.00s)
+    --- PASS: TestSourceMapCache_VersionValidation/version_0_(legacy,_defaults_to_1) (0.00s)
+    --- PASS: TestSourceMapCache_VersionValidation/version_99_(unsupported) (0.00s)
+=== RUN   TestSourceMapCache_Invalidation
+--- PASS: TestSourceMapCache_Invalidation (0.00s)
+=== RUN   TestSourceMapCache_InvalidateAll
+--- PASS: TestSourceMapCache_InvalidateAll (0.00s)
+=== RUN   TestSourceMapCache_MissingFile
+--- PASS: TestSourceMapCache_MissingFile (0.00s)
+=== RUN   TestSourceMapCache_InvalidJSON
+--- PASS: TestSourceMapCache_InvalidJSON (0.00s)
+=== RUN   TestTranslatePosition_DingoToGo
+--- PASS: TestTranslatePosition_DingoToGo (0.00s)
+=== RUN   TestTranslatePosition_GoToDingo
+--- PASS: TestTranslatePosition_GoToDingo (0.00s)
+=== RUN   TestTranslateRange
+--- PASS: TestTranslateRange (0.00s)
+=== RUN   TestHelperFunctions
+=== RUN   TestHelperFunctions/dingoToGo
+=== RUN   TestHelperFunctions/dingoToGo_non-dingo
+=== RUN   TestHelperFunctions/goToDingo
+=== RUN   TestHelperFunctions/goToDingo_non-go
+--- PASS: TestHelperFunctions (0.00s)
+    --- PASS: TestHelperFunctions/dingoToGo (0.00s)
+    --- PASS: TestHelperFunctions/dingoToGo_non-dingo (0.00s)
+    --- PASS: TestHelperFunctions/goToDingo (0.00s)
+    --- PASS: TestHelperFunctions/goToDingo_non-go (0.00s)
+=== RUN   TestIsDingoFile
+--- PASS: TestIsDingoFile (0.00s)
+=== RUN   TestParseTranspileError_ValidError
+--- PASS: TestParseTranspileError_ValidError (0.00s)
+=== RUN   TestParseTranspileError_GenericError
+--- PASS: TestParseTranspileError_GenericError (0.00s)
+=== RUN   TestParseTranspileError_NoError
+--- PASS: TestParseTranspileError_NoError (0.00s)
+=== RUN   TestParseTranspileError_MultilineError
+--- PASS: TestParseTranspileError_MultilineError (0.00s)
+=== RUN   TestAutoTranspiler_OnFileChange
+    transpiler_test.go:96: Integration test - requires 'dingo' binary
+--- SKIP: TestAutoTranspiler_OnFileChange (0.00s)
+=== RUN   TestFileWatcher_DetectDingoFileChange
+--- PASS: TestFileWatcher_DetectDingoFileChange (0.50s)
+=== RUN   TestFileWatcher_IgnoreNonDingoFiles
+--- PASS: TestFileWatcher_IgnoreNonDingoFiles (0.70s)
+=== RUN   TestFileWatcher_DebouncingMultipleChanges
+--- PASS: TestFileWatcher_DebouncingMultipleChanges (1.26s)
+=== RUN   TestFileWatcher_IgnoreDirectories
+--- PASS: TestFileWatcher_IgnoreDirectories (0.00s)
+=== RUN   TestFileWatcher_NestedDirectories
+--- PASS: TestFileWatcher_NestedDirectories (0.50s)
+=== RUN   TestFileWatcher_Close
+--- PASS: TestFileWatcher_Close (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/lsp	(cached)
+=== RUN   TestSafeNavigation
+=== RUN   TestSafeNavigation/simple_safe_navigation
+=== RUN   TestSafeNavigation/chained_safe_navigation
+--- PASS: TestSafeNavigation (0.00s)
+    --- PASS: TestSafeNavigation/simple_safe_navigation (0.00s)
+    --- PASS: TestSafeNavigation/chained_safe_navigation (0.00s)
+=== RUN   TestNullCoalescing
+=== RUN   TestNullCoalescing/simple_null_coalescing
+=== RUN   TestNullCoalescing/chained_null_coalescing
+=== RUN   TestNullCoalescing/null_coalescing_with_expression
+--- PASS: TestNullCoalescing (0.00s)
+    --- PASS: TestNullCoalescing/simple_null_coalescing (0.00s)
+    --- PASS: TestNullCoalescing/chained_null_coalescing (0.00s)
+    --- PASS: TestNullCoalescing/null_coalescing_with_expression (0.00s)
+=== RUN   TestTernary
+    new_features_test.go:74: Ternary parsing not yet implemented - deferred to Phase 3+
+--- SKIP: TestTernary (0.00s)
+=== RUN   TestLambda
+=== RUN   TestLambda/rust_style_single_param
+=== RUN   TestLambda/rust_style_multiple_params
+=== RUN   TestLambda/rust_style_no_params
+=== RUN   TestLambda/rust_style_with_type_annotation
+=== RUN   TestLambda/arrow_style_single_param
+=== RUN   TestLambda/arrow_style_multiple_params
+=== RUN   TestLambda/arrow_style_no_params
+--- PASS: TestLambda (0.00s)
+    --- PASS: TestLambda/rust_style_single_param (0.00s)
+    --- PASS: TestLambda/rust_style_multiple_params (0.00s)
+    --- PASS: TestLambda/rust_style_no_params (0.00s)
+    --- PASS: TestLambda/rust_style_with_type_annotation (0.00s)
+    --- PASS: TestLambda/arrow_style_single_param (0.00s)
+    --- PASS: TestLambda/arrow_style_multiple_params (0.00s)
+    --- PASS: TestLambda/arrow_style_no_params (0.00s)
+=== RUN   TestOperatorPrecedence
+=== RUN   TestOperatorPrecedence/ternary_lower_than_null_coalescing
+    new_features_test.go:204: Requires ternary parsing (deferred to Phase 3+)
+=== RUN   TestOperatorPrecedence/null_coalescing_lower_than_comparison
+=== RUN   TestOperatorPrecedence/safe_navigation_with_error_propagation
+=== RUN   TestOperatorPrecedence/ternary_with_safe_navigation
+    new_features_test.go:204: Requires ternary parsing (deferred to Phase 3+)
+=== RUN   TestOperatorPrecedence/complex_expression
+    new_features_test.go:204: Requires ternary parsing (deferred to Phase 3+)
+--- PASS: TestOperatorPrecedence (0.00s)
+    --- SKIP: TestOperatorPrecedence/ternary_lower_than_null_coalescing (0.00s)
+    --- PASS: TestOperatorPrecedence/null_coalescing_lower_than_comparison (0.00s)
+    --- PASS: TestOperatorPrecedence/safe_navigation_with_error_propagation (0.00s)
+    --- SKIP: TestOperatorPrecedence/ternary_with_safe_navigation (0.00s)
+    --- SKIP: TestOperatorPrecedence/complex_expression (0.00s)
+=== RUN   TestOperatorChaining
+=== RUN   TestOperatorChaining/multiple_safe_navigation
+=== RUN   TestOperatorChaining/multiple_null_coalescing
+=== RUN   TestOperatorChaining/safe_navigation_with_method_chains
+    new_features_test.go:246: Method calls after safe navigation not yet supported - deferred to Phase 3 (known edge case)
+=== RUN   TestOperatorChaining/mixed_operators
+--- PASS: TestOperatorChaining (0.00s)
+    --- PASS: TestOperatorChaining/multiple_safe_navigation (0.00s)
+    --- PASS: TestOperatorChaining/multiple_null_coalescing (0.00s)
+    --- SKIP: TestOperatorChaining/safe_navigation_with_method_chains (0.00s)
+    --- PASS: TestOperatorChaining/mixed_operators (0.00s)
+=== RUN   TestLambdaInExpressions
+=== RUN   TestLambdaInExpressions/lambda_with_null_coalescing
+--- PASS: TestLambdaInExpressions (0.00s)
+    --- PASS: TestLambdaInExpressions/lambda_with_null_coalescing (0.00s)
+=== RUN   TestFullProgram
+=== RUN   TestFullProgram/function_with_safe_navigation
+    new_features_test.go:339: ParseFile() error = test.dingo:2:22: missing ',' in parameter list (and 5 more errors)
+=== RUN   TestFullProgram/function_with_ternary
+    new_features_test.go:332: Requires ternary parsing (deferred to Phase 3+)
+=== RUN   TestFullProgram/function_with_lambda
+    new_features_test.go:339: ParseFile() error = test.dingo:3:6: expected ';', found double
+=== RUN   TestFullProgram/mixed_operators
+    new_features_test.go:332: Requires ternary parsing (deferred to Phase 3+)
+--- FAIL: TestFullProgram (0.00s)
+    --- FAIL: TestFullProgram/function_with_safe_navigation (0.00s)
+    --- SKIP: TestFullProgram/function_with_ternary (0.00s)
+    --- FAIL: TestFullProgram/function_with_lambda (0.00s)
+    --- SKIP: TestFullProgram/mixed_operators (0.00s)
+=== RUN   TestDisambiguation
+=== RUN   TestDisambiguation/question_mark_-_error_propagation
+=== RUN   TestDisambiguation/question_mark_dot_-_safe_navigation
+=== RUN   TestDisambiguation/double_question_mark_-_null_coalescing
+=== RUN   TestDisambiguation/question_colon_-_ternary
+    new_features_test.go:380: Requires ternary parsing (deferred to Phase 3+)
+--- PASS: TestDisambiguation (0.00s)
+    --- PASS: TestDisambiguation/question_mark_-_error_propagation (0.00s)
+    --- PASS: TestDisambiguation/question_mark_dot_-_safe_navigation (0.00s)
+    --- PASS: TestDisambiguation/double_question_mark_-_null_coalescing (0.00s)
+    --- SKIP: TestDisambiguation/question_colon_-_ternary (0.00s)
+=== RUN   TestParseHelloWorld
+    parser_test.go:27: ParseFile failed: hello.dingo:4:6: expected ';', found message (and 1 more errors)
+--- FAIL: TestParseHelloWorld (0.00s)
+=== RUN   TestParseExpression
+=== RUN   TestParseExpression/simple_add
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+=== RUN   TestParseExpression/multiply
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+=== RUN   TestParseExpression/comparison
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+=== RUN   TestParseExpression/function_call
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+=== RUN   TestParseExpression/complex
+    parser_test.go:60: Skipping ParseExpr test - needs refactoring to support standard expressions
+--- PASS: TestParseExpression (0.00s)
+    --- SKIP: TestParseExpression/simple_add (0.00s)
+    --- SKIP: TestParseExpression/multiply (0.00s)
+    --- SKIP: TestParseExpression/comparison (0.00s)
+    --- SKIP: TestParseExpression/function_call (0.00s)
+    --- SKIP: TestParseExpression/complex (0.00s)
+FAIL
+FAIL	github.com/MadAppGang/dingo/pkg/parser	0.403s
+=== RUN   TestContext_ReportError
+--- PASS: TestContext_ReportError (0.00s)
+=== RUN   TestContext_GetErrors_Empty
+--- PASS: TestContext_GetErrors_Empty (0.00s)
+=== RUN   TestContext_ClearErrors
+--- PASS: TestContext_ClearErrors (0.00s)
+=== RUN   TestContext_NextTempVar
+--- PASS: TestContext_NextTempVar (0.00s)
+=== RUN   TestContext_NextTempVar_UniqueNames
+--- PASS: TestContext_NextTempVar_UniqueNames (0.00s)
+=== RUN   TestContext_ErrorsWithLocation
+--- PASS: TestContext_ErrorsWithLocation (0.00s)
+=== RUN   TestContext_BuildParentMap
+--- PASS: TestContext_BuildParentMap (0.00s)
+=== RUN   TestContext_GetParent_NilMap
+--- PASS: TestContext_GetParent_NilMap (0.00s)
+=== RUN   TestContext_GetParent_VariousNodeTypes
+=== RUN   TestContext_GetParent_VariousNodeTypes/AssignStmt_parent_is_BlockStmt
+=== RUN   TestContext_GetParent_VariousNodeTypes/IfStmt_parent_is_BlockStmt
+=== RUN   TestContext_GetParent_VariousNodeTypes/ForStmt_parent_is_BlockStmt
+=== RUN   TestContext_GetParent_VariousNodeTypes/StructType_parent_is_TypeSpec
+--- PASS: TestContext_GetParent_VariousNodeTypes (0.00s)
+    --- PASS: TestContext_GetParent_VariousNodeTypes/AssignStmt_parent_is_BlockStmt (0.00s)
+    --- PASS: TestContext_GetParent_VariousNodeTypes/IfStmt_parent_is_BlockStmt (0.00s)
+    --- PASS: TestContext_GetParent_VariousNodeTypes/ForStmt_parent_is_BlockStmt (0.00s)
+    --- PASS: TestContext_GetParent_VariousNodeTypes/StructType_parent_is_TypeSpec (0.00s)
+=== RUN   TestContext_WalkParents
+--- PASS: TestContext_WalkParents (0.00s)
+=== RUN   TestContext_WalkParents_StopsEarly
+--- PASS: TestContext_WalkParents_StopsEarly (0.00s)
+=== RUN   TestContext_WalkParents_NilMap
+--- PASS: TestContext_WalkParents_NilMap (0.00s)
+=== RUN   TestContext_BuildParentMap_EmptyFile
+--- PASS: TestContext_BuildParentMap_EmptyFile (0.00s)
+=== RUN   TestContext_BuildParentMap_LargeFile
+--- PASS: TestContext_BuildParentMap_LargeFile (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/plugin	(cached)
+=== RUN   TestIsAddressable_Identifiers
+=== RUN   TestIsAddressable_Identifiers/simple_identifier
+=== RUN   TestIsAddressable_Identifiers/identifier_user
+=== RUN   TestIsAddressable_Identifiers/identifier_name
+--- PASS: TestIsAddressable_Identifiers (0.00s)
+    --- PASS: TestIsAddressable_Identifiers/simple_identifier (0.00s)
+    --- PASS: TestIsAddressable_Identifiers/identifier_user (0.00s)
+    --- PASS: TestIsAddressable_Identifiers/identifier_name (0.00s)
+=== RUN   TestIsAddressable_Selectors
+=== RUN   TestIsAddressable_Selectors/field_selector
+=== RUN   TestIsAddressable_Selectors/package_selector
+=== RUN   TestIsAddressable_Selectors/nested_selector
+--- PASS: TestIsAddressable_Selectors (0.00s)
+    --- PASS: TestIsAddressable_Selectors/field_selector (0.00s)
+    --- PASS: TestIsAddressable_Selectors/package_selector (0.00s)
+    --- PASS: TestIsAddressable_Selectors/nested_selector (0.00s)
+=== RUN   TestIsAddressable_IndexExpressions
+=== RUN   TestIsAddressable_IndexExpressions/array_index
+=== RUN   TestIsAddressable_IndexExpressions/map_index
+=== RUN   TestIsAddressable_IndexExpressions/literal_index
+--- PASS: TestIsAddressable_IndexExpressions (0.00s)
+    --- PASS: TestIsAddressable_IndexExpressions/array_index (0.00s)
+    --- PASS: TestIsAddressable_IndexExpressions/map_index (0.00s)
+    --- PASS: TestIsAddressable_IndexExpressions/literal_index (0.00s)
+=== RUN   TestIsAddressable_Dereferences
+=== RUN   TestIsAddressable_Dereferences/simple_dereference
+=== RUN   TestIsAddressable_Dereferences/nested_dereference
+--- PASS: TestIsAddressable_Dereferences (0.00s)
+    --- PASS: TestIsAddressable_Dereferences/simple_dereference (0.00s)
+    --- PASS: TestIsAddressable_Dereferences/nested_dereference (0.00s)
+=== RUN   TestIsAddressable_ParenExpressions
+=== RUN   TestIsAddressable_ParenExpressions/parenthesized_identifier_(addressable)
+=== RUN   TestIsAddressable_ParenExpressions/parenthesized_literal_(not_addressable)
+=== RUN   TestIsAddressable_ParenExpressions/double_parenthesized_identifier
+--- PASS: TestIsAddressable_ParenExpressions (0.00s)
+    --- PASS: TestIsAddressable_ParenExpressions/parenthesized_identifier_(addressable) (0.00s)
+    --- PASS: TestIsAddressable_ParenExpressions/parenthesized_literal_(not_addressable) (0.00s)
+    --- PASS: TestIsAddressable_ParenExpressions/double_parenthesized_identifier (0.00s)
+=== RUN   TestIsAddressable_Literals
+=== RUN   TestIsAddressable_Literals/integer_literal
+=== RUN   TestIsAddressable_Literals/string_literal
+=== RUN   TestIsAddressable_Literals/float_literal
+=== RUN   TestIsAddressable_Literals/boolean_literal_(true)
+--- PASS: TestIsAddressable_Literals (0.00s)
+    --- PASS: TestIsAddressable_Literals/integer_literal (0.00s)
+    --- PASS: TestIsAddressable_Literals/string_literal (0.00s)
+    --- PASS: TestIsAddressable_Literals/float_literal (0.00s)
+    --- PASS: TestIsAddressable_Literals/boolean_literal_(true) (0.00s)
+=== RUN   TestIsAddressable_CompositeLiterals
+=== RUN   TestIsAddressable_CompositeLiterals/struct_literal
+=== RUN   TestIsAddressable_CompositeLiterals/slice_literal
+=== RUN   TestIsAddressable_CompositeLiterals/map_literal
+--- PASS: TestIsAddressable_CompositeLiterals (0.00s)
+    --- PASS: TestIsAddressable_CompositeLiterals/struct_literal (0.00s)
+    --- PASS: TestIsAddressable_CompositeLiterals/slice_literal (0.00s)
+    --- PASS: TestIsAddressable_CompositeLiterals/map_literal (0.00s)
+=== RUN   TestIsAddressable_FunctionCalls
+=== RUN   TestIsAddressable_FunctionCalls/simple_function_call
+=== RUN   TestIsAddressable_FunctionCalls/method_call
+--- PASS: TestIsAddressable_FunctionCalls (0.00s)
+    --- PASS: TestIsAddressable_FunctionCalls/simple_function_call (0.00s)
+    --- PASS: TestIsAddressable_FunctionCalls/method_call (0.00s)
+=== RUN   TestIsAddressable_BinaryExpressions
+=== RUN   TestIsAddressable_BinaryExpressions/addition
+=== RUN   TestIsAddressable_BinaryExpressions/multiplication
+--- PASS: TestIsAddressable_BinaryExpressions (0.00s)
+    --- PASS: TestIsAddressable_BinaryExpressions/addition (0.00s)
+    --- PASS: TestIsAddressable_BinaryExpressions/multiplication (0.00s)
+=== RUN   TestIsAddressable_UnaryExpressions
+=== RUN   TestIsAddressable_UnaryExpressions/negation
+=== RUN   TestIsAddressable_UnaryExpressions/logical_not
+--- PASS: TestIsAddressable_UnaryExpressions (0.00s)
+    --- PASS: TestIsAddressable_UnaryExpressions/negation (0.00s)
+    --- PASS: TestIsAddressable_UnaryExpressions/logical_not (0.00s)
+=== RUN   TestIsAddressable_TypeAssertions
+=== RUN   TestIsAddressable_TypeAssertions/type_assertion
+--- PASS: TestIsAddressable_TypeAssertions (0.00s)
+    --- PASS: TestIsAddressable_TypeAssertions/type_assertion (0.00s)
+=== RUN   TestIsAddressable_NilExpression
+--- PASS: TestIsAddressable_NilExpression (0.00s)
+=== RUN   TestWrapInIIFE_BasicStructure
+--- PASS: TestWrapInIIFE_BasicStructure (0.00s)
+=== RUN   TestWrapInIIFE_MultipleCalls
+--- PASS: TestWrapInIIFE_MultipleCalls (0.00s)
+=== RUN   TestMaybeWrapForAddressability_Addressable
+--- PASS: TestMaybeWrapForAddressability_Addressable (0.00s)
+=== RUN   TestMaybeWrapForAddressability_NonAddressable
+--- PASS: TestMaybeWrapForAddressability_NonAddressable (0.00s)
+=== RUN   TestParseTypeString_SimpleTypes
+=== RUN   TestParseTypeString_SimpleTypes/int
+=== RUN   TestParseTypeString_SimpleTypes/string
+=== RUN   TestParseTypeString_SimpleTypes/error
+=== RUN   TestParseTypeString_SimpleTypes/User
+=== RUN   TestParseTypeString_SimpleTypes/MyCustomType
+--- PASS: TestParseTypeString_SimpleTypes (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/int (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/string (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/error (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/User (0.00s)
+    --- PASS: TestParseTypeString_SimpleTypes/MyCustomType (0.00s)
+=== RUN   TestParseTypeString_EmptyType
+--- PASS: TestParseTypeString_EmptyType (0.00s)
+=== RUN   TestFormatExprForDebug
+=== RUN   TestFormatExprForDebug/nil_expression
+=== RUN   TestFormatExprForDebug/identifier
+=== RUN   TestFormatExprForDebug/integer_literal
+=== RUN   TestFormatExprForDebug/string_literal
+=== RUN   TestFormatExprForDebug/selector
+=== RUN   TestFormatExprForDebug/function_call
+=== RUN   TestFormatExprForDebug/binary_expression
+=== RUN   TestFormatExprForDebug/unary_expression
+=== RUN   TestFormatExprForDebug/star_expression
+=== RUN   TestFormatExprForDebug/index_expression
+--- PASS: TestFormatExprForDebug (0.00s)
+    --- PASS: TestFormatExprForDebug/nil_expression (0.00s)
+    --- PASS: TestFormatExprForDebug/identifier (0.00s)
+    --- PASS: TestFormatExprForDebug/integer_literal (0.00s)
+    --- PASS: TestFormatExprForDebug/string_literal (0.00s)
+    --- PASS: TestFormatExprForDebug/selector (0.00s)
+    --- PASS: TestFormatExprForDebug/function_call (0.00s)
+    --- PASS: TestFormatExprForDebug/binary_expression (0.00s)
+    --- PASS: TestFormatExprForDebug/unary_expression (0.00s)
+    --- PASS: TestFormatExprForDebug/star_expression (0.00s)
+    --- PASS: TestFormatExprForDebug/index_expression (0.00s)
+=== RUN   TestFormatExprForDebug_CompositeLiteral
+--- PASS: TestFormatExprForDebug_CompositeLiteral (0.00s)
+=== RUN   TestEdgeCase_AddressableComplexCases
+=== RUN   TestEdgeCase_AddressableComplexCases/slice_expression_(not_addressable)
+=== RUN   TestEdgeCase_AddressableComplexCases/function_literal_(not_addressable)
+=== RUN   TestEdgeCase_AddressableComplexCases/array_type_expression_(not_addressable)
+=== RUN   TestEdgeCase_AddressableComplexCases/struct_type_expression_(not_addressable)
+--- PASS: TestEdgeCase_AddressableComplexCases (0.00s)
+    --- PASS: TestEdgeCase_AddressableComplexCases/slice_expression_(not_addressable) (0.00s)
+    --- PASS: TestEdgeCase_AddressableComplexCases/function_literal_(not_addressable) (0.00s)
+    --- PASS: TestEdgeCase_AddressableComplexCases/array_type_expression_(not_addressable) (0.00s)
+    --- PASS: TestEdgeCase_AddressableComplexCases/struct_type_expression_(not_addressable) (0.00s)
+=== RUN   TestWrapInIIFE_TypePreservation
+=== RUN   TestWrapInIIFE_TypePreservation/int
+=== RUN   TestWrapInIIFE_TypePreservation/string
+=== RUN   TestWrapInIIFE_TypePreservation/error
+=== RUN   TestWrapInIIFE_TypePreservation/User
+=== RUN   TestWrapInIIFE_TypePreservation/MyCustomType
+--- PASS: TestWrapInIIFE_TypePreservation (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/int (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/string (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/error (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/User (0.00s)
+    --- PASS: TestWrapInIIFE_TypePreservation/MyCustomType (0.00s)
+=== RUN   TestWrapInIIFE_ValidGoCode
+--- PASS: TestWrapInIIFE_ValidGoCode (0.00s)
+=== RUN   TestIsAddressable_Comprehensive
+=== RUN   TestIsAddressable_Comprehensive/addressable_identifier
+=== RUN   TestIsAddressable_Comprehensive/addressable_selector
+=== RUN   TestIsAddressable_Comprehensive/addressable_index
+=== RUN   TestIsAddressable_Comprehensive/addressable_dereference
+=== RUN   TestIsAddressable_Comprehensive/addressable_paren_ident
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_int_literal
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_string_literal
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_composite_lit
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_function_call
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_binary_expr
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_unary_expr
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_type_assert
+=== RUN   TestIsAddressable_Comprehensive/non-addressable_paren_literal
+=== RUN   TestIsAddressable_Comprehensive/edge_nil
+=== RUN   TestIsAddressable_Comprehensive/edge_slice_expr
+=== RUN   TestIsAddressable_Comprehensive/edge_func_lit
+=== RUN   TestIsAddressable_Comprehensive/edge_array_type
+--- PASS: TestIsAddressable_Comprehensive (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_identifier (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_selector (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_index (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_dereference (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/addressable_paren_ident (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_int_literal (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_string_literal (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_composite_lit (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_function_call (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_binary_expr (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_unary_expr (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_type_assert (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/non-addressable_paren_literal (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/edge_nil (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/edge_slice_expr (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/edge_func_lit (0.00s)
+    --- PASS: TestIsAddressable_Comprehensive/edge_array_type (0.00s)
+=== RUN   TestNoneContextPlugin_Discovery
+--- PASS: TestNoneContextPlugin_Discovery (0.00s)
+=== RUN   TestNoneContextPlugin_ReturnContext
+    none_context_test.go:90: Type checking warning (expected): test.go:16:9: undefined: None
+--- PASS: TestNoneContextPlugin_ReturnContext (0.00s)
+=== RUN   TestNoneContextPlugin_StructFieldContext
+    none_context_test.go:167: Type checking warning (expected): test.go:4:9: undefined: OptionTag
+    none_context_test.go:195: Type inference failed (expected without full go/types): no valid type context found
+    none_context_test.go:196: Skipping struct field inference test - requires full go/types integration
+--- SKIP: TestNoneContextPlugin_StructFieldContext (0.00s)
+=== RUN   TestNoneContextPlugin_NoContext
+--- PASS: TestNoneContextPlugin_NoContext (0.00s)
+=== RUN   TestNoneContextPlugin_ExplicitTypeAnnotation
+--- PASS: TestNoneContextPlugin_ExplicitTypeAnnotation (0.00s)
+=== RUN   TestNoneContextPlugin_Transform
+--- PASS: TestNoneContextPlugin_Transform (0.00s)
+=== RUN   TestNoneContextPlugin_GetTypeName
+=== RUN   TestNoneContextPlugin_GetTypeName/simple_identifier
+=== RUN   TestNoneContextPlugin_GetTypeName/string_type
+--- PASS: TestNoneContextPlugin_GetTypeName (0.00s)
+    --- PASS: TestNoneContextPlugin_GetTypeName/simple_identifier (0.00s)
+    --- PASS: TestNoneContextPlugin_GetTypeName/string_type (0.00s)
+=== RUN   TestNoneContextPlugin_ExtractOptionType
+=== RUN   TestNoneContextPlugin_ExtractOptionType/already_transformed
+=== RUN   TestNoneContextPlugin_ExtractOptionType/Option_string
+--- PASS: TestNoneContextPlugin_ExtractOptionType (0.00s)
+    --- PASS: TestNoneContextPlugin_ExtractOptionType/already_transformed (0.00s)
+    --- PASS: TestNoneContextPlugin_ExtractOptionType/Option_string (0.00s)
+=== RUN   TestNoneContextPlugin_CreateNoneValue
+--- PASS: TestNoneContextPlugin_CreateNoneValue (0.00s)
+=== RUN   TestInferTypeFromExpr_WithGoTypes
+=== RUN   TestInferTypeFromExpr_WithGoTypes/int_literal
+=== RUN   TestInferTypeFromExpr_WithGoTypes/string_literal
+=== RUN   TestInferTypeFromExpr_WithGoTypes/float_literal
+=== RUN   TestInferTypeFromExpr_WithGoTypes/rune_literal
+--- PASS: TestInferTypeFromExpr_WithGoTypes (0.00s)
+    --- PASS: TestInferTypeFromExpr_WithGoTypes/int_literal (0.00s)
+    --- PASS: TestInferTypeFromExpr_WithGoTypes/string_literal (0.00s)
+    --- PASS: TestInferTypeFromExpr_WithGoTypes/float_literal (0.00s)
+    --- PASS: TestInferTypeFromExpr_WithGoTypes/rune_literal (0.00s)
+=== RUN   TestHandleSomeConstructor_Addressability
+=== RUN   TestHandleSomeConstructor_Addressability/literal_(non-addressable)
+=== RUN   TestHandleSomeConstructor_Addressability/identifier_(addressable)
+=== RUN   TestHandleSomeConstructor_Addressability/string_literal_(non-addressable)
+--- PASS: TestHandleSomeConstructor_Addressability (0.00s)
+    --- PASS: TestHandleSomeConstructor_Addressability/literal_(non-addressable) (0.00s)
+    --- PASS: TestHandleSomeConstructor_Addressability/identifier_(addressable) (0.00s)
+    --- PASS: TestHandleSomeConstructor_Addressability/string_literal_(non-addressable) (0.00s)
+=== RUN   TestInferNoneTypeFromContext
+--- PASS: TestInferNoneTypeFromContext (0.00s)
+=== RUN   TestDesanitizeTypeName
+=== RUN   TestDesanitizeTypeName/simple_type
+=== RUN   TestDesanitizeTypeName/pointer_type
+=== RUN   TestDesanitizeTypeName/slice_type
+=== RUN   TestDesanitizeTypeName/nested_pointer
+--- PASS: TestDesanitizeTypeName (0.00s)
+    --- PASS: TestDesanitizeTypeName/simple_type (0.00s)
+    --- PASS: TestDesanitizeTypeName/pointer_type (0.00s)
+    --- PASS: TestDesanitizeTypeName/slice_type (0.00s)
+    --- PASS: TestDesanitizeTypeName/nested_pointer (0.00s)
+=== RUN   TestSanitizeTypeName
+=== RUN   TestSanitizeTypeName/simple_type
+=== RUN   TestSanitizeTypeName/pointer_type
+=== RUN   TestSanitizeTypeName/slice_type
+=== RUN   TestSanitizeTypeName/map_type
+--- PASS: TestSanitizeTypeName (0.00s)
+    --- PASS: TestSanitizeTypeName/simple_type (0.00s)
+    --- PASS: TestSanitizeTypeName/pointer_type (0.00s)
+    --- PASS: TestSanitizeTypeName/slice_type (0.00s)
+    --- PASS: TestSanitizeTypeName/map_type (0.00s)
+=== RUN   TestHandleNoneExpression_ErrorReporting
+--- PASS: TestHandleNoneExpression_ErrorReporting (0.00s)
+=== RUN   TestPatternMatchPlugin_Name
+--- PASS: TestPatternMatchPlugin_Name (0.00s)
+=== RUN   TestPatternMatchPlugin_ExhaustiveResult
+--- PASS: TestPatternMatchPlugin_ExhaustiveResult (0.00s)
+=== RUN   TestPatternMatchPlugin_NonExhaustiveResult
+--- PASS: TestPatternMatchPlugin_NonExhaustiveResult (0.00s)
+=== RUN   TestPatternMatchPlugin_ExhaustiveOption
+--- PASS: TestPatternMatchPlugin_ExhaustiveOption (0.00s)
+=== RUN   TestPatternMatchPlugin_NonExhaustiveOption
+--- PASS: TestPatternMatchPlugin_NonExhaustiveOption (0.00s)
+=== RUN   TestPatternMatchPlugin_WildcardCoversAll
+--- PASS: TestPatternMatchPlugin_WildcardCoversAll (0.00s)
+=== RUN   TestPatternMatchPlugin_GetAllVariants
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Result_type
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Result_T_E_type
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Option_type
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Option_T_type
+=== RUN   TestPatternMatchPlugin_GetAllVariants/Unknown_type
+--- PASS: TestPatternMatchPlugin_GetAllVariants (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Result_type (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Result_T_E_type (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Option_type (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Option_T_type (0.00s)
+    --- PASS: TestPatternMatchPlugin_GetAllVariants/Unknown_type (0.00s)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Ok(x)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Err(e)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Some(v)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/None
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/_
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Active(id)
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/Pending
+=== RUN   TestPatternMatchPlugin_ExtractConstructorName/_Ok(x)_
+--- PASS: TestPatternMatchPlugin_ExtractConstructorName (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Ok(x) (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Err(e) (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Some(v) (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/None (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/_ (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Active(id) (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/Pending (0.00s)
+    --- PASS: TestPatternMatchPlugin_ExtractConstructorName/_Ok(x)_ (0.00s)
+=== RUN   TestPatternMatchPlugin_IsExpressionMode
+--- PASS: TestPatternMatchPlugin_IsExpressionMode (0.00s)
+=== RUN   TestPatternMatchPlugin_MultipleMatches
+--- PASS: TestPatternMatchPlugin_MultipleMatches (0.00s)
+=== RUN   TestPatternMatchPlugin_Transform_AddsPanic
+--- PASS: TestPatternMatchPlugin_Transform_AddsPanic (0.00s)
+=== RUN   TestPatternMatchPlugin_Transform_WildcardNoPanic
+--- PASS: TestPatternMatchPlugin_Transform_WildcardNoPanic (0.00s)
+=== RUN   TestTypeDeclaration_BasicResultIntError
+--- PASS: TestTypeDeclaration_BasicResultIntError (0.00s)
+=== RUN   TestTypeDeclaration_ComplexPointerTypes
+--- PASS: TestTypeDeclaration_ComplexPointerTypes (0.00s)
+=== RUN   TestTypeDeclaration_ComplexSliceTypes
+--- PASS: TestTypeDeclaration_ComplexSliceTypes (0.00s)
+=== RUN   TestTypeDeclaration_TypeNameSanitization
+=== RUN   TestTypeDeclaration_TypeNameSanitization/simple
+=== RUN   TestTypeDeclaration_TypeNameSanitization/pointer
+=== RUN   TestTypeDeclaration_TypeNameSanitization/slice
+=== RUN   TestTypeDeclaration_TypeNameSanitization/map
+=== RUN   TestTypeDeclaration_TypeNameSanitization/package_qualified
+=== RUN   TestTypeDeclaration_TypeNameSanitization/nested_pointer_slice
+=== RUN   TestTypeDeclaration_TypeNameSanitization/multiple_dots
+=== RUN   TestTypeDeclaration_TypeNameSanitization/array
+--- PASS: TestTypeDeclaration_TypeNameSanitization (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/simple (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/pointer (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/slice (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/map (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/package_qualified (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/nested_pointer_slice (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/multiple_dots (0.00s)
+    --- PASS: TestTypeDeclaration_TypeNameSanitization/array (0.00s)
+=== RUN   TestTypeDeclaration_MultipleResultTypesInSameFile
+--- PASS: TestTypeDeclaration_MultipleResultTypesInSameFile (0.00s)
+=== RUN   TestConstructor_OkWithIntLiteral
+--- PASS: TestConstructor_OkWithIntLiteral (0.00s)
+=== RUN   TestConstructor_OkWithStringLiteral
+--- PASS: TestConstructor_OkWithStringLiteral (0.00s)
+=== RUN   TestConstructor_ErrWithErrorValue
+--- PASS: TestConstructor_ErrWithErrorValue (0.00s)
+=== RUN   TestConstructor_OkWithVariousTypes
+=== RUN   TestConstructor_OkWithVariousTypes/int_literal
+=== RUN   TestConstructor_OkWithVariousTypes/float_literal
+=== RUN   TestConstructor_OkWithVariousTypes/string_literal
+=== RUN   TestConstructor_OkWithVariousTypes/rune_literal
+--- PASS: TestConstructor_OkWithVariousTypes (0.00s)
+    --- PASS: TestConstructor_OkWithVariousTypes/int_literal (0.00s)
+    --- PASS: TestConstructor_OkWithVariousTypes/float_literal (0.00s)
+    --- PASS: TestConstructor_OkWithVariousTypes/string_literal (0.00s)
+    --- PASS: TestConstructor_OkWithVariousTypes/rune_literal (0.00s)
+=== RUN   TestConstructor_OkWithIdentifier
+--- PASS: TestConstructor_OkWithIdentifier (0.00s)
+=== RUN   TestConstructor_OkWithFunctionCall
+--- PASS: TestConstructor_OkWithFunctionCall (0.00s)
+=== RUN   TestConstructor_InvalidOkNoArgs
+--- PASS: TestConstructor_InvalidOkNoArgs (0.00s)
+=== RUN   TestConstructor_InvalidErrNoArgs
+--- PASS: TestConstructor_InvalidErrNoArgs (0.00s)
+=== RUN   TestHelperMethods_IsOkGeneration
+--- PASS: TestHelperMethods_IsOkGeneration (0.00s)
+=== RUN   TestHelperMethods_IsErrGeneration
+--- PASS: TestHelperMethods_IsErrGeneration (0.00s)
+=== RUN   TestHelperMethods_UnwrapGeneration
+--- PASS: TestHelperMethods_UnwrapGeneration (0.00s)
+=== RUN   TestHelperMethods_UnwrapOrGeneration
+--- PASS: TestHelperMethods_UnwrapOrGeneration (0.00s)
+=== RUN   TestHelperMethods_UnwrapErrGeneration
+--- PASS: TestHelperMethods_UnwrapErrGeneration (0.00s)
+=== RUN   TestHelperMethods_MapGeneration
+--- PASS: TestHelperMethods_MapGeneration (0.00s)
+=== RUN   TestHelperMethods_MapErrGeneration
+--- PASS: TestHelperMethods_MapErrGeneration (0.00s)
+=== RUN   TestHelperMethods_FilterGeneration
+--- PASS: TestHelperMethods_FilterGeneration (0.00s)
+=== RUN   TestHelperMethods_AndThenGeneration
+--- PASS: TestHelperMethods_AndThenGeneration (0.00s)
+=== RUN   TestHelperMethods_OrElseGeneration
+--- PASS: TestHelperMethods_OrElseGeneration (0.00s)
+=== RUN   TestHelperMethods_AndGeneration
+--- PASS: TestHelperMethods_AndGeneration (0.00s)
+=== RUN   TestHelperMethods_OrGeneration
+--- PASS: TestHelperMethods_OrGeneration (0.00s)
+=== RUN   TestIntegration_CompleteResultWorkflow
+--- PASS: TestIntegration_CompleteResultWorkflow (0.00s)
+=== RUN   TestIntegration_MultipleResultTypesCoexist
+--- PASS: TestIntegration_MultipleResultTypesCoexist (0.00s)
+=== RUN   TestIntegration_NoDuplicateResultTagEnum
+--- PASS: TestIntegration_NoDuplicateResultTagEnum (0.00s)
+=== RUN   TestIntegration_ClearAndReuse
+--- PASS: TestIntegration_ClearAndReuse (0.00s)
+=== RUN   TestIntegration_ContextNotInitialized
+--- PASS: TestIntegration_ContextNotInitialized (0.00s)
+=== RUN   TestEdgeCase_PluginName
+--- PASS: TestEdgeCase_PluginName (0.00s)
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/simple_ident
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/pointer
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/slice
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/array_with_length
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/selector
+=== RUN   TestEdgeCase_GetTypeNameWithComplexExpressions/nested_pointer
+--- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/simple_ident (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/pointer (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/slice (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/array_with_length (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/selector (0.00s)
+    --- PASS: TestEdgeCase_GetTypeNameWithComplexExpressions/nested_pointer (0.00s)
+=== RUN   TestEdgeCase_TypeToASTVariations
+=== RUN   TestEdgeCase_TypeToASTVariations/simple_type_non-pointer
+=== RUN   TestEdgeCase_TypeToASTVariations/simple_type_as_pointer
+=== RUN   TestEdgeCase_TypeToASTVariations/pointer_type_non-pointer
+=== RUN   TestEdgeCase_TypeToASTVariations/slice_type
+--- PASS: TestEdgeCase_TypeToASTVariations (0.00s)
+    --- PASS: TestEdgeCase_TypeToASTVariations/simple_type_non-pointer (0.00s)
+    --- PASS: TestEdgeCase_TypeToASTVariations/simple_type_as_pointer (0.00s)
+    --- PASS: TestEdgeCase_TypeToASTVariations/pointer_type_non-pointer (0.00s)
+    --- PASS: TestEdgeCase_TypeToASTVariations/slice_type (0.00s)
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/int_literal
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/float_literal
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/string_literal
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/char_literal
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/identifier
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/function_call
+=== RUN   TestEdgeCase_InferTypeFromExprEdgeCases/nil_expression
+--- PASS: TestEdgeCase_InferTypeFromExprEdgeCases (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/int_literal (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/float_literal (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/string_literal (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/char_literal (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/identifier (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/function_call (0.00s)
+    --- PASS: TestEdgeCase_InferTypeFromExprEdgeCases/nil_expression (0.00s)
+=== RUN   TestEdgeCase_EmptyPendingDeclarations
+--- PASS: TestEdgeCase_EmptyPendingDeclarations (0.00s)
+=== RUN   TestEdgeCase_ProcessNonResultTypes
+--- PASS: TestEdgeCase_ProcessNonResultTypes (0.00s)
+=== RUN   TestEdgeCase_ConstructorWithMultipleArgs
+--- PASS: TestEdgeCase_ConstructorWithMultipleArgs (0.00s)
+=== RUN   TestEdgeCase_ResultTagConstValues
+--- PASS: TestEdgeCase_ResultTagConstValues (0.00s)
+=== RUN   TestInferType_BasicLiterals
+=== RUN   TestInferType_BasicLiterals/int_literal
+=== RUN   TestInferType_BasicLiterals/float_literal
+=== RUN   TestInferType_BasicLiterals/string_literal
+=== RUN   TestInferType_BasicLiterals/rune_literal
+--- PASS: TestInferType_BasicLiterals (0.00s)
+    --- PASS: TestInferType_BasicLiterals/int_literal (0.00s)
+    --- PASS: TestInferType_BasicLiterals/float_literal (0.00s)
+    --- PASS: TestInferType_BasicLiterals/string_literal (0.00s)
+    --- PASS: TestInferType_BasicLiterals/rune_literal (0.00s)
+=== RUN   TestInferType_BuiltinIdents
+=== RUN   TestInferType_BuiltinIdents/true
+=== RUN   TestInferType_BuiltinIdents/false
+=== RUN   TestInferType_BuiltinIdents/nil
+--- PASS: TestInferType_BuiltinIdents (0.00s)
+    --- PASS: TestInferType_BuiltinIdents/true (0.00s)
+    --- PASS: TestInferType_BuiltinIdents/false (0.00s)
+    --- PASS: TestInferType_BuiltinIdents/nil (0.00s)
+=== RUN   TestInferType_PointerExpression
+--- PASS: TestInferType_PointerExpression (0.00s)
+=== RUN   TestInferType_NilExpression
+--- PASS: TestInferType_NilExpression (0.00s)
+=== RUN   TestInferType_UnsupportedExpression
+--- PASS: TestInferType_UnsupportedExpression (0.00s)
+=== RUN   TestTypeToString_BasicTypes
+=== RUN   TestTypeToString_BasicTypes/int
+=== RUN   TestTypeToString_BasicTypes/string
+=== RUN   TestTypeToString_BasicTypes/bool
+=== RUN   TestTypeToString_BasicTypes/float64
+=== RUN   TestTypeToString_BasicTypes/byte
+--- PASS: TestTypeToString_BasicTypes (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/int (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/string (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/bool (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/float64 (0.00s)
+    --- PASS: TestTypeToString_BasicTypes/byte (0.00s)
+=== RUN   TestTypeToString_UntypedConstants
+=== RUN   TestTypeToString_UntypedConstants/untyped_int
+=== RUN   TestTypeToString_UntypedConstants/untyped_float
+=== RUN   TestTypeToString_UntypedConstants/untyped_string
+=== RUN   TestTypeToString_UntypedConstants/untyped_bool
+=== RUN   TestTypeToString_UntypedConstants/untyped_rune
+=== RUN   TestTypeToString_UntypedConstants/untyped_nil
+--- PASS: TestTypeToString_UntypedConstants (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_int (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_float (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_string (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_bool (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_rune (0.00s)
+    --- PASS: TestTypeToString_UntypedConstants/untyped_nil (0.00s)
+=== RUN   TestTypeToString_CompositeTypes
+=== RUN   TestTypeToString_CompositeTypes/pointer_to_int
+=== RUN   TestTypeToString_CompositeTypes/slice_of_byte
+=== RUN   TestTypeToString_CompositeTypes/array_of_int
+=== RUN   TestTypeToString_CompositeTypes/map[string]int
+=== RUN   TestTypeToString_CompositeTypes/chan_int
+=== RUN   TestTypeToString_CompositeTypes/chan<-_string
+=== RUN   TestTypeToString_CompositeTypes/<-chan_bool
+--- PASS: TestTypeToString_CompositeTypes (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/pointer_to_int (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/slice_of_byte (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/array_of_int (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/map[string]int (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/chan_int (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/chan<-_string (0.00s)
+    --- PASS: TestTypeToString_CompositeTypes/<-chan_bool (0.00s)
+=== RUN   TestTypeToString_EmptyInterface
+--- PASS: TestTypeToString_EmptyInterface (0.00s)
+=== RUN   TestTypeToString_NestedPointers
+--- PASS: TestTypeToString_NestedPointers (0.00s)
+=== RUN   TestTypeToString_NilType
+--- PASS: TestTypeToString_NilType (0.00s)
+=== RUN   TestInferType_WithGoTypes
+--- PASS: TestInferType_WithGoTypes (0.00s)
+=== RUN   TestSetTypesInfo
+--- PASS: TestSetTypesInfo (0.00s)
+=== RUN   TestInferType_FallbackWithoutGoTypes
+--- PASS: TestInferType_FallbackWithoutGoTypes (0.00s)
+=== RUN   TestInferType_PartialGoTypesInfo
+--- PASS: TestInferType_PartialGoTypesInfo (0.00s)
+=== RUN   TestInferType_EmptyTypesInfo
+--- PASS: TestInferType_EmptyTypesInfo (0.00s)
+=== RUN   TestTypeToString_ComplexSignature
+    type_inference_test.go:545: Function signature: func(x int, y string) bool, error
+--- PASS: TestTypeToString_ComplexSignature (0.00s)
+=== RUN   TestInferType_InvalidToken
+--- PASS: TestInferType_InvalidToken (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/plugin/builtin	0.893s
+=== RUN   TestDefaultConfig
+--- PASS: TestDefaultConfig (0.00s)
+=== RUN   TestValidateMultiValueReturnMode
+=== RUN   TestValidateMultiValueReturnMode/full_mode_is_valid
+=== RUN   TestValidateMultiValueReturnMode/single_mode_is_valid
+=== RUN   TestValidateMultiValueReturnMode/invalid_mode_returns_error
+=== RUN   TestValidateMultiValueReturnMode/empty_mode_returns_error
+=== RUN   TestValidateMultiValueReturnMode/partial_mode_returns_error
+--- PASS: TestValidateMultiValueReturnMode (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/full_mode_is_valid (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/single_mode_is_valid (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/invalid_mode_returns_error (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/empty_mode_returns_error (0.00s)
+    --- PASS: TestValidateMultiValueReturnMode/partial_mode_returns_error (0.00s)
+=== RUN   TestConfigFullMode_MultiValueReturns
+--- PASS: TestConfigFullMode_MultiValueReturns (0.00s)
+=== RUN   TestConfigSingleMode_MultiValueReturns
+--- PASS: TestConfigSingleMode_MultiValueReturns (0.00s)
+=== RUN   TestConfigSingleMode_TwoValueReturns
+--- PASS: TestConfigSingleMode_TwoValueReturns (0.00s)
+=== RUN   TestConfigSingleMode_ReturnStatement
+--- PASS: TestConfigSingleMode_ReturnStatement (0.00s)
+=== RUN   TestConfigNilDefault
+--- PASS: TestConfigNilDefault (0.00s)
+=== RUN   TestConfigFullMode_ComplexCase
+--- PASS: TestConfigFullMode_ComplexCase (0.00s)
+=== RUN   TestConfigSingleMode_AssignmentAllowed
+--- PASS: TestConfigSingleMode_AssignmentAllowed (0.00s)
+=== RUN   TestEnumProcessor_SimpleEnum
+--- PASS: TestEnumProcessor_SimpleEnum (0.00s)
+=== RUN   TestEnumProcessor_StructVariant
+--- PASS: TestEnumProcessor_StructVariant (0.00s)
+=== RUN   TestEnumProcessor_GenericEnum
+--- PASS: TestEnumProcessor_GenericEnum (0.00s)
+=== RUN   TestEnumProcessor_MultipleEnums
+--- PASS: TestEnumProcessor_MultipleEnums (0.00s)
+=== RUN   TestEnumProcessor_NoEnums
+--- PASS: TestEnumProcessor_NoEnums (0.00s)
+=== RUN   TestEnumProcessor_WithComments
+--- PASS: TestEnumProcessor_WithComments (0.00s)
+=== RUN   TestEnumProcessor_ComplexTypes
+--- PASS: TestEnumProcessor_ComplexTypes (0.00s)
+=== RUN   TestEnumProcessor_EdgeCases
+=== RUN   TestEnumProcessor_EdgeCases/single_variant
+=== RUN   TestEnumProcessor_EdgeCases/trailing_comma
+=== RUN   TestEnumProcessor_EdgeCases/no_trailing_comma
+--- PASS: TestEnumProcessor_EdgeCases (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/single_variant (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/trailing_comma (0.00s)
+    --- PASS: TestEnumProcessor_EdgeCases/no_trailing_comma (0.00s)
+=== RUN   TestImportInjectionEdgeCases
+=== RUN   TestImportInjectionEdgeCases/multiple_imports_from_same_package_(deduplication)
+=== RUN   TestImportInjectionEdgeCases/imports_from_different_packages
+=== RUN   TestImportInjectionEdgeCases/no_imports_needed_(no_stdlib_calls)
+=== RUN   TestImportInjectionEdgeCases/already_existing_imports_(don't_duplicate)
+=== RUN   TestImportInjectionEdgeCases/source_map_offsets_correct_for_different_import_counts
+    import_edge_cases_test.go:190: Import block spans lines 3-6 (4 lines)
+=== RUN   TestImportInjectionEdgeCases/mixed_qualified_and_unqualified_calls_(only_qualified_should_import)
+--- PASS: TestImportInjectionEdgeCases (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/multiple_imports_from_same_package_(deduplication) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/imports_from_different_packages (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/no_imports_needed_(no_stdlib_calls) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/already_existing_imports_(don't_duplicate) (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/source_map_offsets_correct_for_different_import_counts (0.00s)
+    --- PASS: TestImportInjectionEdgeCases/mixed_qualified_and_unqualified_calls_(only_qualified_should_import) (0.00s)
+=== RUN   TestErrorPropagationBasic
+=== RUN   TestErrorPropagationBasic/simple_assignment
+=== RUN   TestErrorPropagationBasic/simple_return
+--- PASS: TestErrorPropagationBasic (0.00s)
+    --- PASS: TestErrorPropagationBasic/simple_assignment (0.00s)
+    --- PASS: TestErrorPropagationBasic/simple_return (0.00s)
+=== RUN   TestIMPORTANT1_ErrorMessageEscaping
+=== RUN   TestIMPORTANT1_ErrorMessageEscaping/percent_in_error_message
+=== RUN   TestIMPORTANT1_ErrorMessageEscaping/multiple_percents_in_error_message
+=== RUN   TestIMPORTANT1_ErrorMessageEscaping/percent-w_pattern_in_error_message
+--- PASS: TestIMPORTANT1_ErrorMessageEscaping (0.00s)
+    --- PASS: TestIMPORTANT1_ErrorMessageEscaping/percent_in_error_message (0.00s)
+    --- PASS: TestIMPORTANT1_ErrorMessageEscaping/multiple_percents_in_error_message (0.00s)
+    --- PASS: TestIMPORTANT1_ErrorMessageEscaping/percent-w_pattern_in_error_message (0.00s)
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/function_type_in_parameters
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/channel_with_direction
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/complex_nested_generics
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/function_returning_multiple_values
+=== RUN   TestIMPORTANT2_TypeAnnotationEnhancement/nested_function_types
+--- PASS: TestIMPORTANT2_TypeAnnotationEnhancement (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/function_type_in_parameters (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/channel_with_direction (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/complex_nested_generics (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/function_returning_multiple_values (0.00s)
+    --- PASS: TestIMPORTANT2_TypeAnnotationEnhancement/nested_function_types (0.00s)
+=== RUN   TestGeminiCodeReviewFixes
+--- PASS: TestGeminiCodeReviewFixes (0.00s)
+=== RUN   TestSourceMapGeneration
+--- PASS: TestSourceMapGeneration (0.00s)
+=== RUN   TestSourceMapMultipleExpansions
+--- PASS: TestSourceMapMultipleExpansions (0.00s)
+=== RUN   TestAutomaticImportDetection
+=== RUN   TestAutomaticImportDetection/os.ReadFile_import
+=== RUN   TestAutomaticImportDetection/strconv.Atoi_import
+=== RUN   TestAutomaticImportDetection/multiple_imports
+=== RUN   TestAutomaticImportDetection/with_error_message_(needs_fmt)
+--- PASS: TestAutomaticImportDetection (0.00s)
+    --- PASS: TestAutomaticImportDetection/os.ReadFile_import (0.00s)
+    --- PASS: TestAutomaticImportDetection/strconv.Atoi_import (0.00s)
+    --- PASS: TestAutomaticImportDetection/multiple_imports (0.00s)
+    --- PASS: TestAutomaticImportDetection/with_error_message_(needs_fmt) (0.00s)
+=== RUN   TestSourceMappingWithImports
+    preprocessor_test.go:495: Result has 15 lines
+--- PASS: TestSourceMappingWithImports (0.00s)
+=== RUN   TestCRITICAL2_MultiValueReturnHandling
+=== RUN   TestCRITICAL2_MultiValueReturnHandling/two_values_plus_error
+=== RUN   TestCRITICAL2_MultiValueReturnHandling/three_values_plus_error
+=== RUN   TestCRITICAL2_MultiValueReturnHandling/single_value_plus_error_(regression)
+--- PASS: TestCRITICAL2_MultiValueReturnHandling (0.00s)
+    --- PASS: TestCRITICAL2_MultiValueReturnHandling/two_values_plus_error (0.00s)
+    --- PASS: TestCRITICAL2_MultiValueReturnHandling/three_values_plus_error (0.00s)
+    --- PASS: TestCRITICAL2_MultiValueReturnHandling/single_value_plus_error_(regression) (0.00s)
+=== RUN   TestCRITICAL2_MultiValueReturnWithMessage
+--- PASS: TestCRITICAL2_MultiValueReturnWithMessage (0.00s)
+=== RUN   TestCRITICAL1_MappingsBeforeImportsNotShifted
+    preprocessor_test.go:688: Import block inserted at generated line 3
+    preprocessor_test.go:689: Total mappings: 7
+--- PASS: TestCRITICAL1_MappingsBeforeImportsNotShifted (0.00s)
+=== RUN   TestSourceMapOffsetBeforeImports
+    preprocessor_test.go:789: ✓ All mappings correctly handled:
+    preprocessor_test.go:790:   Line 1 (< 2): NOT shifted (correct)
+    preprocessor_test.go:791:   Line 2 (= 2): NOT shifted (CRITICAL FIX VERIFIED)
+    preprocessor_test.go:792:   Line 3 (> 2): Shifted to 5 (correct)
+    preprocessor_test.go:793:   Line 4 (> 2): Shifted to 6 (correct)
+--- PASS: TestSourceMapOffsetBeforeImports (0.00s)
+=== RUN   TestMultiValueReturnEdgeCases
+=== RUN   TestMultiValueReturnEdgeCases/2-value_return_(baseline_case)
+=== RUN   TestMultiValueReturnEdgeCases/3-value_return_(verified_by_golden_test)
+=== RUN   TestMultiValueReturnEdgeCases/4-value_return_(extreme_case)
+=== RUN   TestMultiValueReturnEdgeCases/5-value_return_(very_extreme_case)
+=== RUN   TestMultiValueReturnEdgeCases/mixed_types_(string,_int,_[]byte,_error)
+=== RUN   TestMultiValueReturnEdgeCases/complex_types_(map,_slice,_struct_pointer,_error)
+=== RUN   TestMultiValueReturnEdgeCases/verify_correct_number_of_temporaries_(3_non-error_values)
+=== RUN   TestMultiValueReturnEdgeCases/verify_correct_number_of_temporaries_(4_non-error_values)
+=== RUN   TestMultiValueReturnEdgeCases/all_values_returned_in_success_path_(4_values)
+=== RUN   TestMultiValueReturnEdgeCases/all_zero_values_in_error_path_(mixed_types)
+--- PASS: TestMultiValueReturnEdgeCases (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/2-value_return_(baseline_case) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/3-value_return_(verified_by_golden_test) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/4-value_return_(extreme_case) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/5-value_return_(very_extreme_case) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/mixed_types_(string,_int,_[]byte,_error) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/complex_types_(map,_slice,_struct_pointer,_error) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/verify_correct_number_of_temporaries_(3_non-error_values) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/verify_correct_number_of_temporaries_(4_non-error_values) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/all_values_returned_in_success_path_(4_values) (0.00s)
+    --- PASS: TestMultiValueReturnEdgeCases/all_zero_values_in_error_path_(mixed_types) (0.00s)
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/user-defined_ReadFile_(no_qualifier)
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/qualified_os.ReadFile_(with_package_qualifier)
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/multiple_user-defined_functions_with_stdlib_names
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/mixed_user-defined_and_qualified_stdlib_calls
+=== RUN   TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/user-defined_http.Get_lookalike
+--- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/user-defined_ReadFile_(no_qualifier) (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/qualified_os.ReadFile_(with_package_qualifier) (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/multiple_user-defined_functions_with_stdlib_names (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/mixed_user-defined_and_qualified_stdlib_calls (0.00s)
+    --- PASS: TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports/user-defined_http.Get_lookalike (0.00s)
+=== RUN   TestConfigSingleValueReturnModeEnforcement
+=== RUN   TestConfigSingleValueReturnModeEnforcement/multi-value_return_in_single_mode_-_expect_error
+=== RUN   TestConfigSingleValueReturnModeEnforcement/single-value_return_in_single_mode_-_no_error
+--- PASS: TestConfigSingleValueReturnModeEnforcement (0.00s)
+    --- PASS: TestConfigSingleValueReturnModeEnforcement/multi-value_return_in_single_mode_-_expect_error (0.00s)
+    --- PASS: TestConfigSingleValueReturnModeEnforcement/single-value_return_in_single_mode_-_no_error (0.00s)
+=== RUN   TestUserFunctionShadowingNoImport
+=== RUN   TestUserFunctionShadowingNoImport/user_function_named_ReadFile_-_no_os_import
+=== RUN   TestUserFunctionShadowingNoImport/user_function_named_Atoi_-_no_strconv_import
+=== RUN   TestUserFunctionShadowingNoImport/qualified_os.ReadFile_call_-_SHOULD_import_os
+=== RUN   TestUserFunctionShadowingNoImport/mixed_user-defined_and_qualified_stdlib
+--- PASS: TestUserFunctionShadowingNoImport (0.00s)
+    --- PASS: TestUserFunctionShadowingNoImport/user_function_named_ReadFile_-_no_os_import (0.00s)
+    --- PASS: TestUserFunctionShadowingNoImport/user_function_named_Atoi_-_no_strconv_import (0.00s)
+    --- PASS: TestUserFunctionShadowingNoImport/qualified_os.ReadFile_call_-_SHOULD_import_os (0.00s)
+    --- PASS: TestUserFunctionShadowingNoImport/mixed_user-defined_and_qualified_stdlib (0.00s)
+=== RUN   TestRustMatchProcessor_SimpleResult
+    rust_match_test.go:40: Expected output to contain "switch __match_0.tag {", but it didn't.
+        Got:
+        // DINGO_MATCH_START: result
+        __match_0 := result
+        switch {
+        case __match_0.tag == ResultTagOk:
+        	// DINGO_PATTERN: Ok(x)
+        	x := *__match_0.ok_0
+        	x * 2
+        case __match_0.tag == ResultTagErr:
+        	// DINGO_PATTERN: Err(e)
+        	e := __match_0.err_0
+        	0
+        }
+        // DINGO_MATCH_END
+    rust_match_test.go:40: Expected output to contain "case ResultTagOk:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: result
+        __match_0 := result
+        switch {
+        case __match_0.tag == ResultTagOk:
+        	// DINGO_PATTERN: Ok(x)
+        	x := *__match_0.ok_0
+        	x * 2
+        case __match_0.tag == ResultTagErr:
+        	// DINGO_PATTERN: Err(e)
+        	e := __match_0.err_0
+        	0
+        }
+        // DINGO_MATCH_END
+    rust_match_test.go:40: Expected output to contain "case ResultTagErr:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: result
+        __match_0 := result
+        switch {
+        case __match_0.tag == ResultTagOk:
+        	// DINGO_PATTERN: Ok(x)
+        	x := *__match_0.ok_0
+        	x * 2
+        case __match_0.tag == ResultTagErr:
+        	// DINGO_PATTERN: Err(e)
+        	e := __match_0.err_0
+        	0
+        }
+        // DINGO_MATCH_END
+--- FAIL: TestRustMatchProcessor_SimpleResult (0.00s)
+=== RUN   TestRustMatchProcessor_SimpleOption
+    rust_match_test.go:81: Expected output to contain "switch __match_0.tag {", but it didn't.
+        Got:
+        // DINGO_MATCH_START: value
+        __match_0 := value
+        switch {
+        case __match_0.tag == OptionTagSome:
+        	// DINGO_PATTERN: Some(v)
+        	v := *__match_0.some_0
+        	v
+        case __match_0.tag == OptionTagNone:
+        	// DINGO_PATTERN: None
+        	"default"
+        }
+        // DINGO_MATCH_END
+    rust_match_test.go:81: Expected output to contain "case OptionTagSome:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: value
+        __match_0 := value
+        switch {
+        case __match_0.tag == OptionTagSome:
+        	// DINGO_PATTERN: Some(v)
+        	v := *__match_0.some_0
+        	v
+        case __match_0.tag == OptionTagNone:
+        	// DINGO_PATTERN: None
+        	"default"
+        }
+        // DINGO_MATCH_END
+    rust_match_test.go:81: Expected output to contain "case OptionTagNone:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: value
+        __match_0 := value
+        switch {
+        case __match_0.tag == OptionTagSome:
+        	// DINGO_PATTERN: Some(v)
+        	v := *__match_0.some_0
+        	v
+        case __match_0.tag == OptionTagNone:
+        	// DINGO_PATTERN: None
+        	"default"
+        }
+        // DINGO_MATCH_END
+--- FAIL: TestRustMatchProcessor_SimpleOption (0.00s)
+=== RUN   TestRustMatchProcessor_Wildcard
+    rust_match_test.go:117: Expected output to contain "case ActiveTag:", but it didn't.
+        Got:
+        // DINGO_MATCH_START: status
+        __match_0 := status
+        switch {
+        case __match_0.tag == ActiveTag:
+        	// DINGO_PATTERN: Active
+        	"active"
+        default:
+        	// DINGO_PATTERN: _
+        	"other"
+        }
+        // DINGO_MATCH_END
+--- FAIL: TestRustMatchProcessor_Wildcard (0.00s)
+=== RUN   TestRustMatchProcessor_MultipleMatches
+--- PASS: TestRustMatchProcessor_MultipleMatches (0.00s)
+=== RUN   TestRustMatchProcessor_NoMatch
+--- PASS: TestRustMatchProcessor_NoMatch (0.00s)
+=== RUN   TestRustMatchProcessor_MultilineMatch
+    rust_match_test.go:200: Expected Ok case
+    rust_match_test.go:203: Expected Err case
+--- FAIL: TestRustMatchProcessor_MultilineMatch (0.00s)
+=== RUN   TestRustMatchProcessor_ComplexExpression
+--- PASS: TestRustMatchProcessor_ComplexExpression (0.00s)
+=== RUN   TestRustMatchProcessor_GetNeededImports
+--- PASS: TestRustMatchProcessor_GetNeededImports (0.00s)
+=== RUN   TestRustMatchProcessor_Name
+--- PASS: TestRustMatchProcessor_Name (0.00s)
+=== RUN   TestRustMatchProcessor_ParseArms
+=== RUN   TestRustMatchProcessor_ParseArms/simple_patterns
+=== RUN   TestRustMatchProcessor_ParseArms/no_binding
+=== RUN   TestRustMatchProcessor_ParseArms/wildcard
+--- PASS: TestRustMatchProcessor_ParseArms (0.00s)
+    --- PASS: TestRustMatchProcessor_ParseArms/simple_patterns (0.00s)
+    --- PASS: TestRustMatchProcessor_ParseArms/no_binding (0.00s)
+    --- PASS: TestRustMatchProcessor_ParseArms/wildcard (0.00s)
+=== RUN   TestRustMatchProcessor_GetTagName
+=== RUN   TestRustMatchProcessor_GetTagName/Ok
+=== RUN   TestRustMatchProcessor_GetTagName/Err
+=== RUN   TestRustMatchProcessor_GetTagName/Some
+=== RUN   TestRustMatchProcessor_GetTagName/None
+=== RUN   TestRustMatchProcessor_GetTagName/Active
+=== RUN   TestRustMatchProcessor_GetTagName/Pending
+--- PASS: TestRustMatchProcessor_GetTagName (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Ok (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Err (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Some (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/None (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Active (0.00s)
+    --- PASS: TestRustMatchProcessor_GetTagName/Pending (0.00s)
+=== RUN   TestRustMatchProcessor_GenerateBinding
+=== RUN   TestRustMatchProcessor_GenerateBinding/Ok
+=== RUN   TestRustMatchProcessor_GenerateBinding/Err
+=== RUN   TestRustMatchProcessor_GenerateBinding/Some
+=== RUN   TestRustMatchProcessor_GenerateBinding/Active
+--- PASS: TestRustMatchProcessor_GenerateBinding (0.00s)
+    --- PASS: TestRustMatchProcessor_GenerateBinding/Ok (0.00s)
+    --- PASS: TestRustMatchProcessor_GenerateBinding/Err (0.00s)
+    --- PASS: TestRustMatchProcessor_GenerateBinding/Some (0.00s)
+    --- PASS: TestRustMatchProcessor_GenerateBinding/Active (0.00s)
+FAIL
+FAIL	github.com/MadAppGang/dingo/pkg/preprocessor	1.278s
+=== RUN   TestNewGenerator
+--- PASS: TestNewGenerator (0.00s)
+=== RUN   TestAddMapping
+--- PASS: TestAddMapping (0.00s)
+=== RUN   TestAddMappingWithName
+--- PASS: TestAddMappingWithName (0.00s)
+=== RUN   TestMultipleMappings
+--- PASS: TestMultipleMappings (0.00s)
+=== RUN   TestCollectNames
+--- PASS: TestCollectNames (0.00s)
+=== RUN   TestGenerateSourceMap
+--- PASS: TestGenerateSourceMap (0.00s)
+=== RUN   TestGenerateInline
+--- PASS: TestGenerateInline (0.00s)
+=== RUN   TestGenerateEmpty
+--- PASS: TestGenerateEmpty (0.00s)
+=== RUN   TestConsumerCreation
+    sourcemap_test.go:244: Consumer requires valid VLQ-encoded mappings (TODO Phase 1.6)
+--- SKIP: TestConsumerCreation (0.00s)
+=== RUN   TestConsumerInvalidJSON
+--- PASS: TestConsumerInvalidJSON (0.00s)
+PASS
+ok  	github.com/MadAppGang/dingo/pkg/sourcemap	(cached)
+?   	github.com/MadAppGang/dingo/pkg/transform	[no test files]
+?   	github.com/MadAppGang/dingo/pkg/ui	[no test files]
+=== RUN   TestGoldenFiles
+=== RUN   TestGoldenFiles/error_prop_01_simple
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_01_simple.dingo:4:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_01_simple.dingo:4:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_02_multiple
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/error_prop_03_expression
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_03_expression.dingo:4:20: undefined: Atoi
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_03_expression.dingo:4:20: undefined: Atoi
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_04_wrapping
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_04_wrapping.dingo:7:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_04_wrapping.dingo:7:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_05_complex_types
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_05_complex_types.dingo:9:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_05_complex_types.dingo:20:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_05_complex_types.dingo:9:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_06_mixed_context
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_06_mixed_context.dingo:4:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_06_mixed_context.dingo:11:20: undefined: Atoi
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_06_mixed_context.dingo:4:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_07_special_chars
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_07_special_chars.dingo:6:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_07_special_chars.dingo:6:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_08_chained_calls
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_08_chained_calls.dingo:11:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_08_chained_calls.dingo:19:20: undefined: Unmarshal
+    golden_test.go:33: DEBUG: Type checker: golden/error_prop_08_chained_calls.dingo:25:6: declared and not used: err
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/error_prop_08_chained_calls.dingo:11:20: undefined: ReadFile
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_09_multi_value
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/func_util_01_map
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_02_filter
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_03_reduce
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_04_chaining
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_01_basic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_02_multiline
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_03_closure
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_04_higher_order
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_01_basic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_02_chained
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_03_with_option
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/option_01_basic
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/option_02_literals
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_02_pattern_match
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_03_chaining
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_04_go_interop
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/option_05_helpers
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:16:16: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:22:23: undefined: Option_bool
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:40:22: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:40:34: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:48:23: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:48:35: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:56:27: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:67:37: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:18:9: undefined: Option_int_Some
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:23:9: undefined: Option_bool_None
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:57:42: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:60:11: undefined: Option_int_None
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:62:10: undefined: Option_int_Some
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:74:23: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:76:12: undefined: Option_int_Some
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:78:11: undefined: Option_int_None
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:82:10: undefined: Option_int_Some
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:100:28: undefined: Option_int_Some
+    golden_test.go:33: DEBUG: Type checker: golden/option_05_helpers.dingo:105:30: undefined: Option_int_Some
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/option_05_helpers.dingo:16:16: undefined: Option_int
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/option_06_none_inference
+    golden_test.go:89: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:89
+        	Error:      	Received unexpected error:
+        	            	open golden/option_06_none_inference.go.golden: no such file or directory
+        	Test:       	TestGoldenFiles/option_06_none_inference
+        	Messages:   	Failed to read golden file: golden/option_06_none_inference.go.golden
+=== RUN   TestGoldenFiles/pattern_match_01_basic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/pattern_match_01_simple
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/pattern_match_02_exhaustive
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/pattern_match_02_guards
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/pattern_match_03_nested
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/pattern_match_03_result_option
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/pattern_match_04_exhaustive
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/result_01_basic
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: golden/result_01_basic.dingo:40:3: declared and not used: v
+    golden_test.go:33: DEBUG: Type checking completed with errors: golden/result_01_basic.dingo:40:3: declared and not used: v
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/result_02_propagation
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/result_03_pattern_match
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/result_04_chaining
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/result_05_go_interop
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/result_06_helpers
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/safe_nav_01_basic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/safe_nav_02_chained
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/safe_nav_03_with_methods
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/showcase_00_hero
+    golden_test.go:33: DEBUG: Parent map built successfully
+    golden_test.go:33: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:33: DEBUG: Type checker completed successfully
+    golden_test.go:33: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/showcase_01_api_server
+    golden_test.go:83: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/sum_types_01_simple
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_02_struct_variant
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_03_generic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_04_multiple
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_05_nested
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/ternary_01_basic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/ternary_02_nested
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/ternary_03_complex
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/tuples_01_basic
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/tuples_02_destructure
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/tuples_03_nested
+    golden_test.go:78: Feature not yet implemented - deferred to Phase 3
+--- FAIL: TestGoldenFiles (0.33s)
+    --- PASS: TestGoldenFiles/error_prop_01_simple (0.00s)
+    --- SKIP: TestGoldenFiles/error_prop_02_multiple (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_03_expression (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_04_wrapping (0.05s)
+    --- PASS: TestGoldenFiles/error_prop_05_complex_types (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_06_mixed_context (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_07_special_chars (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_08_chained_calls (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_09_multi_value (0.08s)
+    --- SKIP: TestGoldenFiles/func_util_01_map (0.00s)
+    --- SKIP: TestGoldenFiles/func_util_02_filter (0.00s)
+    --- SKIP: TestGoldenFiles/func_util_03_reduce (0.00s)
+    --- SKIP: TestGoldenFiles/func_util_04_chaining (0.00s)
+    --- SKIP: TestGoldenFiles/lambda_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/lambda_02_multiline (0.00s)
+    --- SKIP: TestGoldenFiles/lambda_03_closure (0.00s)
+    --- SKIP: TestGoldenFiles/lambda_04_higher_order (0.00s)
+    --- SKIP: TestGoldenFiles/null_coalesce_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/null_coalesce_02_chained (0.00s)
+    --- SKIP: TestGoldenFiles/null_coalesce_03_with_option (0.00s)
+    --- PASS: TestGoldenFiles/option_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/option_02_literals (0.00s)
+    --- SKIP: TestGoldenFiles/option_02_pattern_match (0.00s)
+    --- SKIP: TestGoldenFiles/option_03_chaining (0.00s)
+    --- PASS: TestGoldenFiles/option_04_go_interop (0.00s)
+    --- PASS: TestGoldenFiles/option_05_helpers (0.00s)
+    --- FAIL: TestGoldenFiles/option_06_none_inference (0.00s)
+    --- SKIP: TestGoldenFiles/pattern_match_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/pattern_match_01_simple (0.00s)
+    --- SKIP: TestGoldenFiles/pattern_match_02_exhaustive (0.00s)
+    --- SKIP: TestGoldenFiles/pattern_match_02_guards (0.00s)
+    --- SKIP: TestGoldenFiles/pattern_match_03_nested (0.00s)
+    --- SKIP: TestGoldenFiles/pattern_match_03_result_option (0.00s)
+    --- SKIP: TestGoldenFiles/pattern_match_04_exhaustive (0.00s)
+    --- PASS: TestGoldenFiles/result_01_basic (0.04s)
+    --- SKIP: TestGoldenFiles/result_02_propagation (0.00s)
+    --- SKIP: TestGoldenFiles/result_03_pattern_match (0.00s)
+    --- SKIP: TestGoldenFiles/result_04_chaining (0.00s)
+    --- PASS: TestGoldenFiles/result_05_go_interop (0.00s)
+    --- SKIP: TestGoldenFiles/result_06_helpers (0.00s)
+    --- SKIP: TestGoldenFiles/safe_nav_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/safe_nav_02_chained (0.00s)
+    --- SKIP: TestGoldenFiles/safe_nav_03_with_methods (0.00s)
+    --- PASS: TestGoldenFiles/showcase_00_hero (0.15s)
+    --- SKIP: TestGoldenFiles/showcase_01_api_server (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_01_simple (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_02_struct_variant (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_03_generic (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_04_multiple (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_05_nested (0.00s)
+    --- SKIP: TestGoldenFiles/ternary_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/ternary_02_nested (0.00s)
+    --- SKIP: TestGoldenFiles/ternary_03_complex (0.00s)
+    --- SKIP: TestGoldenFiles/tuples_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/tuples_02_destructure (0.00s)
+    --- SKIP: TestGoldenFiles/tuples_03_nested (0.00s)
+=== RUN   TestGoldenFilesCompilation
+=== RUN   TestGoldenFilesCompilation/error_prop_01_simple_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_02_multiple_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_03_expression_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_04_wrapping_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_05_complex_types_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_06_mixed_context_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_07_special_chars_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_08_chained_calls_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_09_multi_value_compiles
+=== RUN   TestGoldenFilesCompilation/func_util_01_map_compiles
+=== RUN   TestGoldenFilesCompilation/func_util_02_filter_compiles
+=== RUN   TestGoldenFilesCompilation/func_util_03_reduce_compiles
+=== RUN   TestGoldenFilesCompilation/func_util_04_chaining_compiles
+=== RUN   TestGoldenFilesCompilation/lambda_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/lambda_02_multiline_compiles
+=== RUN   TestGoldenFilesCompilation/lambda_03_closure_compiles
+=== RUN   TestGoldenFilesCompilation/lambda_04_higher_order_compiles
+=== RUN   TestGoldenFilesCompilation/null_coalesce_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/null_coalesce_02_chained_compiles
+=== RUN   TestGoldenFilesCompilation/null_coalesce_03_with_option_compiles
+=== RUN   TestGoldenFilesCompilation/option_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/option_02_literals_compiles
+=== RUN   TestGoldenFilesCompilation/option_02_pattern_match_compiles
+=== RUN   TestGoldenFilesCompilation/option_03_chaining_compiles
+=== RUN   TestGoldenFilesCompilation/option_04_go_interop_compiles
+=== RUN   TestGoldenFilesCompilation/option_05_helpers_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_01_simple_compiles
+    golden_test.go:200: Compilation output:
+        /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/TestGoldenFilesCompilationpattern_match_01_simple_compiles1094038418/001/test.go:62:25: expected ';', found ':='
+    golden_test.go:201: Generated code does not compile
+=== RUN   TestGoldenFilesCompilation/pattern_match_02_guards_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_03_nested_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_04_exhaustive_compiles
+=== RUN   TestGoldenFilesCompilation/result_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/result_02_propagation_compiles
+=== RUN   TestGoldenFilesCompilation/result_03_pattern_match_compiles
+=== RUN   TestGoldenFilesCompilation/result_04_chaining_compiles
+=== RUN   TestGoldenFilesCompilation/result_05_go_interop_compiles
+=== RUN   TestGoldenFilesCompilation/safe_nav_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/safe_nav_02_chained_compiles
+=== RUN   TestGoldenFilesCompilation/safe_nav_03_with_methods_compiles
+=== RUN   TestGoldenFilesCompilation/showcase_00_hero_compiles
+=== RUN   TestGoldenFilesCompilation/showcase_01_api_server_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_01_simple_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_01_simple_enum_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_02_struct_variant_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_03_generic_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_04_multiple_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_05_nested_compiles
+=== RUN   TestGoldenFilesCompilation/ternary_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/ternary_02_nested_compiles
+=== RUN   TestGoldenFilesCompilation/ternary_03_complex_compiles
+=== RUN   TestGoldenFilesCompilation/tuples_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/tuples_02_destructure_compiles
+=== RUN   TestGoldenFilesCompilation/tuples_03_nested_compiles
+--- FAIL: TestGoldenFilesCompilation (0.03s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_01_simple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_02_multiple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_03_expression_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_04_wrapping_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_05_complex_types_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_06_mixed_context_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_07_special_chars_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_08_chained_calls_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_09_multi_value_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/func_util_01_map_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/func_util_02_filter_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/func_util_03_reduce_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/func_util_04_chaining_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/lambda_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/lambda_02_multiline_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/lambda_03_closure_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/lambda_04_higher_order_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/null_coalesce_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/null_coalesce_02_chained_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/null_coalesce_03_with_option_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_02_literals_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_02_pattern_match_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_03_chaining_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_04_go_interop_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_05_helpers_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_01_basic_compiles (0.00s)
+    --- FAIL: TestGoldenFilesCompilation/pattern_match_01_simple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_02_guards_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_03_nested_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_04_exhaustive_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_02_propagation_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_03_pattern_match_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_04_chaining_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_05_go_interop_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/safe_nav_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/safe_nav_02_chained_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/safe_nav_03_with_methods_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/showcase_00_hero_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/showcase_01_api_server_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_01_simple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_01_simple_enum_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_02_struct_variant_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_03_generic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_04_multiple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_05_nested_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/ternary_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/ternary_02_nested_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/ternary_03_complex_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/tuples_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/tuples_02_destructure_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/tuples_03_nested_compiles (0.00s)
+=== RUN   TestIntegrationPhase2EndToEnd
+=== RUN   TestIntegrationPhase2EndToEnd/error_propagation_result_type
+    integration_phase2_test.go:61: Build output: ╭─────────────────────╮
+        │  🐕 Dingo Compiler  │
+        ╰─────────────────────╯
+                                v0.1.0-alpha
+                          
+        📦 Building 1 file
+        
+          /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-785960255/test_result.dingo → /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-785960255/test_result.go
+        
+          ✓ Preprocess  Done (161µs)
+          ✗ Parse       Failed (12µs)
+          ✗ Error: parse error: /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-785960255/test_result.dingo:5:12: expected type, found '<' (and 1 more errors)
+        
+                                                                                                                                                                                
+        ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                                                                                
+        💥 Build failed                                                                                                                                                         
+           Error: parse error: /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-785960255/test_result.dingo:5:12: expected type, found '<' (and 1 more errors)
+        Error: parse error: /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-785960255/test_result.dingo:5:12: expected type, found '<' (and 1 more errors)
+        exit status 1
+    integration_phase2_test.go:62: Failed to transpile: exit status 1
+=== RUN   TestIntegrationPhase2EndToEnd/enum_type_generation
+    integration_phase2_test.go:139: ✓ Integration test passed: Enum generation working correctly
+--- FAIL: TestIntegrationPhase2EndToEnd (1.05s)
+    --- FAIL: TestIntegrationPhase2EndToEnd/error_propagation_result_type (0.67s)
+    --- PASS: TestIntegrationPhase2EndToEnd/enum_type_generation (0.38s)
+=== RUN   TestIntegrationPhase4EndToEnd
+=== RUN   TestIntegrationPhase4EndToEnd/pattern_match_rust_syntax
+    integration_phase4_test.go:114: Expected default panic for exhaustive match, but not found
+    integration_phase4_test.go:117: ✓ Pattern match integration test passed
+=== RUN   TestIntegrationPhase4EndToEnd/pattern_match_non_exhaustive_error
+    integration_phase4_test.go:177: Expected non-exhaustive match error, but no errors reported
+=== RUN   TestIntegrationPhase4EndToEnd/none_context_inference_return
+    golden_test.go:33: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:29: ERROR: Cannot infer Option type for None constant at test.go:5:10
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    golden_test.go:33: DEBUG: Some(int): value is non-addressable (literal), wrapping in IIFE
+    golden_test.go:33: DEBUG: Transforming Some(int) → Option_int{tag: OptionTag_Some, some_0: <addressable-value>}
+    golden_test.go:33: DEBUG: Generated replacement AST: &{Option_int 0 [0x1400053a570 0x1400053a5a0] 0 false}
+    integration_phase4_test.go:250: Expected None to infer type from return, but got errors: [Cannot infer Option type for None constant at test.go:5:10
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 74)]
+    integration_phase4_test.go:291: ✓ None context inference test passed
+=== RUN   TestIntegrationPhase4EndToEnd/combined_pattern_match_and_none
+    golden_test.go:37: WARN: Type inference failed for Some(len(...)): function call requires go/types for return type inference, using interface{}
+    golden_test.go:33: DEBUG: Some(interface{}): value is non-addressable (literal), wrapping in IIFE
+    golden_test.go:33: DEBUG: Transforming Some(interface{}) → Option_interface{}{tag: OptionTag_Some, some_0: <addressable-value>}
+    golden_test.go:33: DEBUG: Generated replacement AST: &{Option_interface{} 0 [0x1400053bf20 0x1400053bf50] 0 false}
+    golden_test.go:33: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:29: ERROR: Cannot infer Option type for None constant at test.go:13:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    golden_test.go:33: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:29: ERROR: Cannot infer Option type for None constant at test.go:17:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    integration_phase4_test.go:369: Expected no errors, but got: [Cannot infer Option type for None constant at test.go:13:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 243) Cannot infer Option type for None constant at test.go:17:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 340)]
+    integration_phase4_test.go:416: ✓ Combined pattern match + None inference test passed
+--- FAIL: TestIntegrationPhase4EndToEnd (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/pattern_match_rust_syntax (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/pattern_match_non_exhaustive_error (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/none_context_inference_return (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/combined_pattern_match_and_none (0.00s)
+FAIL
+FAIL	github.com/MadAppGang/dingo/tests	2.879s
+FAIL	github.com/MadAppGang/dingo/tests/golden [build failed]
+FAIL

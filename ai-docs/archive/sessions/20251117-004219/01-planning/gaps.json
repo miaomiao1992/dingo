@@ -1,0 +1,50 @@
+[
+  {
+    "question": "Parser Disambiguation: Should we use lexer token ordering (match '?.' before '?' before '??') to distinguish operators, or implement context-aware parsing with more complex lookahead?",
+    "rationale": "We have three uses of '?': safe navigation (expr?.field), error propagation (expr?), and ternary (cond ? a : b). The simplest approach is lexer token ordering where '?.' is matched first as a 2-character token, but this might limit future syntax flexibility."
+  },
+  {
+    "question": "Null Coalescing Scope: Should the '??' operator work only with Option<T> types, or should it also work directly with Go pointer types (*T)?",
+    "rationale": "Working only with Option<T> is more consistent with Dingo's type system, but working with pointers would be more convenient for interop with existing Go code. Example: 'user.Name ?? \"default\"' where Name is *string."
+  },
+  {
+    "question": "Safe Navigation Return Type: Should 'user?.name' always return Option<string>, or should a single '?.' operation unwrap automatically when the context expects the unwrapped type?",
+    "rationale": "Always returning Option is more consistent and composable, but requires more unwrapping. Smart unwrapping is more intuitive for simple cases but adds complexity and potential confusion about when wrapping occurs."
+  },
+  {
+    "question": "Lambda Syntax Priority: Should we implement only Rust-style lambdas '|x| expr' initially, or also support arrow functions '(x) => expr' in the first phase?",
+    "rationale": "Rust-style is unambiguous and easier to parse. Arrow-style requires lookahead to distinguish '(expr)' from '(params) => body'. Implementing both in parallel adds complexity but provides more developer choice."
+  },
+  {
+    "question": "Lambda Type Inference: When lambda parameter types cannot be inferred from context (e.g., 'let f = |x| x + 1'), should we require explicit type annotations, default to 'any', or emit a compiler error?",
+    "rationale": "Requiring annotations is safest but less convenient. Defaulting to 'any' allows compilation but defers type checking to Go. Erroring ensures type safety but reduces ergonomics."
+  },
+  {
+    "question": "Lambda Return Type Syntax: Should we use Rust-style '|x: int| -> string { ... }' or an alternative like '|x: int|: string { ... }' for return type annotations?",
+    "rationale": "Rust-style '->' is familiar to Rust developers and visually distinct from parameter types. The ':' alternative is more consistent with Dingo's type annotation syntax but may be visually ambiguous."
+  },
+  {
+    "question": "Ternary vs Null Coalescing Precedence: Should 'a ?? b ? c : d' parse as '(a ?? b) ? c : d' or 'a ?? (b ? c : d)'?",
+    "rationale": "Most languages with both operators (TypeScript, C#) make null coalescing lower precedence than ternary, so 'a ?? (b ? c : d)' is standard. However, this may be unintuitive. Should we follow convention or require parentheses?"
+  },
+  {
+    "question": "Error Propagation + Safe Navigation: How should 'user?.fetchData()? \"error\"' be parsed: as '(user?.fetchData())? \"error\"' (safe nav then error prop) or 'user?.(fetchData()? \"error\")' (error prop then safe nav)?",
+    "rationale": "Left-to-right evaluation '(user?.fetchData())? \"error\"' is more intuitive and matches postfix operator associativity, but we need to ensure this works correctly when safe navigation returns Option<T> and error propagation expects Result<T,E>."
+  },
+  {
+    "question": "Ternary in Option Context: Should ternary operator work when the condition is an Option<bool> (auto-unwrapping), or should it require explicit unwrapping?",
+    "rationale": "Auto-unwrapping 'optionalBool ? \"yes\" : \"no\"' is convenient but magic. Requiring explicit unwrap 'optionalBool.unwrap() ? \"yes\" : \"no\"' is more explicit but verbose."
+  },
+  {
+    "question": "Chained Null Coalescing Evaluation: For 'a ?? b ?? c', should we evaluate left-to-right (standard) or optimize by evaluating from the most likely to succeed?",
+    "rationale": "Left-to-right is standard and predictable. Optimization based on likelihood would require heuristics and could be confusing. Should we allow optimization hints or stick with simple left-to-right?"
+  },
+  {
+    "question": "Lambda Trailing Style: Should we implement Kotlin-style trailing lambdas '{ expr }' in Phase 1, or defer to a later phase due to parsing complexity?",
+    "rationale": "Trailing lambdas conflict with block statements in parsing and require complex lookahead. Implementing later allows us to focus on core functionality first. However, this syntax is highly ergonomic for functional programming."
+  },
+  {
+    "question": "Safe Navigation with Methods: Should 'user?.getName()' work differently than 'user?.name', or should both return Option<T> consistently?",
+    "rationale": "Consistent behavior (both return Option) is simpler. Special-casing methods could enable auto-calling with nil-check, but adds complexity. Do we want uniform semantics or special method handling?"
+  }
+]

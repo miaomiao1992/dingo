@@ -1,0 +1,6 @@
+# LSP Source Mapping Fix Analysis Complete
+
+Status: Success
+Root Cause: error_prop mappings compute ? OriginalColumn relative to expression substring after '=', not absolute position in full original line.
+Solution: Change qPos := strings.Index(expr, "?") to strings.Index(matches[0], "?") in expandAssignment/expandReturn for absolute column.
+Details: ai-docs/sessions/20251118-222640/output/{root-cause.md,proposed-fix.md}

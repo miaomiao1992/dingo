@@ -1,0 +1,102 @@
+[
+  {
+    "question": "What is the minimum required gopls version?",
+    "rationale": "Need to document gopls version requirements for users. Should we target latest stable (v0.14+), or support older versions? Affects LSP method availability and testing scope.",
+    "options": [
+      "Latest stable only (v0.14+) - simpler, fewer compatibility issues",
+      "Support v0.11+ - broader compatibility, more users",
+      "Any version - maximum compatibility, but harder to test"
+    ],
+    "recommendation": "Support v0.11+ (released ~2 years ago). Balances compatibility with maintenance burden."
+  },
+  {
+    "question": "Should file watching monitor entire workspace or only opened files?",
+    "rationale": "File watcher can monitor entire workspace root (catches all .dingo changes) or only files currently open in IDE (lighter resource usage). Affects auto-transpilation behavior.",
+    "options": [
+      "Entire workspace - catches all changes, auto-transpiles everything",
+      "Opened files only - lighter, but misses background changes",
+      "Hybrid - workspace dirs, but limit to .dingo files only"
+    ],
+    "recommendation": "Hybrid approach - watch workspace for .dingo files only. Best balance of completeness and performance."
+  },
+  {
+    "question": "How should transpilation errors be reported?",
+    "rationale": "When auto-transpilation fails, we can show errors as LSP diagnostics (inline in editor) or as notifications (popup). Diagnostics are less intrusive but may be missed.",
+    "options": [
+      "LSP diagnostics only - inline, non-intrusive",
+      "Notifications only - visible but intrusive",
+      "Both - diagnostics for syntax errors, notifications for build failures"
+    ],
+    "recommendation": "Both - diagnostics for Dingo syntax errors (parsed from transpiler output), notifications for system errors (dingo binary missing, etc.)."
+  },
+  {
+    "question": "Should VSCode extension be published to marketplace or distributed as .vsix?",
+    "rationale": "Marketplace publishing requires Microsoft account, review process. Manual .vsix is faster but less discoverable. Affects installation instructions and update mechanism.",
+    "options": [
+      "Marketplace - discoverable, auto-updates",
+      "Manual .vsix - faster initial release, manual updates",
+      "Both - .vsix for alpha, marketplace for stable"
+    ],
+    "recommendation": "Both - start with .vsix for iteration 1 (faster), publish to marketplace in iteration 2 (after stabilization)."
+  },
+  {
+    "question": "Should transpilation be automatic on save or require manual trigger?",
+    "rationale": "Auto-transpilation on save is convenient but may be unwanted for large files. Manual trigger (command) gives control but requires extra step. Affects user workflow.",
+    "options": [
+      "Auto on save - seamless, no user action",
+      "Manual command - user controls when to transpile",
+      "Configurable - auto by default, setting to disable"
+    ],
+    "recommendation": "Configurable - auto-transpile on save by default (setting: 'dingo.transpileOnSave': true), allow users to disable if needed."
+  },
+  {
+    "question": "Will Phase 4 modify the source map format?",
+    "rationale": "Phase 4 is implementing lambdas, ternary, etc. If they change source map format (add new fields, change structure), LSP may break. Need coordination.",
+    "options": [
+      "No changes - source map format is stable",
+      "Additive changes only - new optional fields, backward compatible",
+      "Breaking changes - format will change significantly"
+    ],
+    "recommendation": "Check with Phase 4 agent. If changes needed, add version field to source maps and implement version checking in LSP."
+  },
+  {
+    "question": "Should LSP support .dingo files outside workspace root?",
+    "rationale": "Users may open .dingo files from other directories (examples, libraries). LSP can either require all files in workspace or support arbitrary locations. Affects file resolution logic.",
+    "options": [
+      "Workspace only - simpler, all files in one tree",
+      "Support arbitrary paths - more flexible, complex resolution",
+      "Warn but support - show warning, attempt to transpile"
+    ],
+    "recommendation": "Workspace only for iteration 1 - keeps implementation simple. Add arbitrary path support in iteration 2 if requested."
+  },
+  {
+    "question": "What level of logging/debugging should LSP provide?",
+    "rationale": "LSP can log to file, stderr, or LSP output channel. Affects debugging experience. Too verbose = noise, too quiet = hard to debug.",
+    "options": [
+      "Minimal - errors only",
+      "Standard - errors + warnings + key events",
+      "Verbose - full request/response logging (debug mode)"
+    ],
+    "recommendation": "Configurable via environment variable: DINGO_LSP_LOG=info (default) or DINGO_LSP_LOG=debug. Log to stderr (captured by IDE)."
+  },
+  {
+    "question": "Should LSP cache transpiled .go files or rely on filesystem?",
+    "rationale": "LSP can keep in-memory cache of .go files for gopls, or always read from disk. Caching is faster but may become stale. Affects performance and consistency.",
+    "options": [
+      "No cache - always read from disk",
+      "Cache with invalidation - file watcher invalidates on change",
+      "gopls handles it - don't cache, let gopls read files"
+    ],
+    "recommendation": "Option 3 - let gopls handle file caching. We only cache source maps (lightweight). Simpler, avoids stale data issues."
+  },
+  {
+    "question": "How should LSP handle .dingo files with no corresponding .go file?",
+    "rationale": "User may create new .dingo file but not transpile yet. LSP can auto-transpile on open, show error, or wait for manual transpile. Affects onboarding experience.",
+    "options": [
+      "Auto-transpile on open - seamless but surprising",
+      "Show error notification - explicit but requires action",
+      "Auto-transpile silently - best UX, transparent"
+    ],
+    "recommendation": "Auto-transpile silently on first LSP request (e.g., first autocomplete). If transpilation fails, show error. Best balance of UX and clarity."
+  }
+]

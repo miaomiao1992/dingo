@@ -1,0 +1,25 @@
+Phase V Final Plan: Infrastructure & Tooling (Engine-Free)
+
+SCOPE:
+- NO test fixes, NO engine changes, NO language features
+- ONLY: Documentation, CI/CD, validation, tooling around working features
+
+PRIORITIES:
+1. Package Management Docs (Week 1) - Hybrid workflow (libs→.go, apps→.dingo), 3 example projects
+2. CI/CD Enhancements (Week 2) - Diff visualization, performance tracking, auto-docs
+3. Source Map Validation (Week 2-3) - Read-only validation suite, schema docs, round-trip tests
+4. Developer Experience (Week 3) - Getting started guide, feature docs, migration guide
+5. Workspace Builds (Week 4, Optional) - Multi-package support, `dingo build ./...`
+
+TIMELINE: 3-4 weeks, zero engine modifications
+
+DELIVERABLES:
+✅ Package management strategy documented with examples
+✅ Enhanced CI/CD with visualization and automation
+✅ Source map validation suite (>99.9% accuracy)
+✅ Developer documentation (getting started, features, migration)
+✅ Optional: Workspace build infrastructure
+
+RISK: Low (no engine changes, no test fixes, infrastructure only)
+
+Full plan: ai-docs/sessions/20251119-150114/01-planning/final-plan.md

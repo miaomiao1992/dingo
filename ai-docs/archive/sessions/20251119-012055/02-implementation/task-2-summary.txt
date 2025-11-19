@@ -1,0 +1,29 @@
+Task 2: go/types Integration for Pattern Match Scrutinee
+
+STATUS: SUCCESS
+
+IMPLEMENTATION COMPLETED:
+- Added go/types integration to pattern_match.go
+- Created getAllVariantsWithTypes() function using go/types.Info
+- Created extractVariantsFromType() to extract variants from types.Type
+- Handles type aliases via t.Underlying()
+- Graceful fallback to heuristics when go/types unavailable
+
+TESTING:
+- 4 new test functions added (270+ lines)
+- All new tests pass (4/4)
+- Existing tests: 19/21 pass (2 pre-existing failures unrelated)
+- Test coverage: Result types, Option types, type aliases, function returns, fallback
+
+FILES MODIFIED:
+- pkg/plugin/builtin/pattern_match.go (~80 lines)
+- pkg/plugin/builtin/pattern_match_test.go (~270 lines)
+
+KEY FEATURES:
+✅ Uses go/types.Info for accurate type detection
+✅ Handles type aliases (type MyResult = Result_int_error)
+✅ Falls back to heuristics when go/types unavailable
+✅ Works with switch tag expressions (switchStmt.Tag)
+✅ Detects Result/Option by checking for "tag" struct field
+
+NEXT: Task 3 - Err() inference with go/types

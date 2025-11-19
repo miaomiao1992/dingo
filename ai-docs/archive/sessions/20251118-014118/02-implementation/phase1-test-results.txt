@@ -1,0 +1,49 @@
+GOLDEN TEST RESULTS - Phase 1 (Preprocessor Integration)
+=========================================================
+
+Test Command: go test ./tests -run TestGoldenFiles/error_prop_XX -v
+
+TEST 1: error_prop_01_simple
+----------------------------
+Status: PARSE SUCCESS ✅
+Parsing: No errors (preprocessor → parser pipeline works)
+Output: Fails on comparison (extra blank lines, same logic)
+
+Differences:
+- Extra blank lines before/after dingo markers
+- Otherwise identical output
+
+TEST 2: error_prop_03_expression
+---------------------------------
+Status: PARSE SUCCESS ✅
+Parsing: No errors (preprocessor → parser pipeline works)
+Output: Fails on comparison (variable numbering + blank lines)
+
+Differences:
+- Error variable: __err1 instead of __err0 (counter mismatch)
+- Extra blank lines before/after dingo markers
+- Logic is correct
+
+TEST 3: error_prop_06_mixed_context
+------------------------------------
+Status: PARSE SUCCESS ✅
+Parsing: No errors (preprocessor → parser pipeline works)
+Output: Fails on comparison (variable numbering + blank lines)
+
+Differences:
+- Error variable: __err2 instead of __err1 (counter mismatch)
+- Extra blank lines before/after dingo markers
+- Logic is correct
+
+SUMMARY
+=======
+✅ All 3 tests now PARSE successfully (no parser errors)
+❌ Tests fail on output comparison (formatting differences only)
+
+Root Cause of Comparison Failures:
+1. Extra blank lines: Preprocessor or generator adds extra newlines
+2. Variable numbering: Error counter logic differs between CLI and test path
+
+Next Steps:
+- Phase 2: Fix blank line insertion
+- Phase 3: Align error variable counter logic

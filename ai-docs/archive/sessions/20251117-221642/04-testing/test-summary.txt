@@ -1,0 +1,17 @@
+STATUS: PASS
+TOTAL_TESTS: 12
+PASSED_TESTS: 12
+FAILED_TESTS: 0
+NEW_TESTS_ADDED: 2
+DURATION: 0.394s
+
+NEW TESTS:
+1. TestCRITICAL1_MappingsBeforeImportsNotShifted - Verifies source-map offset fix
+2. TestIMPORTANT1_UserDefinedFunctionsDontTriggerImports - Verifies import detection fix (5 subtests)
+
+REGRESSION COVERAGE:
+- CRITICAL-1 (Source-map offset): PROTECTED
+- CRITICAL-2 (Multi-value returns): PROTECTED (pre-existing test)
+- IMPORTANT-1 (Import false positives): PROTECTED
+
+CONFIDENCE: 95%

@@ -1,0 +1,1 @@
+User request: Research gopls language server (https://cs.opensource.google/go/x/tools) and compare with our dingo-lsp implementation. VS Code extension failing to initialize. editors/vscode/src/lspClient.ts and pkg/lsp/ files modified.

@@ -1,0 +1,5 @@
+Internal Architecture Analysis: Option C Recommended
+
+Option C (Comment Map Filtering) wins 6/7 dimensions with 85% confidence. LSP integration risk is the deciding factor: Option B's position coordination threatens Dingo's core IDE experience with inevitable off-by-one diagnostic errors. Option C preserves single-AST architecture, eliminates position translation overhead, and leverages Go's 13-year stable ast.CommentMap API. Every future feature (lambdas, tuples) is simpler with Option C - no position math, no AST boundaries, zero LSP impact. Implementation: 1 hour (20 lines in pkg/plugin/plugin.go), surgical fix with <5% rollback risk.
+
+Winner: Option C - Simpler, safer, faster development velocity forever.

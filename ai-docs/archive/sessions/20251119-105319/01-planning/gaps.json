@@ -1,0 +1,86 @@
+[
+  {
+    "id": "naming_convention",
+    "question": "Which Result type naming convention should we use?",
+    "context": "Code currently generates ResultTag_Ok (with underscore), but tests expect ResultTagOk (camelCase). We need to pick one standard.",
+    "options": [
+      {
+        "id": "option_a",
+        "label": "ResultTagOk (camelCase, no underscore)",
+        "description": "Go idiomatic style. Modify pkg/generator/result_option.go to remove underscores.",
+        "pros": ["Follows Go naming conventions", "Consistent with Go style guide", "More readable"],
+        "cons": ["Changes generated code output", "May affect existing user code (if any)"],
+        "impact": "Modify 1 file: pkg/generator/result_option.go",
+        "recommended": true
+      },
+      {
+        "id": "option_b",
+        "label": "ResultTag_Ok (with underscore)",
+        "description": "Keep current implementation. Modify tests to expect underscores.",
+        "pros": ["No change to code generation", "Preserves current output"],
+        "cons": ["Non-idiomatic Go style", "Inconsistent with Go conventions"],
+        "impact": "Modify test files: tests/integration_phase4_test.go",
+        "recommended": false
+      }
+    ],
+    "default": "option_a",
+    "priority": "critical",
+    "blocks": ["batch_1_task_2"]
+  },
+  {
+    "id": "batch_4_defer",
+    "question": "Should we implement None context inference enhancement now or defer it?",
+    "context": "None inference for return statements affects only 1 test but requires 4-6 hours of work (AST parent tracking).",
+    "options": [
+      {
+        "id": "implement_now",
+        "label": "Implement Now (100% test coverage)",
+        "description": "Complete the None inference feature in this session.",
+        "pros": ["100% test passing rate", "Complete feature implementation", "No technical debt"],
+        "cons": ["Additional 4-6 hours work", "Delays other priorities"],
+        "impact": "Modify pkg/types/inference.go, add AST parent tracking",
+        "recommended": false
+      },
+      {
+        "id": "defer_later",
+        "label": "Defer to Later (98% is acceptable)",
+        "description": "Focus on critical fixes now, enhance None inference in future iteration.",
+        "pros": ["Faster completion (5-8h vs 9-14h)", "Focus on high-impact fixes", "98% passing is excellent"],
+        "cons": ["1 test remains failing", "Feature incomplete"],
+        "impact": "No immediate work, document as future enhancement",
+        "recommended": true
+      }
+    ],
+    "default": "defer_later",
+    "priority": "low",
+    "blocks": []
+  },
+  {
+    "id": "parallel_execution",
+    "question": "Should we execute Batch 1 tasks in parallel or sequentially?",
+    "context": "Task 1.1 (create golden files) and Task 1.2 (naming fix) are independent and can run simultaneously.",
+    "options": [
+      {
+        "id": "parallel",
+        "label": "Parallel Execution (2 agents)",
+        "description": "Launch 2 golang-developer agents simultaneously for Batch 1 tasks.",
+        "pros": ["2x faster (1-2h vs 2-4h)", "Efficient resource use", "No dependencies between tasks"],
+        "cons": ["Requires coordination", "Slightly more complex orchestration"],
+        "impact": "Saves 1-2 hours",
+        "recommended": true
+      },
+      {
+        "id": "sequential",
+        "label": "Sequential Execution (1 agent)",
+        "description": "Complete Task 1.1, then Task 1.2.",
+        "pros": ["Simpler orchestration", "Easier to track progress"],
+        "cons": ["2x slower", "Inefficient for independent tasks"],
+        "impact": "Takes 2-4 hours instead of 1-2 hours",
+        "recommended": false
+      }
+    ],
+    "default": "parallel",
+    "priority": "medium",
+    "blocks": []
+  }
+]

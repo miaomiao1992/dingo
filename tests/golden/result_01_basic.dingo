@@ -17,6 +17,6 @@ func divide(a: float64, b: float64) Result {
 func main() {
 	let result = divide(10.0, 2.0)
 	if result.IsOk() {
-		let v = *result.ok_0
+		let v = *result.ok
 	}
 }

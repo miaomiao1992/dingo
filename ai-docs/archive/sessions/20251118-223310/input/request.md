@@ -1,0 +1,2 @@
+# Request
+Investigate AST bug described in main prompt: pattern match plugin losing init statement when replacing switch with if-else, causing tests to fail. Provide root cause, fix proposal, steps, risks, and testing plan.

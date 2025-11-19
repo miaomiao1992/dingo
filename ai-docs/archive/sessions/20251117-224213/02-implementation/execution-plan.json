@@ -1,0 +1,103 @@
+{
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "description": "Quick wins - independent fixes and verifications",
+      "tasks": [
+        {
+          "task_id": "A",
+          "description": "Fix source map offset bug (>= to >)",
+          "files": ["pkg/preprocessor/preprocessor.go"],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "B",
+          "description": "Verify Issue #2 (multi-value returns already fixed)",
+          "files": ["pkg/preprocessor/error_prop.go", "pkg/preprocessor/preprocessor_test.go"],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "C",
+          "description": "Verify Issue #3 (import collision already fixed)",
+          "files": ["pkg/preprocessor/error_prop.go"],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "D",
+          "description": "Document preprocessor architecture and ordering policy",
+          "files": ["pkg/preprocessor/README.md"],
+          "agent": "golang-developer"
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "depends_on": [1],
+      "description": "Add compiler flag feature",
+      "tasks": [
+        {
+          "task_id": "E",
+          "description": "Add --multi-value-return compiler flag with config system",
+          "files": ["cmd/dingo/main.go", "pkg/preprocessor/config.go", "pkg/preprocessor/error_prop.go"],
+          "agent": "golang-developer"
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "depends_on": [1, 2],
+      "description": "Comprehensive test suite",
+      "tasks": [
+        {
+          "task_id": "F",
+          "description": "Add source map negative test (mappings before import block)",
+          "files": ["pkg/preprocessor/preprocessor_test.go"],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "G",
+          "description": "Add user function shadowing tests (prevent stdlib import collision)",
+          "files": ["pkg/preprocessor/preprocessor_test.go"],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "H",
+          "description": "Add multi-value edge case tests",
+          "files": ["pkg/preprocessor/preprocessor_test.go"],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "I",
+          "description": "Add import edge case tests",
+          "files": ["pkg/preprocessor/preprocessor_test.go"],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "J",
+          "description": "Add config flag tests (--multi-value-return modes)",
+          "files": ["pkg/preprocessor/config_test.go"],
+          "agent": "golang-developer"
+        }
+      ]
+    },
+    {
+      "batch_id": 4,
+      "depends_on": [3],
+      "description": "Documentation and CHANGELOG",
+      "tasks": [
+        {
+          "task_id": "K",
+          "description": "Document CLI flag in usage/help text",
+          "files": ["cmd/dingo/main.go"],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "L",
+          "description": "Update CHANGELOG.md with all changes",
+          "files": ["CHANGELOG.md"],
+          "agent": "golang-developer"
+        }
+      ]
+    }
+  ]
+}

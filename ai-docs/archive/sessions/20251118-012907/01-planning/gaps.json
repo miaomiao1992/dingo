@@ -1,0 +1,26 @@
+[
+  {
+    "question": "How does plugin.Context get initialized and set on plugin instances?",
+    "rationale": "Tests manually create Context and call p.Transform(ctx, file), but the actual Transform method signature is Transform(node ast.Node) with no Context parameter. Plugins have ctx as a field, but it's unclear how it gets populated. Need to understand plugin lifecycle: who sets the Context? Is there a SetContext() method we should use?"
+  },
+  {
+    "question": "What is the correct API for generator.NewWithPlugins()?",
+    "rationale": "Golden tests call generator.NewWithPlugins(fset, registry, logger) and pass plugin instances. Need to examine pkg/generator/generator.go to verify: (1) Does NewWithPlugins exist? (2) Does it accept Registry? (3) How are plugins registered with the generator? This determines whether we need to restore Registry.Register() or use a different mechanism."
+  },
+  {
+    "question": "Is the 'SumTypesPlugin' referenced in tests the same as OptionTypePlugin?",
+    "rationale": "Golden test calls builtin.NewSumTypesPlugin() which doesn't exist. The codebase has OptionTypePlugin which handles Option<T> with Some/None. Need to clarify: (1) Was SumTypesPlugin renamed to OptionTypePlugin? (2) Are these conceptually the same thing? (3) Or is SumTypesPlugin a separate unimplemented feature? This affects whether we replace the call or remove the test."
+  },
+  {
+    "question": "Does ResultTypePlugin need a public Transform(ctx, file) method for tests?",
+    "rationale": "Tests call p.Transform(ctx, file) expecting signature Transform(*Context, *ast.File) (*ast.File, error), but actual signature is Transform(node ast.Node) (ast.Node, error). This is a fundamental API mismatch. Options: (1) Add wrapper method with old signature for tests, (2) Update tests to use new signature and handle context differently, (3) Change actual Transform to accept Context. Need architectural decision on the intended public API."
+  },
+  {
+    "question": "Should Registry.Register() be restored or removed from the architecture?",
+    "rationale": "Current Registry is a stub with no Register method. Tests expect registry.Register(plugin). Two paths: (1) Restore Register() method to Registry for plugin registration, (2) Remove registry entirely and pass plugins directly to generator. Need to decide which aligns with the intended architecture. The pipeline code suggests registry is meant to be passive, but generator integration may require registration."
+  },
+  {
+    "question": "What is the intended role of the ErrorWrapper component?",
+    "rationale": "Tests reference builtin.NewErrorWrapper() which exists in the codebase (line 346 of error_propagation_test.go uses it). However, it's unclear if this is a public API or internal implementation detail. Need to verify: (1) Does NewErrorWrapper() exist in builtin package? (2) Is it intended for public use? (3) Should we keep or remove the ErrorWrapper test?"
+  }
+]

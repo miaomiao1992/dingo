@@ -1,0 +1,32 @@
+LSP Source Mapping Fix - Test Summary
+=====================================
+
+STATUS: FIX CORRECT, TESTS NEED UPDATING
+
+Core Fix Validation:
+✅ Source maps correctly point to ? operator (col 27)
+✅ Implementation logic correct (LastIndex vs Index)
+✅ Golden tests 45/46 passing (1 failure unrelated)
+
+Test Suite Failures:
+❌ 4 preprocessor tests failing
+   - Expect 7 mappings, implementation generates 8
+   - Root cause: Tests have outdated expectations
+   - Fix is CORRECT, tests need updating
+
+❌ 1 pattern match test failing (unrelated to this fix)
+
+Analysis:
+- The fix added expr_mapping (1) + error_prop (7) = 8 mappings total
+- Tests were written for 7 mappings only
+- 8 mappings is CORRECT behavior (maps both expression and error handling)
+- This is NOT an implementation bug, but a test expectation bug
+
+Confidence: 95% - Fix is correct, tests are outdated
+
+Next Steps:
+1. Update 4 preprocessor tests to expect 8 mappings
+2. Fix golden test comment mismatch (error_prop_09_multi_value)
+3. Investigate pattern match test separately (unrelated)
+
+Full details: /Users/jack/mag/dingo/ai-docs/sessions/20251118-223538/04-testing/test-results.md

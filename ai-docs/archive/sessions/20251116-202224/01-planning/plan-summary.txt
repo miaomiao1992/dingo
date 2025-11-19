@@ -1,0 +1,30 @@
+Sum Types Implementation Plan - Summary
+
+KEY FEATURES:
+- Sum types (discriminated unions) with enum syntax: enum Result<T, E> { Ok(T), Err(E) }
+- Pattern matching with => arms: match shape { Circle{r} => area(r), _ => 0 }
+- Exhaustiveness checking: Compiler errors on missing cases, wildcard _ allowed
+- Auto-generated Is* helper methods for all variants (e.g., IsOk(), IsErr())
+- Result<T, E> and Option<T> in standard prelude (auto-imported)
+- Trailing commas allowed in variant lists (Go-style)
+
+IMPLEMENTATION APPROACH:
+- Transpiles to zero-overhead Go tagged unions (tag enum + struct + constructors)
+- Match expressions become switch statements on tag field
+- Expression-based matching (can return values and be assigned)
+- Plugin architecture with 6 phases: Parser → Transpilation → Match → Exhaustiveness → Generics → Polish
+
+TIMELINE ESTIMATE:
+- Total: 3-4 weeks (20-28 working days)
+- Phase 1 (Parser): 5-7 days
+- Phase 2 (Transpilation + Helpers): 6-8 days
+- Phase 3 (Match Expressions): 6-8 days
+- Phase 4 (Exhaustiveness): 4-5 days
+- Phase 5 (Generics + Prelude): 6-8 days
+- Phase 6 (Polish): 5-7 days
+
+CRITICAL DEPENDENCIES:
+- Pattern matching plugin must run after sum types plugin
+- Exhaustiveness checking must run before match transformation
+- Standard prelude must be auto-imported before user code parsing
+- Helper method generation happens during enum transformation

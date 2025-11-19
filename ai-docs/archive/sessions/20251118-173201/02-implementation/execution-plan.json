@@ -1,0 +1,143 @@
+{
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "description": "Guards parsing + Enhanced error foundation",
+      "estimated_time": "1 hour",
+      "tasks": [
+        {
+          "task_id": "A1",
+          "description": "Implement guard pattern parsing in RustMatchProcessor (support 'if' and 'where' keywords)",
+          "files": [
+            "pkg/preprocessor/rust_match.go",
+            "pkg/preprocessor/rust_match_test.go"
+          ],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "A2",
+          "description": "Implement enhanced error message infrastructure with source snippets",
+          "files": [
+            "pkg/errors/enhanced.go",
+            "pkg/errors/enhanced_test.go",
+            "pkg/errors/snippet.go"
+          ],
+          "agent": "golang-developer"
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "depends_on": [1],
+      "description": "Swift preprocessor + Guard plugin transformation",
+      "estimated_time": "1.5 hours",
+      "tasks": [
+        {
+          "task_id": "B1",
+          "description": "Implement Swift pattern matching preprocessor (switch/case .Variant(let x))",
+          "files": [
+            "pkg/preprocessor/swift_match.go",
+            "pkg/preprocessor/swift_match_test.go"
+          ],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "B2",
+          "description": "Implement guard transformation in PatternMatchPlugin (nested if statements)",
+          "files": [
+            "pkg/plugin/builtin/pattern_match.go",
+            "pkg/plugin/builtin/pattern_match_test.go"
+          ],
+          "agent": "golang-developer"
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "depends_on": [2],
+      "description": "Tuple destructuring (preprocessor + plugin collaboration)",
+      "estimated_time": "1.5 hours",
+      "tasks": [
+        {
+          "task_id": "C1",
+          "description": "Implement tuple pattern parsing in both Rust and Swift preprocessors, plus tuple exhaustiveness checking in PatternMatchPlugin (6-element limit, decision tree algorithm)",
+          "files": [
+            "pkg/preprocessor/rust_match.go",
+            "pkg/preprocessor/swift_match.go",
+            "pkg/plugin/builtin/pattern_match.go",
+            "pkg/plugin/builtin/exhaustiveness.go",
+            "pkg/plugin/builtin/exhaustiveness_test.go"
+          ],
+          "agent": "golang-developer"
+        }
+      ]
+    },
+    {
+      "batch_id": 4,
+      "depends_on": [3],
+      "description": "Golden tests for all 4 features",
+      "estimated_time": "1 hour",
+      "tasks": [
+        {
+          "task_id": "D1",
+          "description": "Create 4 golden tests for pattern guards (basic, nested, complex, edge cases)",
+          "files": [
+            "tests/golden/pattern_match_05_guards_basic.dingo",
+            "tests/golden/pattern_match_06_guards_nested.dingo",
+            "tests/golden/pattern_match_07_guards_complex.dingo",
+            "tests/golden/pattern_match_08_guards_edge_cases.dingo"
+          ],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "D2",
+          "description": "Create 4 golden tests for Swift syntax (basic, guards, config, mixed)",
+          "files": [
+            "tests/golden/swift_match_01_basic.dingo",
+            "tests/golden/swift_match_02_guards.dingo",
+            "tests/golden/swift_match_03_config.dingo",
+            "tests/golden/swift_match_04_mixed.dingo"
+          ],
+          "agent": "golang-developer"
+        },
+        {
+          "task_id": "D3",
+          "description": "Create 4 golden tests for tuple destructuring (pairs, triples, wildcards, exhaustiveness)",
+          "files": [
+            "tests/golden/pattern_match_09_tuple_pairs.dingo",
+            "tests/golden/pattern_match_10_tuple_triples.dingo",
+            "tests/golden/pattern_match_11_tuple_wildcards.dingo",
+            "tests/golden/pattern_match_12_tuple_exhaustiveness.dingo"
+          ],
+          "agent": "golang-developer"
+        }
+      ]
+    },
+    {
+      "batch_id": 5,
+      "depends_on": [4],
+      "description": "Integration, docs, verification",
+      "estimated_time": "0.5 hours",
+      "tasks": [
+        {
+          "task_id": "E1",
+          "description": "Run full test suite, verify backward compatibility (57 Phase 4.1 tests), integration test, update documentation",
+          "files": [
+            "tests/golden/README.md",
+            "pkg/config/README.md",
+            "CHANGELOG.md"
+          ],
+          "agent": "golang-developer"
+        }
+      ]
+    }
+  ],
+  "total_estimated_time": "5.5-6 hours",
+  "parallel_speedup": "~3x (9 tasks → 5 sequential batches)",
+  "success_criteria": {
+    "tests_passing": "94/94 (57 Phase 4.1 + 19 Phase 4.2 + integration)",
+    "compile_overhead": "<20ms per file",
+    "code_coverage": ">80%",
+    "backward_compatible": true
+  }
+}

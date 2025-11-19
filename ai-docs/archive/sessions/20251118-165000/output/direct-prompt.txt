@@ -1,0 +1,30 @@
+# Optional Syntax Tree Parser Layer Decision
+
+Given that Dingo currently uses:
+1. Regex preprocessor for simple transforms (param: Type → param Type, x? → error handling)
+2. go/parser for AST processing
+
+Should we add an OPTIONAL syntax tree parser layer between these stages for context-aware features?
+
+## Provide Analysis:
+
+### 1. RECOMMENDATION (YES/NO)
+State clearly: Should we add the optional syntax tree parser layer?
+
+### 2. IF YES - TECHNOLOGY CHOICE
+Choose ONE:
+- Participle (Go parser combinator)
+- Tree-sitter (incremental parser)
+- Custom recursive descent
+- PEG generator (pigeon)
+
+### 3. RATIONALE
+Explain in 3-5 sentences why or why not.
+
+### 4. IMPLEMENTATION COMPLEXITY
+Rate 1-10 (1=trivial, 10=extremely complex)
+
+### 5. KEY TRADE-OFF
+State the main benefit vs main cost.
+
+Be concise and decisive.

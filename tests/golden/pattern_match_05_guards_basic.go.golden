@@ -3,105 +3,105 @@ package main
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
 	tag   ResultTag
-	ok_0  *int
-	err_0 *error
+	ok  *int
+	err *error
 }
 
 func Result_Ok(arg0 int) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 
 // Simple guard on Result type
 func classifyNumber(result Result) string {
-	var __match_result_0 interface{}
+	var result interface{}
 
-	__match_0 := result
-	switch __match_0.tag {
-	case ResultTag_Ok:
-		x := *__match_0.ok_0
+	scrutinee := result
+	switch scrutinee.tag {
+	case ResultTagOk:
+		x := *scrutinee.ok
 
 		if x > 0 {
-			__match_result_0 = "positive"
+			result = "positive"
 
 		} else if x < 0 {
-			__match_result_0 = "negative"
+			result = "negative"
 
 		} else {
-			__match_result_0 = "zero"
+			result = "zero"
 		}
-	case ResultTag_Err:
-		e := *__match_0.err_0
+	case ResultTagErr:
+		e := *scrutinee.err
 
-		__match_result_0 = "error"
+		result = "error"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_0
+	return result
 
 }
 
 // Guard with multiple conditions
 func validateAge(result Result) string {
-	var __match_result_1 interface{}
+	var result2 interface{}
 
-	__match_1 := result
-	switch __match_1.tag {
-	case ResultTag_Ok:
-		age := *__match_1.ok_0
+	scrutinee2 := result
+	switch scrutinee2.tag {
+	case ResultTagOk:
+		age := *scrutinee2.ok
 
 		if age >= 18 && age < 65 {
-			__match_result_1 = "adult"
+			result2 = "adult"
 
 		} else if age >= 65 {
-			__match_result_1 = "senior"
+			result2 = "senior"
 
 		} else {
-			__match_result_1 = "minor"
+			result2 = "minor"
 		}
-	case ResultTag_Err:
+	case ResultTagErr:
 
-		__match_result_1 = "invalid"
+		result2 = "invalid"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_1
+	return result2
 
 }
 
 // Guard with function call
 func checkLength(result Result) string {
-	var __match_result_2 interface{}
+	var result3 interface{}
 
-	__match_2 := result
-	switch __match_2.tag {
-	case ResultTag_Ok:
-		n := *__match_2.ok_0
+	scrutinee3 := result
+	switch scrutinee3.tag {
+	case ResultTagOk:
+		n := *scrutinee3.ok
 
 		if isEven(n) {
-			__match_result_2 = "even"
+			result3 = "even"
 
 		} else {
-			__match_result_2 = "odd"
+			result3 = "odd"
 		}
-	case ResultTag_Err:
+	case ResultTagErr:
 
-		__match_result_2 = "error"
+		result3 = "error"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_2
+	return result3
 
 }
 func isEven(n int) bool {

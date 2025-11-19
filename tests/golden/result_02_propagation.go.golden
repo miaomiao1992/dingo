@@ -7,27 +7,27 @@ import (
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
 	tag   ResultTag
-	ok_0  *string
-	err_0 *error
+	ok  *string
+	err *error
 }
 
 func Result_Ok(arg0 string) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 func fetchUser(id int) Result {
 	if id <= 0 {
@@ -48,24 +48,24 @@ func processUser(id int) Result {
 	switch __match_0.tag {
 	case ResultTagOk:
 
-		u := *__match_0.ok_0
+		u := *__match_0.ok
 		validated := validateUser(u)
 
 		__match_0 := validated
 		switch __match_0.tag {
 		case ResultTagOk:
 
-			v := *__match_0.ok_0
+			v := *__match_0.ok
 			return Result_Ok(v)
 		case ResultTagErr:
 
-			e := __match_0.err_0
+			e := __match_0.err
 			return Result_Err(e)
 		}
 
 	case ResultTagErr:
 
-		e := __match_0.err_0
+		e := __match_0.err
 		return Result_Err(e)
 	}
 
@@ -77,11 +77,11 @@ func main() {
 	switch __match_1.tag {
 	case ResultTagOk:
 
-		user := *__match_1.ok_0
+		user := *__match_1.ok
 		println("Success:", user)
 	case ResultTagErr:
 
-		error := __match_1.err_0
+		error := __match_1.err
 		println("Error:", error)
 	}
 

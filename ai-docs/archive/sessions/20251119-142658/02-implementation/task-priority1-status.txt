@@ -1,0 +1,15 @@
+Status: Success
+
+Fixed non-deterministic switch case generation in pattern matching by sorting map keys before iteration.
+
+Changed: 1 file (pkg/preprocessor/rust_match.go)
+Added: sortVariantsInPlace helper function + sort import
+Fixed: 3 locations (generateNestedTupleSwitches + 2 in generateNestedSwitchLevel)
+
+Validation: 5/5 runs produce identical output (pattern_match_01_basic, pattern_match_02_guards, pattern_match_09_tuple_pairs)
+
+Determinism: 100% verified across multiple test files
+
+Next: Golden tests need regeneration with `go test ./tests -run TestGoldenFiles/pattern_match -update`
+
+Details: ai-docs/sessions/20251119-142658/02-implementation/task-priority1-changes.md

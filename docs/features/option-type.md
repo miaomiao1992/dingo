@@ -71,7 +71,7 @@ let notFound = Option_None()
 
 ```go
 if option.IsSome() {
-    let value = *option.some_0
+    let value = *option.some
     println("Found:", value)
 } else {
     println("Not found")
@@ -114,7 +114,7 @@ func main() {
     let result = findUserByEmail("alice@example.com")
 
     if result.IsSome() {
-        let user = *result.some_0
+        let user = *result.some
         println("Found user:", user.Name)
     } else {
         println("User not found")
@@ -142,7 +142,7 @@ func main() {
     let apiKey = getConfigValue("API_KEY")
 
     if apiKey.IsSome() {
-        println("Using API key:", *apiKey.some_0)
+        println("Using API key:", *apiKey.some)
     } else {
         println("No API key configured")
     }
@@ -171,7 +171,7 @@ func displayResult(query: string) {
     let result = searchProduct(query)
 
     if result.IsSome() {
-        let product = *result.some_0
+        let product = *result.some
         println("Found:", product.Name, "-", product.Price)
     } else {
         println("No products found for:", query)
@@ -222,11 +222,11 @@ const (
 
 type Option struct {
     tag    OptionTag
-    some0  *string
+    some   *string
 }
 
-func OptionSome(some0 string) Option {
-    return Option{tag: OptionTagSome, some0: &some0}
+func OptionSome(some string) Option {
+    return Option{tag: OptionTagSome, some: &some}
 }
 
 func OptionNone() Option {
@@ -273,7 +273,7 @@ func getUserSafe(id: int) UserOption {
 ```go
 func convertToPtr(opt: UserOption) *User {
     if opt.IsSome() {
-        user := *opt.some_0
+        user := *opt.some
         return &user
     }
     return nil
@@ -312,7 +312,7 @@ func getPort() int {
     let portOpt = getConfigValue("PORT")
 
     if portOpt.IsSome() {
-        return parsePort(*portOpt.some_0)
+        return parsePort(*portOpt.some)
     }
 
     return 8080  // sensible default
@@ -489,7 +489,7 @@ func findUser(id: int) UserOption {
 
 let user = findUser(42)
 if user.IsSome() {
-    println("User:", (*user.some_0).Name)
+    println("User:", (*user.some).Name)
 } else {
     println("Not found")
 }
@@ -509,11 +509,11 @@ if user.IsSome() {
 let opt = Option_None()
 
 // BAD: Will panic!
-let value = *opt.some_0
+let value = *opt.some
 
 // GOOD: Always check first
 if opt.IsSome() {
-    let value = *opt.some_0
+    let value = *opt.some
 }
 ```
 
@@ -550,7 +550,7 @@ enum Nested {
 ```go
 func getOrDefault(opt: StringOption, defaultVal: string) string {
     if opt.IsSome() {
-        return *opt.some_0
+        return *opt.some
     }
     return defaultVal
 }

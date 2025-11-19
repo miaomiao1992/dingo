@@ -1,0 +1,9 @@
+Final Plan Summary - Build Fix Implementation (5.5 hours)
+
+1. Audit Transform Pipeline (1.5h): Check for lambdas/pattern matching, remove only error_prop duplicates, preserve working features
+
+2. Implement Automatic Import Detection (2h): Add ImportTracker to preprocessor, detect standard library function calls, inject imports using astutil
+
+3. Fix Source Mappings (1h): Adjust mapping offsets for added imports, verify accuracy with dedicated tests
+
+4. Verify & Document (1h): Build all packages, compile 46 golden tests, update CHANGELOG.md and architecture docs

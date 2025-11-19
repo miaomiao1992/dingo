@@ -1,0 +1,9 @@
+FUNCTIONAL UTILITIES - IMPLEMENTATION PLAN SUMMARY
+
+Key Decisions:
+- Transpile to INLINE LOOPS (not stdlib functions) per feature spec
+- Support BOTH Go function literals (now) and lambda syntax (future)
+- Full scope: Core (map/filter/reduce) + Helpers (sum/count/all/any/find) + Result/Option integration
+- Develop in git worktree for isolation from parallel lambda session
+
+Timeline: 2 weeks (Week 1: Core + helpers, Week 2: Integration + polish)

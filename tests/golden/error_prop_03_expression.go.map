@@ -1,12 +1,77 @@
 {
+  "version": 1,
   "mappings": [
     {
-      "generated_line": 4,
+      "generated_line": 6,
+      "generated_column": 20,
+      "original_line": 4,
+      "original_column": 9,
+      "length": 7,
+      "name": "expr_mapping"
+    },
+    {
+      "generated_line": 6,
       "generated_column": 1,
       "original_line": 4,
-      "original_column": 1,
-      "length": 16,
+      "original_column": 16,
+      "length": 1,
       "name": "error_prop"
+    },
+    {
+      "generated_line": 7,
+      "generated_column": 1,
+      "original_line": 4,
+      "original_column": 16,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 8,
+      "generated_column": 1,
+      "original_line": 4,
+      "original_column": 16,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 9,
+      "generated_column": 1,
+      "original_line": 4,
+      "original_column": 16,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 10,
+      "generated_column": 1,
+      "original_line": 4,
+      "original_column": 16,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 11,
+      "generated_column": 1,
+      "original_line": 4,
+      "original_column": 16,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 12,
+      "generated_column": 1,
+      "original_line": 4,
+      "original_column": 16,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 6,
+      "generated_column": 20,
+      "original_line": 4,
+      "original_column": 20,
+      "length": 12,
+      "name": "unqualified:Atoi"
     }
   ]
 }

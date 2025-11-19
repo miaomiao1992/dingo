@@ -93,13 +93,13 @@ func main() {
 	// Test Map
 	doubled := processPort(getPort())
 	if doubled.IsSome() {
-		fmt.Printf("Doubled port: %d\n", *doubled.some_0)
+		fmt.Printf("Doubled port: %d\n", *doubled.some)
 	}
 
 	// Test Filter
 	validated := validatePort(Option_int_Some(8080))
 	if validated.IsSome() {
-		fmt.Printf("Valid port: %d\n", *validated.some_0)
+		fmt.Printf("Valid port: %d\n", *validated.some)
 	}
 
 	invalidPort := validatePort(Option_int_Some(100))
@@ -110,13 +110,13 @@ func main() {
 	// Test AndThen
 	adjustedPort := getValidPort(10)
 	if adjustedPort.IsSome() {
-		fmt.Printf("Adjusted port: %d\n", *adjustedPort.some_0)
+		fmt.Printf("Adjusted port: %d\n", *adjustedPort.some)
 	}
 
 	// Test complex chaining
 	final := processConfig(true)
 	if final.IsSome() {
-		fmt.Printf("Final port: %d\n", *final.some_0)
+		fmt.Printf("Final port: %d\n", *final.some)
 	} else {
 		fmt.Println("No final port")
 	}

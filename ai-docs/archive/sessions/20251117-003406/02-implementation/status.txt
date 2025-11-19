@@ -1,0 +1,1 @@
+PARTIAL: Core functionality complete (map/filter/reduce/helpers implemented with IIFE pattern), parser extended for method calls, but blocked by parser limitations preventing full integration testing and existing test compilation errors

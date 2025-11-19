@@ -3,26 +3,26 @@ package main
 type OptionTag uint8
 
 const (
-	OptionTag_Some OptionTag = iota
-	OptionTag_None
+	OptionTagSome OptionTag = iota
+	OptionTagNone
 )
 
 type Option struct {
 	tag    OptionTag
-	some_0 *int
+	some *int
 }
 
 func Option_Some(arg0 int) Option {
-	return Option{tag: OptionTag_Some, some_0: &arg0}
+	return Option{tag: OptionTagSome, some: &arg0}
 }
 func Option_None() Option {
-	return Option{tag: OptionTag_None}
+	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
-	return e.tag == OptionTag_Some
+	return e.tag == OptionTagSome
 }
 func (e Option) IsNone() bool {
-	return e.tag == OptionTag_None
+	return e.tag == OptionTagNone
 }
 func find(arr []int, target int) Option {
 	for i, val := range arr {
@@ -38,14 +38,14 @@ func main() {
 	var index int
 	__opt0 := find(numbers, 25)
 	if __opt0.IsSome() {
-		index = *__opt0.some_0
+		index = *__opt0.some
 	} else {
 		index = -1
 	}
 	var value int
 	__opt1 := find(numbers, 30)
 	if __opt1.IsSome() {
-		value = *__opt1.some_0
+		value = *__opt1.some
 	} else {
 		value = 0
 	}
@@ -54,7 +54,7 @@ func main() {
 	var __coalesce0 int
 	__opt2 := find(numbers, 20)
 	if __opt2.IsSome() {
-		__coalesce0 = *__opt2.some_0
+		__coalesce0 = *__opt2.some
 	} else {
 		__coalesce0 = -1
 	}

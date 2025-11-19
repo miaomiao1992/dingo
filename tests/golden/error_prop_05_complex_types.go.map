@@ -1,26 +1,19 @@
 {
+  "version": 1,
   "mappings": [
     {
-      "generated_line": 9,
-      "generated_column": 1,
+      "generated_line": 11,
+      "generated_column": 20,
       "original_line": 9,
-      "original_column": 22,
-      "length": 1,
-      "name": "error_prop"
-    },
-    {
-      "generated_line": 10,
-      "generated_column": 1,
-      "original_line": 9,
-      "original_column": 22,
-      "length": 1,
-      "name": "error_prop"
+      "original_column": 13,
+      "length": 21,
+      "name": "expr_mapping"
     },
     {
       "generated_line": 11,
       "generated_column": 1,
       "original_line": 9,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
@@ -28,7 +21,7 @@
       "generated_line": 12,
       "generated_column": 1,
       "original_line": 9,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
@@ -36,7 +29,7 @@
       "generated_line": 13,
       "generated_column": 1,
       "original_line": 9,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
@@ -44,7 +37,7 @@
       "generated_line": 14,
       "generated_column": 1,
       "original_line": 9,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
@@ -52,31 +45,39 @@
       "generated_line": 15,
       "generated_column": 1,
       "original_line": 9,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
     {
-      "generated_line": 20,
+      "generated_line": 16,
       "generated_column": 1,
-      "original_line": 14,
-      "original_column": 22,
+      "original_line": 9,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
     {
-      "generated_line": 21,
+      "generated_line": 17,
       "generated_column": 1,
-      "original_line": 14,
-      "original_column": 22,
+      "original_line": 9,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
     {
       "generated_line": 22,
+      "generated_column": 20,
+      "original_line": 14,
+      "original_column": 13,
+      "length": 21,
+      "name": "expr_mapping"
+    },
+    {
+      "generated_line": 22,
       "generated_column": 1,
       "original_line": 14,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
@@ -84,7 +85,7 @@
       "generated_line": 23,
       "generated_column": 1,
       "original_line": 14,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
@@ -92,7 +93,7 @@
       "generated_line": 24,
       "generated_column": 1,
       "original_line": 14,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
@@ -100,7 +101,7 @@
       "generated_line": 25,
       "generated_column": 1,
       "original_line": 14,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
     },
@@ -108,9 +109,41 @@
       "generated_line": 26,
       "generated_column": 1,
       "original_line": 14,
-      "original_column": 22,
+      "original_column": 34,
       "length": 1,
       "name": "error_prop"
+    },
+    {
+      "generated_line": 27,
+      "generated_column": 1,
+      "original_line": 14,
+      "original_column": 34,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 28,
+      "generated_column": 1,
+      "original_line": 14,
+      "original_column": 34,
+      "length": 1,
+      "name": "error_prop"
+    },
+    {
+      "generated_line": 11,
+      "generated_column": 20,
+      "original_line": 9,
+      "original_column": 20,
+      "length": 11,
+      "name": "unqualified:ReadFile"
+    },
+    {
+      "generated_line": 22,
+      "generated_column": 20,
+      "original_line": 20,
+      "original_column": 20,
+      "length": 11,
+      "name": "unqualified:ReadFile"
     }
   ]
 }

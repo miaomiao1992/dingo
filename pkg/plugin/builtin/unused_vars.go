@@ -60,7 +60,7 @@ func (p *UnusedVarsPlugin) Transform(node ast.Node) (ast.Node, error) {
 }
 
 // handleIfStatement checks if an if statement has the Result/Option unwrapping pattern
-// Pattern: if result.IsOk() { v := *result.ok_0 }
+// Pattern: if result.IsOk() { v := *result.ok }
 func (p *UnusedVarsPlugin) handleIfStatement(ifStmt *ast.IfStmt) {
 	if ifStmt.Body == nil || len(ifStmt.Body.List) == 0 {
 		return
@@ -74,7 +74,7 @@ func (p *UnusedVarsPlugin) handleIfStatement(ifStmt *ast.IfStmt) {
 		return
 	}
 
-	// Check if RHS is a dereference of a field like result.ok_0
+	// Check if RHS is a dereference of a field like result.ok
 	if len(assignStmt.Rhs) != 1 {
 		return
 	}
@@ -89,10 +89,10 @@ func (p *UnusedVarsPlugin) handleIfStatement(ifStmt *ast.IfStmt) {
 		return
 	}
 
-	// Check if the selector is for a Result/Option field (ok_*, err_*, some_*, none_*)
+	// Check if the selector is for a Result/Option field (ok, err, some)
 	fieldName := selectorExpr.Sel.Name
-	isResultField := len(fieldName) > 3 && (fieldName[:3] == "ok_" || fieldName[:4] == "err_")
-	isOptionField := len(fieldName) > 5 && (fieldName[:5] == "some_" || fieldName[:5] == "none_")
+	isResultField := fieldName == "ok" || fieldName == "err"
+	isOptionField := fieldName == "some"
 
 	if !isResultField && !isOptionField {
 		return

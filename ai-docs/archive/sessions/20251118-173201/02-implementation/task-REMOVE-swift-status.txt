@@ -1,0 +1,6 @@
+SUCCESS: Swift removal complete
+
+Tests: pkg/config 10/10 passing, pkg/preprocessor Rust match 20/20 passing
+Files: 14 deleted, 6 modified, 1,125 net lines removed
+Features: Rust-only pattern matching with 'if' guards maintained
+Remaining: 16 Rust golden tests (guards + tuples)

@@ -3,32 +3,32 @@ package main
 type OptionTag uint8
 
 const (
-	OptionTag_Some OptionTag = iota
-	OptionTag_None
+	OptionTagSome OptionTag = iota
+	OptionTagNone
 )
 
 type Option struct {
 	tag    OptionTag
-	some_0 *int
+	some *int
 }
 
 func Option_Some(arg0 int) Option {
-	return Option{tag: OptionTag_Some, some_0: &arg0}
+	return Option{tag: OptionTagSome, some: &arg0}
 }
 func Option_None() Option {
-	return Option{tag: OptionTag_None}
+	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
-	return e.tag == OptionTag_Some
+	return e.tag == OptionTagSome
 }
 func (e Option) IsNone() bool {
-	return e.tag == OptionTag_None
+	return e.tag == OptionTagNone
 }
 
 // Map method for Option chaining
 func (o Option) Map(f func(int) int) Option {
 	if o.IsSome() {
-		return Option_Some(f(*o.some_0))
+		return Option_Some(f(*o.some))
 	}
 	return o
 }
@@ -36,7 +36,7 @@ func (o Option) Map(f func(int) int) Option {
 // AndThen method for Option chaining
 func (o Option) AndThen(f func(int) Option) Option {
 	if o.IsSome() {
-		return f(*o.some_0)
+		return f(*o.some)
 	}
 	return o
 }
@@ -60,7 +60,7 @@ func processValue(opt Option) Option {
 func main() {
 	result := processValue(getValue(10))
 	if result.IsSome() {
-		println("Result:", *result.some_0)
+		println("Result:", *result.some)
 	} else {
 		println("None")
 	}

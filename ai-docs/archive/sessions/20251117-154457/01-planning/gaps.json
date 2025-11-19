@@ -1,0 +1,22 @@
+[
+  {
+    "question": "How should we handle generic type parameters in Result/Option enum declarations?",
+    "rationale": "The golden tests use syntax like 'enum Result { Ok(float64), Err(error) }' with concrete types, but Result is conceptually generic (Result<T, E>). Should we: (1) Start with concrete types only (simplest), (2) Add limited generics support for Result/Option specifically, or (3) Implement full generic enum system? Option 1 is fastest (2-3 hours), option 3 is most complete but complex (15-20 hours)."
+  },
+  {
+    "question": "How should the 'None' constructor infer the Option type parameter?",
+    "rationale": "Unlike Some(value) which has a value to infer from, 'None' has no arguments. In Rust, this requires type context from assignment or return. Should we: (1) Require explicit type annotation: 'let x: Option = None', (2) Infer from surrounding context (complex), or (3) Use a different syntax like 'Option_None::<string>()'? This affects usability significantly."
+  },
+  {
+    "question": "Should Result/Option helper methods be instance methods or module functions?",
+    "rationale": "Current plan generates instance methods (e.g., 'result.Unwrap()'). Alternative is module-style functions (e.g., 'Result.Unwrap(result)'). Instance methods are more idiomatic and match golden test expectations, but module functions avoid potential name collisions with user-defined types. Which approach do you prefer?"
+  },
+  {
+    "question": "What error handling strategy should we use for invalid Result/Option declarations?",
+    "rationale": "If user writes 'enum Result { Ok(T), NotErr(E), Extra(F) }' (wrong structure), should we: (1) Emit compile error and stop, (2) Emit warning and treat as regular enum, or (3) Attempt to fix/normalize? Option 1 is strictest and clearest, option 2 is most permissive."
+  },
+  {
+    "question": "Do you want to implement all helper methods (Unwrap, UnwrapOr, Map, AndThen, Filter, etc.) in Phase 3, or start with a minimal subset?",
+    "rationale": "Comprehensive helpers (8-10 methods per type) provide best developer experience but take longer (4-5 hours per type). Minimal subset (Unwrap, UnwrapOr, IsOk/Err) gets Result/Option working faster (2-3 hours per type) with option to add more later. Golden tests may not exercise all helpers."
+  }
+]

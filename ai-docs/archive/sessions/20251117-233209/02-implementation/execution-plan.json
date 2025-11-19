@@ -1,0 +1,31 @@
+{
+  "parallel_batches": [
+    {
+      "batch_id": 0,
+      "description": "Stage 0: Configuration System (Sequential)",
+      "tasks": [
+        {
+          "task_id": "0.1",
+          "description": "Extend dingo.toml config with go_interop settings for Result and Option types",
+          "files": ["pkg/config/config.go", "dingo.toml.example"],
+          "agent": "golang-developer",
+          "estimated_effort": "1 hour"
+        },
+        {
+          "task_id": "0.2",
+          "description": "Add validation for go_interop modes (opt-in/auto/disabled)",
+          "files": ["pkg/config/config.go"],
+          "agent": "golang-developer",
+          "estimated_effort": "30 minutes"
+        },
+        {
+          "task_id": "0.3",
+          "description": "Write comprehensive tests for config system",
+          "files": ["pkg/config/config_test.go"],
+          "agent": "golang-tester",
+          "estimated_effort": "1 hour"
+        }
+      ]
+    }
+  ]
+}

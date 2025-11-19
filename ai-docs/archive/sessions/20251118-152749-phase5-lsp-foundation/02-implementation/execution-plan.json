@@ -1,0 +1,167 @@
+{
+  "session": "20251118-152749-phase5-lsp-foundation",
+  "strategy": "Sequential with opportunistic parallelization",
+  "rationale": "LSP implementation has tight integration between components. Core infrastructure must be built first, then features can be partially parallelized.",
+  "total_estimated_days": 10,
+  "parallel_batches": [
+    {
+      "batch_id": 1,
+      "name": "Core Infrastructure Foundation",
+      "duration_days": 3,
+      "tasks": [
+        {
+          "task_id": "5.1-core-infrastructure",
+          "description": "Implement core LSP proxy infrastructure (gopls client, source map cache, translator, server core)",
+          "files": [
+            "pkg/lsp/gopls_client.go",
+            "pkg/lsp/logger.go",
+            "pkg/lsp/sourcemap_cache.go",
+            "pkg/lsp/translator.go",
+            "pkg/lsp/server.go",
+            "cmd/dingo-lsp/main.go"
+          ],
+          "agent": "golang-developer",
+          "deliverables": [
+            "gopls client manages subprocess lifecycle",
+            "Source map cache with version checking",
+            "Bidirectional position translator (Dingo ↔ Go)",
+            "LSP server core (initialize, shutdown)",
+            "Binary entry point"
+          ],
+          "estimated_loc": 600,
+          "tests": "Unit tests for each component"
+        }
+      ]
+    },
+    {
+      "batch_id": 2,
+      "name": "LSP Methods and VSCode Extension (Parallel)",
+      "duration_days": 4,
+      "depends_on": [1],
+      "tasks": [
+        {
+          "task_id": "5.2-lsp-methods",
+          "description": "Implement LSP method handlers (completion, hover, definition, diagnostics)",
+          "files": [
+            "pkg/lsp/handlers.go",
+            "pkg/lsp/completion.go",
+            "pkg/lsp/hover.go",
+            "pkg/lsp/definition.go",
+            "pkg/lsp/diagnostics.go"
+          ],
+          "agent": "golang-developer",
+          "deliverables": [
+            "Autocomplete with position translation",
+            "Hover type information",
+            "Go-to-definition support",
+            "Diagnostic translation (gopls → Dingo positions)"
+          ],
+          "estimated_loc": 400,
+          "tests": "Integration tests for each LSP method"
+        },
+        {
+          "task_id": "5.4-vscode-extension",
+          "description": "Create VSCode extension (LSP client, syntax highlighting, commands)",
+          "files": [
+            "editors/vscode-dingo/package.json",
+            "editors/vscode-dingo/extension.js",
+            "editors/vscode-dingo/language-configuration.json",
+            "editors/vscode-dingo/syntaxes/dingo.tmLanguage.json"
+          ],
+          "agent": "golang-developer",
+          "deliverables": [
+            "VSCode extension manifest with settings",
+            "LSP client integration",
+            "Syntax highlighting (TextMate grammar)",
+            "Commands (transpile, restart LSP)",
+            "Packaged .vsix file"
+          ],
+          "estimated_loc": 300,
+          "tests": "Manual testing with real .dingo files"
+        }
+      ]
+    },
+    {
+      "batch_id": 3,
+      "name": "File Watching and Integration",
+      "duration_days": 2,
+      "depends_on": [2],
+      "tasks": [
+        {
+          "task_id": "5.3-file-watching",
+          "description": "Implement file watching and auto-transpilation (workspace monitoring, debouncing, transpile integration)",
+          "files": [
+            "pkg/lsp/watcher.go",
+            "pkg/lsp/transpiler.go"
+          ],
+          "agent": "golang-developer",
+          "deliverables": [
+            "File watcher (fsnotify-based, hybrid workspace strategy)",
+            "Debouncing logic (500ms)",
+            "Ignore patterns (.gitignore support)",
+            "Auto-transpile on save (configurable)",
+            "Source map cache invalidation",
+            "gopls file change notification"
+          ],
+          "estimated_loc": 200,
+          "tests": "Integration tests for file watching and transpilation"
+        }
+      ]
+    },
+    {
+      "batch_id": 4,
+      "name": "Polish, Documentation, Testing",
+      "duration_days": 1,
+      "depends_on": [3],
+      "tasks": [
+        {
+          "task_id": "5.5-polish",
+          "description": "Documentation, benchmarks, final testing, example project",
+          "files": [
+            "pkg/lsp/README.md",
+            "editors/vscode-dingo/README.md",
+            "docs/lsp-debugging.md",
+            "examples/lsp-demo/"
+          ],
+          "agent": "golang-developer",
+          "deliverables": [
+            "Architecture documentation",
+            "Installation guides",
+            "Debugging guide",
+            "Benchmark tests (<1ms translation target)",
+            "Example project for testing",
+            "Full test suite run (>80% coverage)"
+          ],
+          "estimated_loc": 100,
+          "tests": "All unit + integration tests passing"
+        }
+      ]
+    }
+  ],
+  "success_criteria": [
+    "gopls subprocess starts and responds",
+    "Source maps load and validate version",
+    "Position translation accurate (unit tests pass)",
+    "Server lifecycle works (no crashes)",
+    "Autocomplete returns Dingo positions",
+    "Hover shows correct type info",
+    "Go-to-definition jumps to Dingo source",
+    "Diagnostics appear at correct positions",
+    "Save .dingo triggers transpilation",
+    "Transpile errors shown as diagnostics",
+    "No excessive transpilations (debouncing works)",
+    "VSCode extension installs from .vsix",
+    "Syntax highlighting accurate",
+    "LSP connects (autocomplete, hover, definition work)",
+    "Commands execute successfully",
+    "All tests pass (>80% coverage)",
+    "Documentation complete",
+    "Performance meets targets (<100ms latency)"
+  ],
+  "notes": [
+    "Batch 2 has parallel tasks (5.2 and 5.4) - different components, minimal conflict",
+    "VSCode extension can be developed independently while LSP methods are implemented",
+    "File watching (batch 3) needs LSP methods (batch 2) for diagnostics integration",
+    "Total time: 3+4+2+1 = 10 days with parallelization (saves ~2 days vs sequential)"
+  ]
+}

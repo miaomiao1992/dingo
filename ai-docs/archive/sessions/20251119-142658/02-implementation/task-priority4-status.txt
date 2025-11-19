@@ -1,0 +1,1 @@
+Priority 4 complete: None now infers Option type from return statements (1 integration test passing)

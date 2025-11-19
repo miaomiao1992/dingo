@@ -1,0 +1,1 @@
+Request: Analyze Dingo file organization focusing on path resolution logic in transpiler/LSP, LSP diagnostic updates for multi-repo, and source map format with multi-repo indexing. Provide code snippets for key functions (path resolution, module discovery) and migration scripts.

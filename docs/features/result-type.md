@@ -77,11 +77,11 @@ let failure = Result_Err(errors.New("something went wrong"))
 ```go
 if result.IsOk() {
     // Access the value
-    let value = *result.ok_0
+    let value = *result.ok
     println("Success:", value)
 } else {
     // Access the error
-    let err = result.err_0
+    let err = result.err
     println("Error:", err.Error())
 }
 ```
@@ -120,9 +120,9 @@ func main() {
     let result = readConfig("config.json")
 
     if result.IsOk() {
-        println("Read", len(*result.ok_0), "bytes")
+        println("Read", len(*result.ok), "bytes")
     } else {
-        println("Error:", result.err_0.Error())
+        println("Error:", result.err.Error())
     }
 }
 ```
@@ -150,10 +150,10 @@ func handleRequest(userID: int) {
 
     match result {
         case result.IsOk():
-            let user = *result.ok_0
+            let user = *result.ok
             println("Found user:", user.Name)
         default:
-            let errMsg = result.err_0
+            let errMsg = result.err
             println("Error:", errMsg)
     }
 }
@@ -220,16 +220,16 @@ const (
 
 type Result struct {
     tag   ResultTag
-    ok0   *float64
-    err0  *error
+    ok    *float64
+    err   *error
 }
 
-func ResultOk(ok0 float64) Result {
-    return Result{tag: ResultTagOk, ok0: &ok0}
+func ResultOk(ok float64) Result {
+    return Result{tag: ResultTagOk, ok: &ok}
 }
 
-func ResultErr(err0 error) Result {
-    return Result{tag: ResultTagErr, err0: &err0}
+func ResultErr(err error) Result {
+    return Result{tag: ResultTagErr, err: &err}
 }
 
 func (r Result) IsOk() bool {
@@ -280,7 +280,7 @@ Since Result types transpile to regular Go structs, Go code can use them:
 // In Go code
 result := divide(10.0, 2.0)
 if result.IsOk() {
-    value := *result.Ok0
+    value := *result.ok
     fmt.Println("Result:", value)
 }
 ```

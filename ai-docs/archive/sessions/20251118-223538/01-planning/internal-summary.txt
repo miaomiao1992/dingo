@@ -1,0 +1,11 @@
+# LSP Source Mapping Bug - Internal Analysis Summary
+
+**Status**: Root cause identified
+
+**Root Cause**: The `qPos` (question mark position) calculation in `pkg/preprocessor/error_prop.go` is producing incorrect column positions. Source map shows `?` at column 15 when it's actually at column 27, causing all error-handling code mappings to point to wrong locations in Dingo source.
+
+**Impact**: Diagnostics from gopls are incorrectly mapped, causing IDE to underline wrong code segments (e.g., showing error at `?` instead of at `ReadFile`).
+
+**Fix**: Correct the `qPos` calculation to use absolute column positions from the original line, not from transformed substrings.
+
+**Details**: /Users/jack/mag/dingo/ai-docs/sessions/20251118-223538/01-planning/internal-analysis.md

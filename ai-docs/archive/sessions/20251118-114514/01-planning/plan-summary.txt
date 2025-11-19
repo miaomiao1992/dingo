@@ -1,0 +1,33 @@
+Phase 3 Implementation Plan Summary
+====================================
+
+SCOPE:
+- Fix A5: Enhanced type inference using go/types (accurate types, not interface{} fallbacks)
+- Fix A4: Literal handling with IIFE pattern (Ok(42) works without manual temp variables)
+- Option<T>: Type-context-aware None constant + complete helper methods (Map, Filter, AndThen, etc.)
+- Error Infrastructure: Clear compile errors when type inference fails
+
+TIMELINE:
+- 18-26 hours over 2-3 days
+- 4 parallel execution batches
+- Incremental delivery possible (Fix A5 → Fix A4 → Option → Helpers)
+
+SUCCESS METRICS:
+- All 39/39 builtin plugin tests passing (up from 31/39)
+- ~25/46 golden tests passing (up from ~15/46)
+- Type inference accuracy >90% (up from ~40%)
+- 16 helper methods implemented (8 for Result, 8 for Option)
+- Foundation ready for Phase 4 (pattern matching, error propagation)
+
+DELIVERABLES:
+- Type-accurate Result<T,E> and Option<T> constructors
+- Complete helper method suite (IsOk, Unwrap, Map, Filter, AndThen, etc.)
+- Type-context-aware None constant (var x Option_int = None)
+- 10+ new golden tests demonstrating all features
+- Updated documentation (CHANGELOG, ARCHITECTURE)
+
+RISK MITIGATION:
+- Phased rollback plans for each component
+- Graceful fallbacks (go/types → heuristics → error)
+- Incremental testing strategy
+- Clear scope boundaries (defer complex features to Phase 4 if needed)

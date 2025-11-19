@@ -5,75 +5,75 @@ import (
 )
 
 const (
-	patternsTag_Ok patternsTag = iota
-	patternsTag_Err
+	patternsTagOk patternsTag = iota
+	patternsTagErr
 )
 
 type patterns struct {
 	tag   patternsTag
-	ok_0  *Value
-	err_0 *error
+	ok  *Value
+	err *error
 }
 
 func patterns_Ok(arg0 Value) patterns {
-	return patterns{tag: patternsTag_Ok, ok_0: &arg0}
+	return patterns{tag: patternsTagOk, ok: &arg0}
 }
 func patterns_Err(arg0 error) patterns {
-	return patterns{tag: patternsTag_Err, err_0: &arg0}
+	return patterns{tag: patternsTagErr, err: &arg0}
 }
 func (e patterns) IsOk() bool {
-	return e.tag == patternsTag_Ok
+	return e.tag == patternsTagOk
 }
 func (e patterns) IsErr() bool {
-	return e.tag == patternsTag_Err
+	return e.tag == patternsTagErr
 }
 
 type ValueTag uint8
 
 const (
-	ValueTag_Int ValueTag = iota
-	ValueTag_String
+	ValueTagInt ValueTag = iota
+	ValueTagString
 )
 
 type Value struct {
 	tag      ValueTag
-	int_0    *int
-	string_0 *string
+	int    *int
+	string *string
 }
 func Value_Int(arg0 int) Value {
-	return Value{tag: ValueTag_Int, int_0: &arg0}
+	return Value{tag: ValueTagInt, int: &arg0}
 }
 func Value_String(arg0 string) Value {
-	return Value{tag: ValueTag_String, string_0: &arg0}
+	return Value{tag: ValueTagString, string: &arg0}
 }
 func (e Value) IsInt() bool {
-	return e.tag == ValueTag_Int
+	return e.tag == ValueTagInt
 }
 func (e Value) IsString() bool {
-	return e.tag == ValueTag_String
+	return e.tag == ValueTagString
 }
 func processResult(r Result) string {
-	var __match_result_0 interface{}
+	var result interface{}
 
-	__match_0 := r
-	switch __match_0.tag {
-	case ResultTag_Ok:
-		__Result_Ok_nested := *__match_0.ok_0
-		switch __Result_Ok_nested.tag {
-		case ValueTag_Int:
-			n := *__Result_Ok_nested.int_0
-			__match_result_0 = "Got integer: " + string(n)
-		case ValueTag_String:
-			s := *__Result_Ok_nested.string_0
-			__match_result_0 = "Got string: " + s
+	scrutinee := r
+	switch scrutinee.tag {
+	case ResultTagOk:
+		nestedResult_Ok := *scrutinee.ok
+		switch nestedResult_Ok.tag {
+		case ValueTagInt:
+			n := *nestedResult_Ok.int
+			result = "Got integer: " + string(n)
+		case ValueTagString:
+			s := *nestedResult_Ok.string
+			result = "Got string: " + s
 		}
-	case ResultTag_Err:
-		e := *__match_0.err_0
+	case ResultTagErr:
+		e := *scrutinee.err
 
-		__match_result_0 = "Error: " + e.Error()
+		result = "Error: " + e.Error()
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_0
+	return result
 
 }
 func main() {

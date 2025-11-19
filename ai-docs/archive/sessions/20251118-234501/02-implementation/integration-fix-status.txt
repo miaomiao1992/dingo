@@ -1,0 +1,8 @@
+# Integration Fix Complete
+
+Status: Success
+Root cause: Cache scanner used Go parser on raw .dingo files (preprocessing step missing)
+Fixed: Added preprocessing in scanFile(), single-file cache in CLI, cache support in golden tests
+Tests: 12/12 passing (8 unit + 4 golden, all code compiles)
+Known issues: Duplicate imports and comment stripping (pre-existing generator issues, not related to unqualified imports)
+Details: /Users/jack/mag/dingo/ai-docs/sessions/20251118-234501/02-implementation/integration-fix.md

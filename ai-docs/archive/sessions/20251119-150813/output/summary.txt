@@ -1,0 +1,60 @@
+# Pattern Match Preprocessor Investigation
+
+## Overview
+Investigated why the RustMatchProcessor reports "no pattern arms found" for certain golden tests (pattern_match_01_simple, _04_exhaustive, _05_guards_basic). Compared behavior with passing tests (pattern_match_01_basic, _02_guards, _03_nested) focusing on parseArms().
+
+## Observations
+- Passing tests: preprocessors operate on standalone `match` expressions without preceding keywords. `collectMatchExpression` returns strings starting with `"match ..."`, so `extractScrutineeAndArms` successfully splits scrutinee/body and `parseArms()` sees full body text.
+- Failing tests share a prefix before `match`: either `let result = match ...`, `return match ...`, or other assignment contexts. `collectMatchExpression` captures the entire statement (e.g., `"\tlet result = match opt {...}"`). When `extractScrutineeAndArms` trims the expression, the result begins with `"let result = match"`, so `strings.HasPrefix(expr, "match ")` fails and the function returns `""` scrutinee and `""` arms. That bubbles up as `parseArms()` receiving an empty string, leading to the observed "no pattern arms found" error.
+- Therefore the error originates earlier: `extractScrutineeAndArms` assumes the collected text always starts with `match`. Any assignment/return wrapper violates this assumption, so downstream parsing never runs.
+
+## Root Cause
+`collectMatchExpression` returns the entire statement including `let`/`return`/`var` prefix. `extractScrutineeAndArms` only handles strings that begin exactly with `match`, so it fails to slice out the scrutinee/arms when additional tokens precede `match`. Passing tests lack such prefixes, explaining why they succeed.
+
+## Proposed Fix
+Normalize match expressions before extracting scrutinee/arms. Two complementary steps:
+1. Teach `collectMatchExpression` to start buffering at the `match` keyword instead of the beginning of the line (strip preceding assignment/return text). That ensures every collected chunk starts with `match`.
+2. Alternatively/additionally, update `extractScrutineeAndArms` to search for the first `match` token anywhere in the string, drop everything before it, and proceed. This also covers inline matches (`foo(match value { ... })`).
+
+Implementation plan (preferred):
+- In `collectMatchExpression`, after identifying `match` on the starting line, split the line at its index and only append from `match` onward (preserve preceding text separately if needed for assignment detection). Continue accumulating following lines unchanged. This guarantees `matchExpr` always starts with `match` and keeps current downstream assumptions intact.
+- For safety, enhance `extractScrutineeAndArms` to locate the first `match` token using the same `isAlphanumeric` guard. Trim leading whitespace, find `match` index, and slice from there before existing logic.
+
+### Patch Sketch
+```
+@@ func (r *RustMatchProcessor) collectMatchExpression(...)
+-	line := lines[i]
+-	buf.WriteString(line)
++	line := lines[i]
++	if linesConsumed == 0 {
++		if idx := strings.Index(line, "match "); idx != -1 {
++			line = line[idx:]
++		}
++	}
++	buf.WriteString(line)
+@@ func (r *RustMatchProcessor) extractScrutineeAndArms(matchExpr string)
+-	expr := strings.TrimSpace(matchExpr)
+-	if !strings.HasPrefix(expr, "match ") {
+-		return "", ""
+-	}
++	expr := strings.TrimSpace(matchExpr)
++	idx := strings.Index(expr, "match ")
++	if idx == -1 || (idx > 0 && isAlphanumeric(rune(expr[idx-1]))) {
++		return "", ""
++	}
++	expr = strings.TrimSpace(expr[idx:])
++	if !strings.HasPrefix(expr, "match ") {
++		return "", ""
++	}
+```
+This combination ensures downstream parsing always sees canonical `match ... { ... }` strings even when the original source embeds the match inside `let` or `return` statements.
+
+## Validation Plan
+1. Re-run failing golden tests:
+   - `go test ./tests -run TestGoldenFiles/pattern_match_01_simple`
+   - `go test ./tests -run TestGoldenFiles/pattern_match_04_exhaustive`
+   - `go test ./tests -run TestGoldenFiles/pattern_match_05_guards_basic`
+2. Sanity-check previously passing pattern match tests to ensure no regressions: `pattern_match_01_basic`, `_02_guards`, `_03_nested`.
+3. Optionally run the entire golden suite (`go test ./tests -run TestGoldenFiles`) to confirm no other match expressions regressed.
+
+Expected outcome: `extractScrutineeAndArms` now succeeds for all contexts, `parseArms` receives the correct body, and "no pattern arms found" errors disappear. Assignment/return matches should transform correctly thanks to existing `extractAssignmentVar` logic.

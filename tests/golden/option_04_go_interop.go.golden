@@ -3,26 +3,26 @@ package main
 type OptionTag uint8
 
 const (
-	OptionTag_Some OptionTag = iota
-	OptionTag_None
+	OptionTagSome OptionTag = iota
+	OptionTagNone
 )
 
 type Option struct {
 	tag    OptionTag
-	some_0 *string
+	some *string
 }
 
 func Option_Some(arg0 string) Option {
-	return Option{tag: OptionTag_Some, some_0: &arg0}
+	return Option{tag: OptionTagSome, some: &arg0}
 }
 func Option_None() Option {
-	return Option{tag: OptionTag_None}
+	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
-	return e.tag == OptionTag_Some
+	return e.tag == OptionTagSome
 }
 func (e Option) IsNone() bool {
-	return e.tag == OptionTag_None
+	return e.tag == OptionTagNone
 }
 func findInMap(m map[string]string, key string) Option {
 	val, exists := m[key]
@@ -33,7 +33,7 @@ func findInMap(m map[string]string, key string) Option {
 }
 func getOrDefault(opt Option, defaultVal string) string {
 	if opt.IsSome() {
-		return *opt.some_0
+		return *opt.some
 	}
 	return defaultVal
 }

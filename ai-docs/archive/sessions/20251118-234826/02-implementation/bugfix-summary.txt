@@ -1,0 +1,27 @@
+DINGO_MATCH_START Bug Fix Summary
+
+Status: PARTIAL FIX APPLIED
+Root Cause: Pattern match plugin transforms switch → if without preserving DINGO comments
+
+What I Fixed:
+- Restored // DINGO_MATCH_START comment in generateSwitch() (line 432)
+- Comment now appears BEFORE temp variable (__match_N := scrutinee)
+- Maintains Variable Hoisting pattern
+
+What Still Needs Fixing:
+- PatternMatchPlugin.transformMatchExpression (line 832-865) transforms switch → if
+- This transformation DISCARDS all DINGO comments
+- Result: Comments appear at wrong line numbers (in Option type declarations)
+- Need to modify PatternMatchPlugin to preserve comments during transformation
+
+Test Status: STILL FAILING
+- pattern_match_01_simple expects switch-based output with DINGO comments
+- Current output has if-based code WITHOUT DINGO comments (comments corrupted)
+- Fix applied helps switch-based output, but doesn't fix if-based transformation
+
+Detailed Analysis: /Users/jack/mag/dingo/ai-docs/sessions/20251118-234826/02-implementation/final-analysis.md
+
+Next Steps:
+1. Modify PatternMatchPlugin to extract and preserve DINGO comments
+2. Update golden file to expect if-based output with comments
+3. OR: Disable PatternMatchPlugin for Rust syntax (keep switch-based)

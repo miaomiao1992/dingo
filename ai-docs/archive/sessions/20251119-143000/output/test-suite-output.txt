@@ -1,0 +1,955 @@
+=== RUN   TestGoldenFiles
+=== RUN   TestGoldenFiles/error_prop_01_simple
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_02_multiple
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/error_prop_03_expression
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_04_wrapping
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_05_complex_types
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_06_mixed_context
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_07_special_chars
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_08_chained_calls
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/error_prop_08_chained_calls.dingo:6:2: could not import json (can't find import: "json": cannot find package "json" in any of:
+        	/opt/homebrew/Cellar/go/1.25.4/libexec/src/json (from $GOROOT)
+        	/Users/jack/go/src/json (from $GOPATH))
+    golden_test.go:35: DEBUG: Type checker: golden/error_prop_08_chained_calls.dingo:29:6: declared and not used: err
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/error_prop_08_chained_calls.dingo:6:2: could not import json (can't find import: "json": cannot find package "json" in any of:
+        	/opt/homebrew/Cellar/go/1.25.4/libexec/src/json (from $GOROOT)
+        	/Users/jack/go/src/json (from $GOPATH))
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/error_prop_09_multi_value
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/func_util_01_map
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_02_filter
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_03_reduce
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/func_util_04_chaining
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_01_basic
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_02_multiline
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_03_closure
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/lambda_04_higher_order
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_01_basic
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_02_chained
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/null_coalesce_03_with_option
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/option_01_basic
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/option_02_literals
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_02_pattern_match
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_03_chaining
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/option_04_go_interop
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/option_05_helpers
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:16:16: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:22:23: undefined: Option_bool
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:40:22: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:40:34: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:48:23: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:48:35: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:56:27: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:67:37: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:18:9: undefined: Option_int_Some
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:23:9: undefined: Option_bool_None
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:57:42: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:60:11: undefined: Option_int_None
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:62:10: undefined: Option_int_Some
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:74:23: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:76:12: undefined: Option_int_Some
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:78:11: undefined: Option_int_None
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:82:10: undefined: Option_int_Some
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:100:28: undefined: Option_int_Some
+    golden_test.go:35: DEBUG: Type checker: golden/option_05_helpers.dingo:105:30: undefined: Option_int_Some
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/option_05_helpers.dingo:16:16: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/option_06_none_inference
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/option_06_none_inference.dingo:51:6: declared and not used: x
+    golden_test.go:35: DEBUG: Type checker: golden/option_06_none_inference.dingo:57:6: declared and not used: age
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/option_06_none_inference.dingo:51:6: declared and not used: x
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/pattern_match_01_basic
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_basic.dingo:43:2: "Waiting to start" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_basic.dingo:46:2: "Currently running" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_basic.dingo:49:2: "Finished" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_basic.dingo:53:1: missing return
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_01_basic.dingo:43:2: "Waiting to start" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/pattern_match_01_simple
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:8:27: undefined: Result
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:26:24: undefined: Option
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:62:26: undefined: Option
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:62:39: undefined: Option
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:81:27: undefined: Result
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:12:6: undefined: ResultTagOk
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:16:6: undefined: ResultTagErr
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:19:2: 0 (untyped int constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:23:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:18:2: declared and not used: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:30:6: undefined: OptionTagSome
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:34:6: undefined: OptionTagNone
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:36:2: "default" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:40:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:46:18: __match_2.tag undefined (type Status has no field or method tag)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:47:6: undefined: ActiveTag
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:49:2: "running" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:50:6: undefined: PendingTag
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:52:2: "waiting" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:55:2: "unknown" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:59:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:63:12: undefined: Option_int
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:67:6: undefined: OptionTagSome
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:70:11: undefined: Some
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:71:6: undefined: OptionTagNone
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:73:11: undefined: Option_int_None
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:85:6: undefined: ResultTagOk
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:91:6: undefined: OptionTagSome
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:95:6: undefined: OptionTagNone
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:97:2: 0 (untyped int constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:101:6: undefined: ResultTagErr
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:104:2: -1 (untyped int constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:108:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_01_simple.dingo:103:2: declared and not used: e
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_01_simple.dingo:8:27: undefined: Result
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: Registered Result type: Result_int_error (T=int, E=error)
+    golden_test.go:35: DEBUG: Registered Result type: Result_unknown_error (T=unknown, E=error)
+    golden_test.go:39: WARN: Type inference failed for Some((x * 2)): type inference failed for expression type *ast.BinaryExpr, using interface{}
+    golden_test.go:35: DEBUG: Some(interface{}): value is non-addressable (literal), wrapping in IIFE
+    golden_test.go:35: DEBUG: Transforming Some(interface{}) → Option_any{tag: OptionTag_Some, some_0: <addressable-value>}
+    golden_test.go:35: DEBUG: Generated replacement AST: &{Option_any 0 [0x14000376d20 0x14000376d50] 0 false}
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/pattern_match_02_guards
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:38:17: __match_0.value_int_0 undefined (type Value has no field or method value_int_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:39:2: "Positive number" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:40:6: duplicate case ValueTag_Int (constant 0 of uint8 type ValueTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:36:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:42:17: __match_0.value_int_0 undefined (type Value has no field or method value_int_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:43:2: "Negative number" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:44:6: duplicate case ValueTag_Int (constant 0 of uint8 type ValueTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:36:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:46:17: __match_0.value_int_0 undefined (type Value has no field or method value_int_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:46:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:47:2: "Zero" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:50:17: __match_0.value_string_0 undefined (type Value has no field or method value_string_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:51:2: "Long string" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:52:6: duplicate case ValueTag_String (constant 1 of uint8 type ValueTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:48:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:54:17: __match_0.value_string_0 undefined (type Value has no field or method value_string_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:54:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:55:2: "Short string" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:59:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:38:2: declared and not used: n
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:42:2: declared and not used: n
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_02_guards.dingo:50:2: declared and not used: s
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_02_guards.dingo:38:17: __match_0.value_int_0 undefined (type Value has no field or method value_int_0)
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/pattern_match_03_nested
+    golden_test.go:91: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:91
+        	Error:      	Received unexpected error:
+        	            	open golden/pattern_match_03_nested.go.golden: no such file or directory
+        	Test:       	TestGoldenFiles/pattern_match_03_nested
+        	Messages:   	Failed to read golden file: golden/pattern_match_03_nested.go.golden
+=== RUN   TestGoldenFiles/pattern_match_04_exhaustive
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:53:2: "#FF0000" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:56:2: "#00FF00" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:59:2: "#0000FF" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:60:6: ColorTag_RGB is not a type
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:60:19: undefined: r
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:60:22: undefined: g
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:60:25: undefined: b
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:62:14: undefined: r
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:62:25: undefined: g
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:62:36: undefined: b
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:62:2: "#" + toHex(r) + toHex(g) + toHex(b) (value of type string) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:66:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_04_exhaustive.dingo:78:12: Color_RGB is not a type
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_04_exhaustive.dingo:53:2: "#FF0000" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/pattern_match_05_guards_basic
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:39:17: __match_0.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:40:2: "positive" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:41:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:37:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:43:17: __match_0.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:44:2: "negative" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:45:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:37:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:47:17: __match_0.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:47:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:48:2: "zero" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:51:17: __match_0.result_err_0 undefined (type Result has no field or method result_err_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:52:2: "error" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:56:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:39:2: declared and not used: x
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:43:2: declared and not used: x
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:51:2: declared and not used: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:65:19: __match_1.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:66:2: "adult" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:67:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:63:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:69:19: __match_1.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:70:2: "senior" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:71:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:63:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:73:17: __match_1.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:73:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:74:2: "minor" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:77:17: __match_1.result_err_0 undefined (type Result has no field or method result_err_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:77:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:78:2: "invalid" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:82:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:65:2: declared and not used: age
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:69:2: declared and not used: age
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:91:17: __match_2.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:92:2: "even" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:93:6: duplicate case ResultTag_Ok (constant 0 of uint8 type ResultTag) in expression switch
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:89:6: 	previous case
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:95:17: __match_2.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:95:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:96:2: "odd" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:99:17: __match_2.result_err_0 undefined (type Result has no field or method result_err_0)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:99:4: no new variables on left side of :=
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:100:2: "error" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:104:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_05_guards_basic.dingo:91:2: declared and not used: n
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_05_guards_basic.dingo:39:17: __match_0.result_ok_0 undefined (type Result has no field or method result_ok_0)
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/pattern_match_06_guards_nested
+    golden_test.go:91: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:91
+        	Error:      	Received unexpected error:
+        	            	open golden/pattern_match_06_guards_nested.go.golden: no such file or directory
+        	Test:       	TestGoldenFiles/pattern_match_06_guards_nested
+        	Messages:   	Failed to read golden file: golden/pattern_match_06_guards_nested.go.golden
+=== RUN   TestGoldenFiles/pattern_match_07_guards_complex
+    golden_test.go:91: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:91
+        	Error:      	Received unexpected error:
+        	            	open golden/pattern_match_07_guards_complex.go.golden: no such file or directory
+        	Test:       	TestGoldenFiles/pattern_match_07_guards_complex
+        	Messages:   	Failed to read golden file: golden/pattern_match_07_guards_complex.go.golden
+=== RUN   TestGoldenFiles/pattern_match_08_guards_edge_cases
+    golden_test.go:91: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:91
+        	Error:      	Received unexpected error:
+        	            	open golden/pattern_match_08_guards_edge_cases.go.golden: no such file or directory
+        	Test:       	TestGoldenFiles/pattern_match_08_guards_edge_cases
+        	Messages:   	Failed to read golden file: golden/pattern_match_08_guards_edge_cases.go.golden
+=== RUN   TestGoldenFiles/pattern_match_09_tuple_pairs
+    golden_test.go:91: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:91
+        	Error:      	Received unexpected error:
+        	            	open golden/pattern_match_09_tuple_pairs.go.golden: no such file or directory
+        	Test:       	TestGoldenFiles/pattern_match_09_tuple_pairs
+        	Messages:   	Failed to read golden file: golden/pattern_match_09_tuple_pairs.go.golden
+=== RUN   TestGoldenFiles/pattern_match_10_tuple_triples
+    golden_test.go:91: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:91
+        	Error:      	Received unexpected error:
+        	            	open golden/pattern_match_10_tuple_triples.go.golden: no such file or directory
+        	Test:       	TestGoldenFiles/pattern_match_10_tuple_triples
+        	Messages:   	Failed to read golden file: golden/pattern_match_10_tuple_triples.go.golden
+=== RUN   TestGoldenFiles/pattern_match_11_tuple_wildcards
+    golden_test.go:91: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:91
+        	Error:      	Received unexpected error:
+        	            	open golden/pattern_match_11_tuple_wildcards.go.golden: no such file or directory
+        	Test:       	TestGoldenFiles/pattern_match_11_tuple_wildcards
+        	Messages:   	Failed to read golden file: golden/pattern_match_11_tuple_wildcards.go.golden
+=== RUN   TestGoldenFiles/pattern_match_12_tuple_exhaustiveness
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:49:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:52:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:55:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:58:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:40:6: undefined: ResultTagOk
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:42:2: "All 6 steps succeeded" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:43:6: undefined: ResultTagErr
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:45:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:48:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:51:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:54:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:57:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:60:22: undefined: e
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:64:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:18: declared and not used: __match_0_elem1
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:35: declared and not used: __match_0_elem2
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:52: declared and not used: __match_0_elem3
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:69: declared and not used: __match_0_elem4
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:37:86: declared and not used: __match_0_elem5
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:72:6: undefined: ResultTagOk
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:74:22: undefined: a
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:74:24: undefined: b
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:74:26: undefined: c
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:74:28: undefined: d
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:77:2: "At least one error occurred" (untyped string constant) is not used
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:81:1: missing return
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:69:18: declared and not used: __match_1_elem1
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:69:35: declared and not used: __match_1_elem2
+    golden_test.go:35: DEBUG: Type checker: golden/pattern_match_12_tuple_exhaustiveness.dingo:69:52: declared and not used: __match_1_elem3
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/pattern_match_12_tuple_exhaustiveness.dingo:49:1: multiple defaults (first at golden/pattern_match_12_tuple_exhaustiveness.dingo:46:1)
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+    golden_test.go:154: 
+        	Error Trace:	/Users/jack/mag/dingo/tests/golden_test.go:154
+        	Error:      	Not equal: 
+        	            	expected: "package main\n\nimport (\n\t\"errors\"\n)\n\nimport \"errors\"\n\ntype ResultTag uint8\n\nconst (\n\tResultTag_Ok ResultTag = iota\n\tResultTag_Err\n)\n\ntype Result struct {\n\ttag   ResultTag\n\tok_0  *int\n\terr_0 *error\n}\n\nfunc Result_Ok(arg0 int) Result {\n\treturn Result{tag: ResultTag_Ok, ok_0: &arg0}\n}\nfunc Result_Err(arg0 error) Result {\n\treturn Result{tag: ResultTag_Err, err_0: &arg0}\n}\nfunc (e Result) IsOk() bool {\n\treturn e.tag == ResultTag_Ok\n}\nfunc (e Result) IsErr() bool {\n\treturn e.tag == ResultTag_Err\n}\n\n// 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards\nfunc validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {\n\n\t__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6\n\n\tswitch __match_0_elem0.tag {\n\tcase ResultTagOk:\n\n\t\t\"All 6 steps succeeded\"\n\tcase ResultTagErr:\n\n\t\t\"Step 1 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 2 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 3 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 4 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 5 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 6 failed: \" + e.Error()\n\t}\n\n}\n\n// Example of exhaustive 4-element tuple\nfunc processFourResults(r1, r2, r3, r4 Result) string {\n\n\t__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4\n\n\tswitch __match_1_elem0.tag {\n\tcase ResultTagOk:\n\n\t\t\"All ok: \" + string(a+b+c+d)\n\tdefault:\n\n\t\t\"At least one error occurred\"\n\t}\n\n}\nfunc main() {\n\tr1 := Result_Ok(1)\n\tr2 := Result_Ok(2)\n\tr3 := Result_Err(errors.New(\"step 3 error\"))\n\tr4 := Result_Ok(4)\n\tr5 := Result_Ok(5)\n\tr6 := Result_Ok(6)\n\n\tresult := validateSixSteps(r1, r2, r3, r4, r5, r6)\n\tprintln(result)\n\n\tresult2 := processFourResults(r1, r2, r3, r4)\n\tprintln(result2)\n}"
+        	            	actual  : "package main\n\nimport (\n\t\"errors\"\n)\n\ntype ResultTag uint8\n\nconst (\n\tResultTag_Ok ResultTag = iota\n\tResultTag_Err\n)\n\ntype Result struct {\n\ttag   ResultTag\n\tok_0  *int\n\terr_0 *error\n}\n\nfunc Result_Ok(arg0 int) Result {\n\treturn Result{tag: ResultTag_Ok, ok_0: &arg0}\n}\nfunc Result_Err(arg0 error) Result {\n\treturn Result{tag: ResultTag_Err, err_0: &arg0}\n}\nfunc (e Result) IsOk() bool {\n\treturn e.tag == ResultTag_Ok\n}\nfunc (e Result) IsErr() bool {\n\treturn e.tag == ResultTag_Err\n}\n\n// 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards\nfunc validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {\n\n\t__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6\n\n\tswitch __match_0_elem0.tag {\n\tcase ResultTagOk:\n\n\t\t\"All 6 steps succeeded\"\n\tcase ResultTagErr:\n\n\t\t\"Step 1 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 2 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 3 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 4 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 5 failed: \" + e.Error()\n\tdefault:\n\n\t\t\"Step 6 failed: \" + e.Error()\n\t}\n\n}\n\n// Example of exhaustive 4-element tuple\nfunc processFourResults(r1, r2, r3, r4 Result) string {\n\n\t__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4\n\n\tswitch __match_1_elem0.tag {\n\tcase ResultTagOk:\n\n\t\t\"All ok: \" + string(a+b+c+d)\n\tdefault:\n\n\t\t\"At least one error occurred\"\n\t}\n\n}\nfunc main() {\n\tr1 := Result_Ok(1)\n\tr2 := Result_Ok(2)\n\tr3 := Result_Err(errors.New(\"step 3 error\"))\n\tr4 := Result_Ok(4)\n\tr5 := Result_Ok(5)\n\tr6 := Result_Ok(6)\n\n\tresult := validateSixSteps(r1, r2, r3, r4, r5, r6)\n\tprintln(result)\n\n\tresult2 := processFourResults(r1, r2, r3, r4)\n\tprintln(result2)\n}"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -5,4 +5,2 @@
+        	            	 )
+        	            	-
+        	            	-import "errors"
+        	            	 
+        	Test:       	TestGoldenFiles/pattern_match_12_tuple_exhaustiveness
+        	Messages:   	Generated code doesn't match golden file
+    golden_test.go:155: 
+        === EXPECTED ===
+        package main
+        
+        import (
+        	"errors"
+        )
+        
+        import "errors"
+        
+        type ResultTag uint8
+        
+        const (
+        	ResultTag_Ok ResultTag = iota
+        	ResultTag_Err
+        )
+        
+        type Result struct {
+        	tag   ResultTag
+        	ok_0  *int
+        	err_0 *error
+        }
+        
+        func Result_Ok(arg0 int) Result {
+        	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+        }
+        func Result_Err(arg0 error) Result {
+        	return Result{tag: ResultTag_Err, err_0: &arg0}
+        }
+        func (e Result) IsOk() bool {
+        	return e.tag == ResultTag_Ok
+        }
+        func (e Result) IsErr() bool {
+        	return e.tag == ResultTag_Err
+        }
+        
+        // 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards
+        func validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {
+        
+        	__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6
+        
+        	switch __match_0_elem0.tag {
+        	case ResultTagOk:
+        
+        		"All 6 steps succeeded"
+        	case ResultTagErr:
+        
+        		"Step 1 failed: " + e.Error()
+        	default:
+        
+        		"Step 2 failed: " + e.Error()
+        	default:
+        
+        		"Step 3 failed: " + e.Error()
+        	default:
+        
+        		"Step 4 failed: " + e.Error()
+        	default:
+        
+        		"Step 5 failed: " + e.Error()
+        	default:
+        
+        		"Step 6 failed: " + e.Error()
+        	}
+        
+        }
+        
+        // Example of exhaustive 4-element tuple
+        func processFourResults(r1, r2, r3, r4 Result) string {
+        
+        	__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4
+        
+        	switch __match_1_elem0.tag {
+        	case ResultTagOk:
+        
+        		"All ok: " + string(a+b+c+d)
+        	default:
+        
+        		"At least one error occurred"
+        	}
+        
+        }
+        func main() {
+        	r1 := Result_Ok(1)
+        	r2 := Result_Ok(2)
+        	r3 := Result_Err(errors.New("step 3 error"))
+        	r4 := Result_Ok(4)
+        	r5 := Result_Ok(5)
+        	r6 := Result_Ok(6)
+        
+        	result := validateSixSteps(r1, r2, r3, r4, r5, r6)
+        	println(result)
+        
+        	result2 := processFourResults(r1, r2, r3, r4)
+        	println(result2)
+        }
+        
+    golden_test.go:156: 
+        === ACTUAL ===
+        package main
+        
+        import (
+        	"errors"
+        )
+        
+        type ResultTag uint8
+        
+        const (
+        	ResultTag_Ok ResultTag = iota
+        	ResultTag_Err
+        )
+        
+        type Result struct {
+        	tag   ResultTag
+        	ok_0  *int
+        	err_0 *error
+        }
+        
+        func Result_Ok(arg0 int) Result {
+        	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+        }
+        func Result_Err(arg0 error) Result {
+        	return Result{tag: ResultTag_Err, err_0: &arg0}
+        }
+        func (e Result) IsOk() bool {
+        	return e.tag == ResultTag_Ok
+        }
+        func (e Result) IsErr() bool {
+        	return e.tag == ResultTag_Err
+        }
+        
+        // 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards
+        func validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {
+        
+        	__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6
+        
+        	switch __match_0_elem0.tag {
+        	case ResultTagOk:
+        
+        		"All 6 steps succeeded"
+        	case ResultTagErr:
+        
+        		"Step 1 failed: " + e.Error()
+        	default:
+        
+        		"Step 2 failed: " + e.Error()
+        	default:
+        
+        		"Step 3 failed: " + e.Error()
+        	default:
+        
+        		"Step 4 failed: " + e.Error()
+        	default:
+        
+        		"Step 5 failed: " + e.Error()
+        	default:
+        
+        		"Step 6 failed: " + e.Error()
+        	}
+        
+        }
+        
+        // Example of exhaustive 4-element tuple
+        func processFourResults(r1, r2, r3, r4 Result) string {
+        
+        	__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4
+        
+        	switch __match_1_elem0.tag {
+        	case ResultTagOk:
+        
+        		"All ok: " + string(a+b+c+d)
+        	default:
+        
+        		"At least one error occurred"
+        	}
+        
+        }
+        func main() {
+        	r1 := Result_Ok(1)
+        	r2 := Result_Ok(2)
+        	r3 := Result_Err(errors.New("step 3 error"))
+        	r4 := Result_Ok(4)
+        	r5 := Result_Ok(5)
+        	r6 := Result_Ok(6)
+        
+        	result := validateSixSteps(r1, r2, r3, r4, r5, r6)
+        	println(result)
+        
+        	result2 := processFourResults(r1, r2, r3, r4)
+        	println(result2)
+        }
+        
+    golden_test.go:161: Actual output written to: golden/pattern_match_12_tuple_exhaustiveness.go.actual
+=== RUN   TestGoldenFiles/result_01_basic
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: golden/result_01_basic.dingo:40:3: declared and not used: v
+    golden_test.go:35: DEBUG: Type checking completed with errors: golden/result_01_basic.dingo:40:3: declared and not used: v
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/result_02_propagation
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/result_03_pattern_match
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/result_04_chaining
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/result_05_go_interop
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/safe_nav_01_basic
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/safe_nav_02_chained
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/safe_nav_03_with_methods
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/showcase_00_hero
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/showcase_01_api_server
+    golden_test.go:85: Parser bug - needs fixing in Phase 3
+=== RUN   TestGoldenFiles/sum_types_01_simple
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_01_simple_enum
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_02_struct_variant
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_03_generic
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_04_multiple
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/sum_types_05_nested
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/ternary_01_basic
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/ternary_02_nested
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/ternary_03_complex
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/tuples_01_basic
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/tuples_02_destructure
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/tuples_03_nested
+    golden_test.go:80: Feature not yet implemented - deferred to Phase 3
+=== RUN   TestGoldenFiles/unqualified_import_01_basic
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/unqualified_import_02_local_function
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/unqualified_import_03_multiple
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+=== RUN   TestGoldenFiles/unqualified_import_04_mixed
+    golden_test.go:35: DEBUG: Parent map built successfully
+    golden_test.go:35: DEBUG: Type checker: package "main" checked successfully
+    golden_test.go:35: DEBUG: Type checker completed successfully
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    golden_test.go:35: DEBUG: Transformation complete: 5/5 plugins executed
+--- FAIL: TestGoldenFiles (0.41s)
+    --- PASS: TestGoldenFiles/error_prop_01_simple (0.05s)
+    --- SKIP: TestGoldenFiles/error_prop_02_multiple (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_03_expression (0.04s)
+    --- PASS: TestGoldenFiles/error_prop_04_wrapping (0.05s)
+    --- PASS: TestGoldenFiles/error_prop_05_complex_types (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_06_mixed_context (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_07_special_chars (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_08_chained_calls (0.00s)
+    --- PASS: TestGoldenFiles/error_prop_09_multi_value (0.04s)
+    --- SKIP: TestGoldenFiles/func_util_01_map (0.00s)
+    --- SKIP: TestGoldenFiles/func_util_02_filter (0.00s)
+    --- SKIP: TestGoldenFiles/func_util_03_reduce (0.00s)
+    --- SKIP: TestGoldenFiles/func_util_04_chaining (0.00s)
+    --- SKIP: TestGoldenFiles/lambda_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/lambda_02_multiline (0.00s)
+    --- SKIP: TestGoldenFiles/lambda_03_closure (0.00s)
+    --- SKIP: TestGoldenFiles/lambda_04_higher_order (0.00s)
+    --- SKIP: TestGoldenFiles/null_coalesce_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/null_coalesce_02_chained (0.00s)
+    --- SKIP: TestGoldenFiles/null_coalesce_03_with_option (0.00s)
+    --- PASS: TestGoldenFiles/option_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/option_02_literals (0.00s)
+    --- SKIP: TestGoldenFiles/option_02_pattern_match (0.00s)
+    --- SKIP: TestGoldenFiles/option_03_chaining (0.00s)
+    --- PASS: TestGoldenFiles/option_04_go_interop (0.00s)
+    --- PASS: TestGoldenFiles/option_05_helpers (0.00s)
+    --- PASS: TestGoldenFiles/option_06_none_inference (0.00s)
+    --- PASS: TestGoldenFiles/pattern_match_01_basic (0.00s)
+    --- PASS: TestGoldenFiles/pattern_match_01_simple (0.00s)
+    --- PASS: TestGoldenFiles/pattern_match_02_guards (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_03_nested (0.00s)
+    --- PASS: TestGoldenFiles/pattern_match_04_exhaustive (0.00s)
+    --- PASS: TestGoldenFiles/pattern_match_05_guards_basic (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_06_guards_nested (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_07_guards_complex (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_08_guards_edge_cases (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_09_tuple_pairs (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_10_tuple_triples (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_11_tuple_wildcards (0.00s)
+    --- FAIL: TestGoldenFiles/pattern_match_12_tuple_exhaustiveness (0.04s)
+    --- PASS: TestGoldenFiles/result_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/result_02_propagation (0.00s)
+    --- SKIP: TestGoldenFiles/result_03_pattern_match (0.00s)
+    --- SKIP: TestGoldenFiles/result_04_chaining (0.00s)
+    --- PASS: TestGoldenFiles/result_05_go_interop (0.00s)
+    --- SKIP: TestGoldenFiles/safe_nav_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/safe_nav_02_chained (0.00s)
+    --- SKIP: TestGoldenFiles/safe_nav_03_with_methods (0.00s)
+    --- PASS: TestGoldenFiles/showcase_00_hero (0.15s)
+    --- SKIP: TestGoldenFiles/showcase_01_api_server (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_01_simple (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_01_simple_enum (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_02_struct_variant (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_03_generic (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_04_multiple (0.00s)
+    --- SKIP: TestGoldenFiles/sum_types_05_nested (0.00s)
+    --- SKIP: TestGoldenFiles/ternary_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/ternary_02_nested (0.00s)
+    --- SKIP: TestGoldenFiles/ternary_03_complex (0.00s)
+    --- SKIP: TestGoldenFiles/tuples_01_basic (0.00s)
+    --- SKIP: TestGoldenFiles/tuples_02_destructure (0.00s)
+    --- SKIP: TestGoldenFiles/tuples_03_nested (0.00s)
+    --- PASS: TestGoldenFiles/unqualified_import_01_basic (0.00s)
+    --- PASS: TestGoldenFiles/unqualified_import_02_local_function (0.00s)
+    --- PASS: TestGoldenFiles/unqualified_import_03_multiple (0.00s)
+    --- PASS: TestGoldenFiles/unqualified_import_04_mixed (0.00s)
+=== RUN   TestGoldenFilesCompilation
+=== RUN   TestGoldenFilesCompilation/error_prop_01_simple_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_02_multiple_compiles
+    golden_test.go:230: Compilation output:
+        /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/TestGoldenFilesCompilationerror_prop_02_multiple_compiles1729228760/001/test.go:3:29: missing parameter name (and 10 more errors)
+    golden_test.go:231: Generated code does not compile
+=== RUN   TestGoldenFilesCompilation/error_prop_03_expression_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_04_wrapping_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_05_complex_types_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_06_mixed_context_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_07_special_chars_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_08_chained_calls_compiles
+=== RUN   TestGoldenFilesCompilation/error_prop_09_multi_value_compiles
+=== RUN   TestGoldenFilesCompilation/func_util_01_map_compiles
+=== RUN   TestGoldenFilesCompilation/func_util_02_filter_compiles
+=== RUN   TestGoldenFilesCompilation/func_util_03_reduce_compiles
+=== RUN   TestGoldenFilesCompilation/func_util_04_chaining_compiles
+=== RUN   TestGoldenFilesCompilation/lambda_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/lambda_02_multiline_compiles
+=== RUN   TestGoldenFilesCompilation/lambda_03_closure_compiles
+=== RUN   TestGoldenFilesCompilation/lambda_04_higher_order_compiles
+=== RUN   TestGoldenFilesCompilation/null_coalesce_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/null_coalesce_02_chained_compiles
+=== RUN   TestGoldenFilesCompilation/null_coalesce_03_with_option_compiles
+=== RUN   TestGoldenFilesCompilation/option_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/option_02_literals_compiles
+    golden_test.go:230: Compilation output:
+        /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/TestGoldenFilesCompilationoption_02_literals_compiles3010249627/001/test.go:246:22: expected type, found '{' (and 1 more errors)
+    golden_test.go:231: Generated code does not compile
+=== RUN   TestGoldenFilesCompilation/option_02_pattern_match_compiles
+=== RUN   TestGoldenFilesCompilation/option_03_chaining_compiles
+=== RUN   TestGoldenFilesCompilation/option_04_go_interop_compiles
+=== RUN   TestGoldenFilesCompilation/option_05_helpers_compiles
+=== RUN   TestGoldenFilesCompilation/option_06_none_inference_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_01_simple_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_02_guards_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_04_exhaustive_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_05_guards_basic_compiles
+=== RUN   TestGoldenFilesCompilation/pattern_match_12_tuple_exhaustiveness_compiles
+=== RUN   TestGoldenFilesCompilation/result_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/result_02_propagation_compiles
+=== RUN   TestGoldenFilesCompilation/result_03_pattern_match_compiles
+=== RUN   TestGoldenFilesCompilation/result_04_chaining_compiles
+=== RUN   TestGoldenFilesCompilation/result_05_go_interop_compiles
+=== RUN   TestGoldenFilesCompilation/safe_nav_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/safe_nav_02_chained_compiles
+=== RUN   TestGoldenFilesCompilation/safe_nav_03_with_methods_compiles
+=== RUN   TestGoldenFilesCompilation/showcase_00_hero_compiles
+=== RUN   TestGoldenFilesCompilation/showcase_01_api_server_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_01_simple_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_01_simple_enum_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_02_struct_variant_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_03_generic_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_04_multiple_compiles
+=== RUN   TestGoldenFilesCompilation/sum_types_05_nested_compiles
+=== RUN   TestGoldenFilesCompilation/ternary_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/ternary_02_nested_compiles
+=== RUN   TestGoldenFilesCompilation/ternary_03_complex_compiles
+=== RUN   TestGoldenFilesCompilation/tuples_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/tuples_02_destructure_compiles
+=== RUN   TestGoldenFilesCompilation/tuples_03_nested_compiles
+=== RUN   TestGoldenFilesCompilation/unqualified_import_01_basic_compiles
+=== RUN   TestGoldenFilesCompilation/unqualified_import_02_local_function_compiles
+=== RUN   TestGoldenFilesCompilation/unqualified_import_03_multiple_compiles
+=== RUN   TestGoldenFilesCompilation/unqualified_import_04_mixed_compiles
+--- FAIL: TestGoldenFilesCompilation (0.03s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_01_simple_compiles (0.00s)
+    --- FAIL: TestGoldenFilesCompilation/error_prop_02_multiple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_03_expression_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_04_wrapping_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_05_complex_types_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_06_mixed_context_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_07_special_chars_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_08_chained_calls_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/error_prop_09_multi_value_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/func_util_01_map_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/func_util_02_filter_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/func_util_03_reduce_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/func_util_04_chaining_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/lambda_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/lambda_02_multiline_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/lambda_03_closure_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/lambda_04_higher_order_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/null_coalesce_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/null_coalesce_02_chained_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/null_coalesce_03_with_option_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_01_basic_compiles (0.00s)
+    --- FAIL: TestGoldenFilesCompilation/option_02_literals_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_02_pattern_match_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_03_chaining_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_04_go_interop_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_05_helpers_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/option_06_none_inference_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_01_simple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_02_guards_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_04_exhaustive_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_05_guards_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/pattern_match_12_tuple_exhaustiveness_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_02_propagation_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_03_pattern_match_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_04_chaining_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/result_05_go_interop_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/safe_nav_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/safe_nav_02_chained_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/safe_nav_03_with_methods_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/showcase_00_hero_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/showcase_01_api_server_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_01_simple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_01_simple_enum_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_02_struct_variant_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_03_generic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_04_multiple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/sum_types_05_nested_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/ternary_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/ternary_02_nested_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/ternary_03_complex_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/tuples_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/tuples_02_destructure_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/tuples_03_nested_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/unqualified_import_01_basic_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/unqualified_import_02_local_function_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/unqualified_import_03_multiple_compiles (0.00s)
+    --- PASS: TestGoldenFilesCompilation/unqualified_import_04_mixed_compiles (0.00s)
+=== RUN   TestIntegrationPhase2EndToEnd
+=== RUN   TestIntegrationPhase2EndToEnd/error_propagation_result_type
+    integration_phase2_test.go:61: Build output: ╭─────────────────────╮
+        │  🐕 Dingo Compiler  │
+        ╰─────────────────────╯
+                                v0.1.0-alpha
+                          
+        📦 Building 1 file
+        
+          /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-205571742/test_result.dingo → /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-205571742/test_result.go
+        
+          ✓ Preprocess  Done (138µs)
+          ✗ Parse       Failed (190µs)
+          ✗ Error: parse error: /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-205571742/test_result.dingo:5:17: missing type constraint (and 1 more errors)
+        
+                                                                                                                                                                               
+        ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                                                                               
+        💥 Build failed                                                                                                                                                        
+           Error: parse error: /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-205571742/test_result.dingo:5:17: missing type constraint (and 1 more errors)
+        Error: parse error: /var/folders/q9/c1pqffk96rj_jqp_1ggnlchh0000gn/T/dingo-integration-205571742/test_result.dingo:5:17: missing type constraint (and 1 more errors)
+        exit status 1
+    integration_phase2_test.go:62: Failed to transpile: exit status 1
+=== RUN   TestIntegrationPhase2EndToEnd/enum_type_generation
+    integration_phase2_test.go:139: ✓ Integration test passed: Enum generation working correctly
+--- FAIL: TestIntegrationPhase2EndToEnd (0.29s)
+    --- FAIL: TestIntegrationPhase2EndToEnd/error_propagation_result_type (0.10s)
+    --- PASS: TestIntegrationPhase2EndToEnd/enum_type_generation (0.19s)
+=== RUN   TestIntegrationPhase4EndToEnd
+=== RUN   TestIntegrationPhase4EndToEnd/pattern_match_rust_syntax
+    integration_phase4_test.go:441: Type checker: test.go:5:21: undefined: Result_int_error
+    integration_phase4_test.go:441: Type checker: test.go:9:6: undefined: ResultTagOk
+    integration_phase4_test.go:441: Type checker: test.go:13:6: undefined: ResultTagErr
+    integration_phase4_test.go:441: Type checker: test.go:20:1: missing return
+    golden_test.go:35: DEBUG: Type inference service updated with go/types information
+    golden_test.go:35: DEBUG: Result plugin: go/types integration enabled (Fix A5)
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    integration_phase4_test.go:116: Expected default panic for exhaustive match, but not found
+    integration_phase4_test.go:119: ✓ Pattern match integration test passed
+=== RUN   TestIntegrationPhase4EndToEnd/pattern_match_non_exhaustive_error
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    integration_phase4_test.go:179: Expected non-exhaustive match error, but no errors reported
+=== RUN   TestIntegrationPhase4EndToEnd/none_context_inference_return
+    integration_phase4_test.go:441: Type checker: test.go:3:25: undefined: Option_int
+    integration_phase4_test.go:441: Type checker: test.go:5:10: undefined: None
+    integration_phase4_test.go:441: Type checker: test.go:7:9: undefined: Some
+    golden_test.go:35: DEBUG: Type inference service updated with go/types information
+    golden_test.go:35: DEBUG: None context plugin: go/types integration enabled
+    golden_test.go:35: DEBUG: None context plugin: parent map integration enabled
+    golden_test.go:35: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:31: ERROR: Cannot infer Option type for None constant at test.go:5:10
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    golden_test.go:35: DEBUG: Some(int): value is non-addressable (literal), wrapping in IIFE
+    golden_test.go:35: DEBUG: Transforming Some(int) → Option_int{tag: OptionTag_Some, some_0: <addressable-value>}
+    golden_test.go:35: DEBUG: Generated replacement AST: &{Option_int 0 [0x14000194ab0 0x14000194ae0] 0 false}
+    integration_phase4_test.go:252: Expected None to infer type from return, but got errors: [Cannot infer Option type for None constant at test.go:5:10
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 74)]
+    integration_phase4_test.go:293: ✓ None context inference test passed
+=== RUN   TestIntegrationPhase4EndToEnd/combined_pattern_match_and_none
+    integration_phase4_test.go:441: Type checker: test.go:3:16: undefined: Result_string_error
+    integration_phase4_test.go:441: Type checker: test.go:3:37: undefined: Option_int
+    integration_phase4_test.go:441: Type checker: test.go:7:6: undefined: ResultTagOk
+    integration_phase4_test.go:441: Type checker: test.go:11:9: undefined: Some
+    integration_phase4_test.go:441: Type checker: test.go:13:9: undefined: None
+    integration_phase4_test.go:441: Type checker: test.go:14:6: undefined: ResultTagErr
+    integration_phase4_test.go:441: Type checker: test.go:16:4: no new variables on left side of :=
+    integration_phase4_test.go:441: Type checker: test.go:17:9: undefined: None
+    integration_phase4_test.go:441: Type checker: test.go:21:1: missing return
+    golden_test.go:35: DEBUG: Type inference service updated with go/types information
+    golden_test.go:35: DEBUG: Result plugin: go/types integration enabled (Fix A5)
+    golden_test.go:35: DEBUG: Type inference service updated with go/types information
+    golden_test.go:35: DEBUG: None context plugin: go/types integration enabled
+    golden_test.go:35: DEBUG: None context plugin: parent map integration enabled
+    golden_test.go:39: WARN: Type inference failed for Some(len(...)): function call requires go/types for return type inference, using interface{}
+    golden_test.go:35: DEBUG: Some(interface{}): value is non-addressable (literal), wrapping in IIFE
+    golden_test.go:35: DEBUG: Transforming Some(interface{}) → Option_any{tag: OptionTag_Some, some_0: <addressable-value>}
+    golden_test.go:35: DEBUG: Generated replacement AST: &{Option_any 0 [0x140003766c0 0x140003766f0] 0 false}
+    golden_test.go:35: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:31: ERROR: Cannot infer Option type for None constant at test.go:13:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    golden_test.go:35: DEBUG: None type inference: go/types not available or context not found (Phase 3 limitation)
+    golden_test.go:31: ERROR: Cannot infer Option type for None constant at test.go:17:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration
+    golden_test.go:35: DEBUG: PatternMatchPlugin.Process: Found 0 match expressions
+    integration_phase4_test.go:371: Expected no errors, but got: [Cannot infer Option type for None constant at test.go:13:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 240) Cannot infer Option type for None constant at test.go:17:9
+        Hint: Use explicit type annotation or Option_T_None() constructor
+        Example: var x Option_int = Option_int_None() or var x Option_int = None with type declaration (at position 320)]
+    integration_phase4_test.go:412: Expected default panic for pattern match, but not found
+    integration_phase4_test.go:418: ✓ Combined pattern match + None inference test passed
+--- FAIL: TestIntegrationPhase4EndToEnd (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/pattern_match_rust_syntax (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/pattern_match_non_exhaustive_error (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/none_context_inference_return (0.00s)
+    --- FAIL: TestIntegrationPhase4EndToEnd/combined_pattern_match_and_none (0.00s)
+FAIL
+FAIL	github.com/MadAppGang/dingo/tests	1.157s
+FAIL

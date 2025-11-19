@@ -1,0 +1,3 @@
+Dingo should mirror proven Go generator patterns: keep authored `.dingo` sources close to entrypoints, emit transpiled Go into predictable packages (e.g., `internal/gen/dingo` by default), and suffix outputs (`.dingo.go`) so developers know they’re derived.
+Adopt `go:generate dingo build` hooks and a Buf-style `dingo.gen.toml` so regeneration is one command, just like ent/sqlc/sqlc.yaml pipelines.
+Document when to publish generated packages under `pkg/` versus keep them private under `internal/`, and provide starter trees plus Makefile tasks (`make dingo`, `make dingo-clean`) to align with protoc/sqlc ergonomics.

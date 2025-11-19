@@ -1,0 +1,26 @@
+COMPLETED
+
+Status: All edge case tests implemented and passing
+Test Function: TestImportInjectionEdgeCases
+Test Cases: 6/6 passing
+File: pkg/preprocessor/import_edge_cases_test.go
+Lines of Code: 252
+Test Execution Time: 0.406s
+
+Edge Cases Covered:
+1. Multiple imports from same package (deduplication) ✓
+2. Imports from different packages ✓
+3. No imports needed (no stdlib calls) ✓
+4. Already existing imports (don't duplicate) ✓
+5. Source map offsets correct for different import counts ✓
+6. Mixed qualified and unqualified calls ✓
+
+Verification:
+- ImportTracker correctly deduplicates ✓
+- Source map offsets correct for different numbers of imports ✓
+- All tests passing with zero failures ✓
+
+Command to run tests:
+go test ./pkg/preprocessor -run TestImportInjectionEdgeCases -v
+
+Result: SUCCESS

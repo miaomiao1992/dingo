@@ -15,7 +15,7 @@ func findUser(id int) Option {
 func main() {
 	result := findUser(42)
 	if result.IsSome() {
-		println("Found:", *result.some_0)
+		println("Found:", *result.some)
 	} else {
 		println("Not found")
 	}

@@ -3,9 +3,9 @@ package main
 type ValueTag uint8
 
 const (
-	ValueTag_Small ValueTag = iota
-	ValueTag_Medium
-	ValueTag_Large
+	ValueTagSmall ValueTag = iota
+	ValueTagMedium
+	ValueTagLarge
 )
 
 type Value struct {
@@ -16,197 +16,197 @@ type Value struct {
 }
 
 func Value_Small(arg0 int) Value {
-	return Value{tag: ValueTag_Small, small_0: &arg0}
+	return Value{tag: ValueTagSmall, small_0: &arg0}
 }
 func Value_Medium(arg0 int) Value {
-	return Value{tag: ValueTag_Medium, medium_0: &arg0}
+	return Value{tag: ValueTagMedium, medium_0: &arg0}
 }
 func Value_Large(arg0 int) Value {
-	return Value{tag: ValueTag_Large, large_0: &arg0}
+	return Value{tag: ValueTagLarge, large_0: &arg0}
 }
 func (e Value) IsSmall() bool {
-	return e.tag == ValueTag_Small
+	return e.tag == ValueTagSmall
 }
 func (e Value) IsMedium() bool {
-	return e.tag == ValueTag_Medium
+	return e.tag == ValueTagMedium
 }
 func (e Value) IsLarge() bool {
-	return e.tag == ValueTag_Large
+	return e.tag == ValueTagLarge
 }
 
 // All patterns have guards (requires fallback wildcard)
 func classify(val Value) string {
-	var __match_result_0 interface{}
+	var result interface{}
 
-	__match_0 := val
-	switch __match_0.tag {
-	case ValueTag_Small:
-		x := *__match_0.small_0
+	scrutinee := val
+	switch scrutinee.tag {
+	case ValueTagSmall:
+		x := *scrutinee.small
 
 		if x > 10 {
-			__match_result_0 = "actually medium"
+			result = "actually medium"
 		}
-	case ValueTag_Medium:
-		x := *__match_0.medium_0
+	case ValueTagMedium:
+		x := *scrutinee.medium
 
 		if x > 100 {
-			__match_result_0 = "actually large"
+			result = "actually large"
 		}
-	case ValueTag_Large:
-		x := *__match_0.large_0
+	case ValueTagLarge:
+		x := *scrutinee.large
 
 		if x > 1000 {
-			__match_result_0 = "actually huge"
+			result = "actually huge"
 		}
 	default:
 
-		__match_result_0 = "normal range"
+		result = "normal range"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_0
+	return result
 
 }
 
 // Wildcard pattern with guard
 func filterPositive(val Value) string {
-	var __match_result_1 interface{}
+	var result2 interface{}
 
-	__match_1 := val
-	switch __match_1.tag {
-	case ValueTag_Small:
-		x := *__match_1.small_0
+	scrutinee2 := val
+	switch scrutinee2.tag {
+	case ValueTagSmall:
+		x := *scrutinee2.small
 
 		if x > 0 {
-			__match_result_1 = "positive small"
+			result2 = "positive small"
 		}
-	case ValueTag_Medium:
-		x := *__match_1.medium_0
+	case ValueTagMedium:
+		x := *scrutinee2.medium
 
 		if x > 0 {
-			__match_result_1 = "positive medium"
+			result2 = "positive medium"
 		}
-	case ValueTag_Large:
-		x := *__match_1.large_0
+	case ValueTagLarge:
+		x := *scrutinee2.large
 
 		if x > 0 {
-			__match_result_1 = "positive large"
+			result2 = "positive large"
 		}
 	default:
 
-		__match_result_1 = "non-positive or zero"
+		result2 = "non-positive or zero"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_1
+	return result2
 
 }
 
 // Many guarded arms (performance test)
 func granularClassify(val Value) string {
-	var __match_result_2 interface{}
+	var result3 interface{}
 
-	__match_2 := val
-	switch __match_2.tag {
-	case ValueTag_Small:
-		x := *__match_2.small_0
+	scrutinee3 := val
+	switch scrutinee3.tag {
+	case ValueTagSmall:
+		x := *scrutinee3.small
 
 		if x == 1 {
-			__match_result_2 = "one"
+			result3 = "one"
 
 		} else if x == 2 {
-			__match_result_2 = "two"
+			result3 = "two"
 
 		} else if x == 3 {
-			__match_result_2 = "three"
+			result3 = "three"
 
 		} else if x == 4 {
-			__match_result_2 = "four"
+			result3 = "four"
 
 		} else if x == 5 {
-			__match_result_2 = "five"
+			result3 = "five"
 
 		} else if x > 5 && x < 10 {
-			__match_result_2 = "five to ten"
+			result3 = "five to ten"
 
 		} else {
-			__match_result_2 = "small other"
+			result3 = "small other"
 		}
-	case ValueTag_Medium:
-		x := *__match_2.medium_0
+	case ValueTagMedium:
+		x := *scrutinee3.medium
 
 		if x < 50 {
-			__match_result_2 = "lower medium"
+			result3 = "lower medium"
 
 		} else if x >= 50 && x < 100 {
-			__match_result_2 = "mid medium"
+			result3 = "mid medium"
 
 		} else {
-			__match_result_2 = "upper medium"
+			result3 = "upper medium"
 		}
-	case ValueTag_Large:
+	case ValueTagLarge:
 
-		__match_result_2 = "large"
+		result3 = "large"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_2
+	return result3
 
 }
 
 // Guard with constant condition (optimization test)
 func alwaysMatch(val Value) string {
-	var __match_result_3 interface{}
+	var result4 interface{}
 
-	__match_3 := val
-	switch __match_3.tag {
-	case ValueTag_Small:
+	scrutinee4 := val
+	switch scrutinee4.tag {
+	case ValueTagSmall:
 
 		if true {
-			__match_result_3 = "small"
+			result4 = "small"
 		}
-	case ValueTag_Medium:
+	case ValueTagMedium:
 
 		if 1 > 0 {
-			__match_result_3 = "medium"
+			result4 = "medium"
 		}
-	case ValueTag_Large:
+	case ValueTagLarge:
 
-		__match_result_3 = "large"
+		result4 = "large"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_3
+	return result4
 
 }
 
 // Guard with side effects (not recommended but valid)
 func countMatches(val Value) string {
 	var count int = 0
-	var __match_result_4 interface{}
+	var result5 interface{}
 
-	__match_4 := val
-	switch __match_4.tag {
-	case ValueTag_Small:
-		x := *__match_4.small_0
+	scrutinee5 := val
+	switch scrutinee5.tag {
+	case ValueTagSmall:
+		x := *scrutinee5.small
 
 		if increment(&count) && x > 0 {
-			__match_result_4 = "small positive"
+			result5 = "small positive"
 		}
-	case ValueTag_Medium:
-		x := *__match_4.medium_0
+	case ValueTagMedium:
+		x := *scrutinee5.medium
 
 		if increment(&count) && x > 0 {
-			__match_result_4 = "medium positive"
+			result5 = "medium positive"
 		}
-	case ValueTag_Large:
-		x := *__match_4.large_0
+	case ValueTagLarge:
+		x := *scrutinee5.large
 
 		if increment(&count) && x > 0 {
-			__match_result_4 = "large positive"
+			result5 = "large positive"
 		}
 	default:
 
-		__match_result_4 = "other"
+		result5 = "other"
 	}
 	panic("unreachable: match is exhaustive")
-	return __match_result_4
+	return result5
 
 }
 func increment(p *int) bool {

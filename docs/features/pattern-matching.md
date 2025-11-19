@@ -433,7 +433,7 @@ Becomes:
 ```go
 func() int {
     if response.IsSuccess() {
-        code := *response.success0
+        code := *response.success
         return code
     }
     if response.IsError() {
@@ -496,8 +496,8 @@ match user {
 // Worse: Manual extraction
 match user {
     Admin => {
-        name := *user.admin0
-        level := *user.admin1
+        name := *user.admin
+        level := *user.level
         fmt.Sprintf("Admin %s (level %d)", name, level)
     }
 }
