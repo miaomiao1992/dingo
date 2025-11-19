@@ -1,0 +1,267 @@
+name: Enhanced CI (Visualization & Performance)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Golden test diff visualization
+  golden-test-visualization:
+    name: Golden Test Diff Visualization
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Build dingo
+      run: go build -v -o dingo ./cmd/dingo
+
+    - name: Build diff visualizer
+      run: go build -v -o diff-visualizer ./scripts/diff-visualizer.go
+
+    - name: Run golden tests
+      id: golden_tests
+      continue-on-error: true
+      run: |
+        go test -v ./tests -run TestGoldenFiles 2>&1 | tee test-output.log
+
+    - name: Generate diff visualization
+      if: steps.golden_tests.outcome == 'failure'
+      run: |
+        ./diff-visualizer test-output.log > golden-test-diffs.md
+
+    - name: Upload diff report
+      if: steps.golden_tests.outcome == 'failure'
+      uses: actions/upload-artifact@v4
+      with:
+        name: golden-test-diffs
+        path: |
+          golden-test-diffs.md
+          test-output.log
+        retention-days: 30
+
+    - name: Comment PR with diffs
+      if: steps.golden_tests.outcome == 'failure' && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const diffContent = fs.readFileSync('golden-test-diffs.md', 'utf8');
+
+          // Truncate if too large for comment
+          const maxLength = 65000;
+          let comment = diffContent;
+          if (comment.length > maxLength) {
+            comment = comment.substring(0, maxLength) + '\n\n... (truncated, see artifacts for full report)';
+          }
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '## 🔍 Golden Test Failures\n\n' + comment
+          });
+
+    - name: Fail if tests failed
+      if: steps.golden_tests.outcome == 'failure'
+      run: exit 1
+
+  # Performance tracking
+  performance-tracking:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Build performance tracker
+      run: go build -v -o performance-tracker ./scripts/performance-tracker.go
+
+    - name: Run benchmarks
+      run: |
+        go test -bench=. -benchmem -count=5 ./pkg/... 2>&1 | tee bench-results.txt
+
+    - name: Download previous benchmarks
+      id: download_previous
+      continue-on-error: true
+      uses: actions/download-artifact@v4
+      with:
+        name: benchmark-history
+        path: ./history
+
+    - name: Generate performance report
+      run: |
+        if [ -f ./history/metrics.json ]; then
+          ./performance-tracker bench-results.txt ./history/metrics.json > performance-report.md
+        else
+          ./performance-tracker bench-results.txt > performance-report.md
+        fi
+
+    - name: Upload performance metrics
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-history
+        path: metrics.json
+        retention-days: 90
+
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: |
+          performance-report.md
+          bench-results.txt
+        retention-days: 30
+
+    - name: Comment PR with performance
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('performance-report.md', 'utf8');
+
+          // Truncate if too large
+          const maxLength = 65000;
+          let comment = report;
+          if (comment.length > maxLength) {
+            comment = comment.substring(0, maxLength) + '\n\n... (truncated, see artifacts for full report)';
+          }
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '## 📊 Performance Benchmark Report\n\n' + comment
+          });
+
+  # Source map validation
+  sourcemap-validation:
+    name: Source Map Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Run source map validation tests
+      id: sourcemap_validation
+      continue-on-error: true
+      run: |
+        go test -v ./pkg/sourcemap -run TestValidator 2>&1 | tee sourcemap-validation.log
+
+    - name: Upload validation report
+      if: steps.sourcemap_validation.outcome == 'failure'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sourcemap-validation-failures
+        path: sourcemap-validation.log
+        retention-days: 30
+
+    - name: Fail if validation failed
+      if: steps.sourcemap_validation.outcome == 'failure'
+      run: exit 1
+
+  # Race detection for build system
+  race-detection:
+    name: Race Detection (Build System)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Test build system with race detector
+      run: |
+        go test -race -v ./pkg/build/... 2>&1 | tee race-detection.log
+
+    - name: Upload race detection report
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: race-detection-report
+        path: race-detection.log
+        retention-days: 14
+
+  # Documentation generation
+  auto-documentation:
+    name: Auto-Generate Documentation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Generate feature status matrix
+      run: |
+        cat > docs/feature-status.md << 'EOF'
+        # Feature Status Matrix
+
+        Auto-generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+        ## Current Implementation Status
+
+        | Feature | Status | Test Coverage | Examples |
+        |---------|--------|---------------|----------|
+        | Result<T,E> | ✅ Working | $(find tests/golden -name "result_*.dingo" | wc -l | tr -d ' ') tests | ✅ Available |
+        | Option<T> | ✅ Working | $(find tests/golden -name "option_*.dingo" | wc -l | tr -d ' ') tests | ✅ Available |
+        | Error Propagation (?) | ✅ Working | $(find tests/golden -name "error_prop_*.dingo" | wc -l | tr -d ' ') tests | ✅ Available |
+        | Pattern Matching | 🟡 Partial | $(find tests/golden -name "pattern_match_*.dingo" | wc -l | tr -d ' ') tests | ✅ Available |
+        | Sum Types/Enums | ✅ Working | $(find tests/golden -name "sum_types_*.dingo" | wc -l | tr -d ' ') tests | ✅ Available |
+        | Type Annotations (:) | ✅ Working | Integrated | ✅ Available |
+        | Unqualified Imports | ✅ Working | $(find tests/golden -name "unqualified_import_*.dingo" | wc -l | tr -d ' ') tests | ✅ Available |
+
+        ## Test Statistics
+
+        - **Total Golden Tests**: $(find tests/golden -name "*.dingo" | wc -l | tr -d ' ')
+        - **Last Updated**: $(git log -1 --format=%cd --date=short)
+        - **Latest Commit**: $(git log -1 --format=%h)
+
+        EOF
+
+    - name: Upload documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: auto-generated-docs
+        path: docs/feature-status.md
+        retention-days: 90
+
+  # Integration check (all validations pass)
+  integration-check:
+    name: Integration Check
+    needs: [golden-test-visualization, performance-tracking, sourcemap-validation]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: All checks passed
+      run: echo "✅ All enhanced CI checks passed!"
