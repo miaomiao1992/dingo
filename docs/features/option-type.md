@@ -424,33 +424,165 @@ func getNestedValue(data: map[string]interface{}, keys: []string) Option {
 }
 ```
 
-## Advanced: Optional Chaining
+## Safe Navigation with Option Types
 
-**Note:** The `?.` operator is planned but not yet implemented. For now, use explicit checks:
+The safe navigation operator (`?.`) makes working with Option types dramatically cleaner:
 
 ```go
-// Future (planned):
-let city = user?.address?.city?.name ?? "Unknown"
-
-// Current workaround:
+// Instead of verbose unwrapping:
 func getCityName(user: UserOption) string {
     if !user.IsSome() {
         return "Unknown"
     }
-
-    u := *user.some_0
-
+    u := *user.some
     if u.Address == nil {
         return "Unknown"
     }
-
     if u.Address.City == nil {
         return "Unknown"
     }
-
     return *u.Address.City
 }
+
+// Use safe navigation:
+let city = user?.address?.city?.name ?? "Unknown"
 ```
+
+### Property Access
+
+```go
+enum UserOption {
+    Some(User),
+    None,
+}
+
+type User struct {
+    name    string
+    email   string
+    profile *Profile
+}
+
+// Access properties safely
+let name = user?.name     // Returns Option<string>
+let email = user?.email   // Returns Option<string>
+
+// Chain through nested structures
+let bio = user?.profile?.bio
+```
+
+### Method Calls
+
+```go
+type User struct {
+    id int
+}
+
+func (u User) getName() string {
+    return fmt.Sprintf("User-%d", u.id)
+}
+
+func (u User) getEmail(domain: string) string {
+    return fmt.Sprintf("user%d@%s", u.id, domain)
+}
+
+// Call methods safely
+let name = user?.getName()                    // Returns Option<string>
+let email = user?.getEmail("example.com")    // Returns Option<string>
+
+// Chain method calls
+let formatted = user?.getName()?.toUpper()
+```
+
+### Combining with Null Coalescing
+
+Safe navigation works perfectly with the `??` operator:
+
+```go
+// Provide defaults for missing values
+let displayName = user?.name ?? "Guest"
+let city = user?.address?.city ?? "Unknown"
+
+// Multiple fallbacks
+let theme = user?.settings?.theme ?? config?.defaultTheme ?? "light"
+
+// Method results with defaults
+let email = user?.getEmail("example.com") ?? "noreply@example.com"
+```
+
+**See [safe-navigation.md](./safe-navigation.md) for complete documentation.**
+
+## Null Coalescing
+
+The null coalescing operator (`??`) provides elegant default values for Option types:
+
+```go
+enum IntOption {
+    Some(int),
+    None,
+}
+
+let value: IntOption = IntOption_None()
+let result = value ?? 42  // result is 42 (unwrapped)
+```
+
+### Basic Usage
+
+```go
+// Simple default
+let port = config?.port ?? 8080
+
+// Chained fallbacks
+let timeout = user?.timeout ?? project?.timeout ?? 30
+
+// With transformations
+let displayName = user?.name ?? user?.email ?? "Anonymous"
+```
+
+### Type Handling
+
+```go
+// Option<T> → T (automatically unwrapped)
+let opt: StringOption = StringOption_Some("hello")
+let str: string = opt ?? "default"  // str is "hello"
+
+// None case
+let opt: StringOption = StringOption_None()
+let str: string = opt ?? "default"  // str is "default"
+```
+
+### Real-World Example
+
+```go
+package main
+
+enum UserOption {
+    Some(User),
+    None,
+}
+
+type User struct {
+    name  string
+    email string
+}
+
+func greetUser(user: UserOption) {
+    // Elegant default handling
+    let name = user?.name ?? user?.email ?? "Guest"
+    println("Hello,", name)
+}
+
+func main() {
+    // With user
+    let user = UserOption_Some(User{name: "Alice", email: "alice@example.com"})
+    greetUser(user)  // Hello, Alice
+
+    // Without user
+    let noUser = UserOption_None()
+    greetUser(noUser)  // Hello, Guest
+}
+```
+
+**See [null-coalescing.md](./null-coalescing.md) for complete documentation.**
 
 ## Migration from Go
 

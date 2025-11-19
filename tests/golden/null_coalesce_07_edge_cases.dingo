@@ -1,0 +1,60 @@
+package main
+
+// Test: Null coalescing edge cases and special scenarios
+// Feature: ?? operator edge cases
+// Complexity: advanced
+
+enum StringOption {
+	Some(string),
+	None,
+}
+
+enum BoolOption {
+	Some(bool),
+	None,
+}
+
+func main() {
+	// Test 1: Empty string as fallback
+	let name: StringOption = StringOption_Some("")
+	let display = name ?? "Default"  // Should return ""
+
+	// Test 2: Zero value as fallback
+	let zero: BoolOption = BoolOption_Some(false)
+	let result = zero ?? true  // Should return false
+
+	// Test 3: Nested parentheses
+	let opt1: StringOption = StringOption_None()
+	let opt2: StringOption = StringOption_Some("Found")
+	let combined = (opt1 ?? opt2) ?? "Fallback"
+
+	// Test 4: ?? in boolean context
+	let flag: BoolOption = BoolOption_None()
+	let enabled = flag ?? false
+
+	// Test 5: Multiple ?? in same expression (different vars)
+	let first: StringOption = StringOption_None()
+	let second: StringOption = StringOption_None()
+	let a = first ?? "A"
+	let b = second ?? "B"
+	let concat = a + b
+
+	// Test 6: ?? with method chain
+	let text: StringOption = StringOption_Some("hello")
+	let upper = text?.toUpper() ?? "DEFAULT"
+
+	println("Display:", display)
+	println("Result:", result)
+	println("Combined:", combined)
+	println("Enabled:", enabled)
+	println("Concat:", concat)
+	println("Upper:", upper)
+}
+
+func (s StringOption) toUpper() StringOption {
+	if s.IsNone() {
+		return StringOption_None()
+	}
+	// Simplified uppercase
+	return s
+}

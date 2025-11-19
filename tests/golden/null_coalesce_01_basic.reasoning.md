@@ -1,32 +1,69 @@
----
-title: "🛡️ Basic null coalescing operator for default values"
-category: "Operators"
-category_order: 80
-subcategory: "Null Coalescing"
-test_id: "null_coalesce_01_basic"
-order: 1
-complexity: "basic"
-feature: "🛡️ null-coalesce"
-phase: "Phase 2.7"
-status: "implemented"
-description: "Demonstrates null coalescing operator (??) for providing default values when expressions are null/nil"
-summary: "Basic ?? operator usage"
-code_reduction: 62
-feature_file: "null-safety.md"
-related_tests:
-  - "null_coalesce_02_chained"
-  - "option_01_basic"
-tags:
-  - "null-coalesce"
-  - "operator"
-keywords:
-  - "?? operator"
-  - "null coalescing"
-  - "default values"
----
+# Reasoning: null_coalesce_01_basic
 
-# Test Reasoning: null_coalesce_01_basic
+## Purpose
+Test basic null coalescing (`??`) operator with simple cases that trigger inline optimization.
 
-Null coalescing operator provides a concise way to specify default values for potentially null expressions.
+## Test Coverage
 
-**Last Updated**: 2025-11-17
+### 1. Simple Option ?? Literal
+```dingo
+let displayName = name ?? "Guest"
+```
+**Expected:** Inline IIFE (simple operands, no nesting)
+- Left: single identifier (`name`)
+- Right: string literal (`"Guest"`)
+- Generate: if-else check with IsSome/Unwrap
+
+### 2. Simple Option ?? Option
+```dingo
+let result = name ?? fallback
+```
+**Expected:** Inline IIFE
+- Left: single identifier
+- Right: single identifier
+- Both are Option types, unwrap both
+
+### 3. Option<int> ?? Literal
+```dingo
+let finalCount = count ?? 0
+```
+**Expected:** Inline IIFE with int type
+- Demonstrates type inference works for numeric literals
+- Same pattern as string, different type
+
+### 4. Multiple separate ?? operations
+```dingo
+let firstDisplay = firstName ?? "Anonymous"
+let ageDisplay = age ?? 18
+```
+**Expected:** Independent IIFE for each
+- Each evaluated separately
+- Different types (string, int)
+
+## Code Generation Strategy
+
+### Inline Optimization
+All cases in this test are "simple" according to complexity heuristics:
+- Single identifier on left
+- Literal or identifier on right
+- No nested `??`
+- No function calls
+
+**Expected:** Direct IIFE without intermediate variables
+
+### Type Handling
+- **Option types:** Use `IsSome()` and direct access to `.some`
+- Generated code uses `*option.some` pattern
+
+## Edge Cases Tested
+- String types
+- Integer types
+- Option fallback to Option (both operands Option)
+- Multiple independent operations
+
+## Integration Points
+- Type detection (StringOption vs IntOption)
+- Inline complexity classification
+- Type inference from right operand
+
+**Last Updated**: 2025-11-20

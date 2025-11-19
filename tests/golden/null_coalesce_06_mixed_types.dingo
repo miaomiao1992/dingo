@@ -1,0 +1,63 @@
+package main
+
+// Test: Null coalescing with mixed Option and pointer types
+// Feature: ?? operator with type transitions
+// Complexity: advanced
+
+enum UserOption {
+	Some(User),
+	None,
+}
+
+enum StringOption {
+	Some(string),
+	None,
+}
+
+type User struct {
+	name    string
+	profile *Profile
+}
+
+type Profile struct {
+	bio string
+}
+
+func main() {
+	// Test 1: Option -> pointer transition
+	let user: UserOption = getUser()
+	let bio = user?.profile?.bio ?? "No bio"
+
+	// Test 2: Pointer -> Option transition
+	let userPtr: *User = getUserPtr()
+	let name = userPtr?.name ?? "Anonymous"
+
+	// Test 3: Mixed chain with multiple types
+	let user2: UserOption = UserOption_Some(User{
+		name:    "Bob",
+		profile: &Profile{bio: "Engineer"},
+	})
+	let profile = user2?.profile?.bio ?? "Default bio"
+
+	// Test 4: Option method returning pointer
+	let user3: UserOption = getUser()
+	let email = user3?.getEmail() ?? "no-email"
+
+	println("Bio:", bio)
+	println("Name:", name)
+	println("Profile:", profile)
+	println("Email:", email)
+}
+
+func getUser() UserOption {
+	return UserOption_None()
+}
+
+func getUserPtr() *User {
+	return nil
+}
+
+func (u User) getEmail() *string {
+	email := u.name + "@example.com"
+	return &email
+}

@@ -1,0 +1,97 @@
+package main
+
+// Test: Complex null coalescing expressions
+// Feature: ?? operator with nested expressions and function calls
+// Complexity: advanced
+
+enum StringOption {
+	Some(string),
+	None,
+}
+
+enum IntOption {
+	Some(int),
+	None,
+}
+
+enum ConfigOption {
+	Some(Config),
+	None,
+}
+
+type Config struct {
+	host string
+	port int
+}
+
+func main() {
+	// Test 1: Function call on right side
+	let name: StringOption = StringOption_None()
+	let display = name ?? getDefaultName()
+
+	// Test 2: Nested ?? in expressions
+	let port: IntOption = IntOption_None()
+	let finalPort = (port ?? 8080) + 1000
+
+	// Test 3: ?? with expressions on both sides
+	let config: ConfigOption = getConfig()
+	let host = config?.host ?? getEnv("HOST") ?? "localhost"
+
+	// Test 4: Complex chaining with method calls
+	let user: StringOption = findUser(42)
+	let username = user?.toUpper() ?? getGuestName() ?? "GUEST"
+
+	// Test 5: Nested function calls
+	let timeout: IntOption = IntOption_None()
+	let finalTimeout = timeout ?? parseEnv("TIMEOUT") ?? getDefaultTimeout()
+
+	// Test 6: Mixed with arithmetic
+	let count: IntOption = IntOption_None()
+	let total = (count ?? 10) * 2
+
+	println("Display:", display)
+	println("Port:", finalPort)
+	println("Host:", host)
+	println("Username:", username)
+	println("Timeout:", finalTimeout)
+	println("Total:", total)
+}
+
+func getDefaultName() string {
+	return "Unknown User"
+}
+
+func getEnv(key string) StringOption {
+	if key == "HOST" {
+		return StringOption_Some("example.com")
+	}
+	return StringOption_None()
+}
+
+func getConfig() ConfigOption {
+	return ConfigOption_None()
+}
+
+func findUser(id int) StringOption {
+	return StringOption_None()
+}
+
+func (s StringOption) toUpper() StringOption {
+	if s.IsNone() {
+		return StringOption_None()
+	}
+	// Simplified - just return the same for demo
+	return s
+}
+
+func getGuestName() StringOption {
+	return StringOption_None()
+}
+
+func parseEnv(key string) IntOption {
+	return IntOption_None()
+}
+
+func getDefaultTimeout() int {
+	return 30
+}

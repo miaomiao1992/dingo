@@ -1,0 +1,857 @@
+package main
+
+// Test: Combined safe navigation and null coalescing integration
+// Feature: Complex real-world scenarios with ?. and ??
+// Complexity: high
+// Description: Demonstrates realistic API response handling, config parsing,
+// and nested access patterns with fallback values
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// API response models
+type UserOption_tag int
+
+const (
+	UserOption_tag_Some UserOption_tag = iota
+	UserOption_tag_None
+)
+
+type UserOption struct {
+	tag   UserOption_tag
+	value User
+}
+
+func UserOption_Some(value User) UserOption {
+	return UserOption{tag: UserOption_tag_Some, value: value}
+}
+
+func UserOption_None() UserOption {
+	return UserOption{tag: UserOption_tag_None}
+}
+
+func (o UserOption) IsSome() bool {
+	return o.tag == UserOption_tag_Some
+}
+
+func (o UserOption) IsNone() bool {
+	return o.tag == UserOption_tag_None
+}
+
+func (o UserOption) Unwrap() User {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return o.value
+}
+
+type AddressOption_tag int
+
+const (
+	AddressOption_tag_Some AddressOption_tag = iota
+	AddressOption_tag_None
+)
+
+type AddressOption struct {
+	tag   AddressOption_tag
+	value Address
+}
+
+func AddressOption_Some(value Address) AddressOption {
+	return AddressOption{tag: AddressOption_tag_Some, value: value}
+}
+
+func AddressOption_None() AddressOption {
+	return AddressOption{tag: AddressOption_tag_None}
+}
+
+func (o AddressOption) IsSome() bool {
+	return o.tag == AddressOption_tag_Some
+}
+
+func (o AddressOption) IsNone() bool {
+	return o.tag == AddressOption_tag_None
+}
+
+func (o AddressOption) Unwrap() Address {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return o.value
+}
+
+type StringOption_tag int
+
+const (
+	StringOption_tag_Some StringOption_tag = iota
+	StringOption_tag_None
+)
+
+type StringOption struct {
+	tag   StringOption_tag
+	value string
+}
+
+func StringOption_Some(value string) StringOption {
+	return StringOption{tag: StringOption_tag_Some, value: value}
+}
+
+func StringOption_None() StringOption {
+	return StringOption{tag: StringOption_tag_None}
+}
+
+func (o StringOption) IsSome() bool {
+	return o.tag == StringOption_tag_Some
+}
+
+func (o StringOption) IsNone() bool {
+	return o.tag == StringOption_tag_None
+}
+
+func (o StringOption) Unwrap() string {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return o.value
+}
+
+type IntOption_tag int
+
+const (
+	IntOption_tag_Some IntOption_tag = iota
+	IntOption_tag_None
+)
+
+type IntOption struct {
+	tag   IntOption_tag
+	value int
+}
+
+func IntOption_Some(value int) IntOption {
+	return IntOption{tag: IntOption_tag_Some, value: value}
+}
+
+func IntOption_None() IntOption {
+	return IntOption{tag: IntOption_tag_None}
+}
+
+func (o IntOption) IsSome() bool {
+	return o.tag == IntOption_tag_Some
+}
+
+func (o IntOption) IsNone() bool {
+	return o.tag == IntOption_tag_None
+}
+
+func (o IntOption) Unwrap() int {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return o.value
+}
+
+type User struct {
+	id      int
+	name    string
+	profile ProfileOption
+	address AddressOption
+}
+
+type ProfileOption_tag int
+
+const (
+	ProfileOption_tag_Some ProfileOption_tag = iota
+	ProfileOption_tag_None
+)
+
+type ProfileOption struct {
+	tag   ProfileOption_tag
+	value Profile
+}
+
+func ProfileOption_Some(value Profile) ProfileOption {
+	return ProfileOption{tag: ProfileOption_tag_Some, value: value}
+}
+
+func ProfileOption_None() ProfileOption {
+	return ProfileOption{tag: ProfileOption_tag_None}
+}
+
+func (o ProfileOption) IsSome() bool {
+	return o.tag == ProfileOption_tag_Some
+}
+
+func (o ProfileOption) IsNone() bool {
+	return o.tag == ProfileOption_tag_None
+}
+
+func (o ProfileOption) Unwrap() Profile {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return o.value
+}
+
+type Profile struct {
+	bio        StringOption
+	website    StringOption
+	reputation IntOption
+}
+
+type Address struct {
+	street  string
+	city    string
+	country StringOption
+}
+
+// Configuration models
+type Config struct {
+	database *DatabaseConfig
+	cache    *CacheConfig
+	api      *APIConfig
+}
+
+type DatabaseConfig struct {
+	host     *string
+	port     *int
+	timeout  *int
+	maxConns *int
+}
+
+type CacheConfig struct {
+	enabled *bool
+	ttl     *int
+	maxSize *int
+}
+
+type APIConfig struct {
+	baseURL     *string
+	timeout     *int
+	retries     *int
+	rateLimiter *RateLimiterConfig
+}
+
+type RateLimiterConfig struct {
+	enabled        *bool
+	requestsPerSec *int
+}
+
+func main() {
+	// ===== Test 1: API Response Handling =====
+	// Scenario: Fetch user data from API, extract nested optional fields
+	apiUser := fetchUserFromAPI(123)
+
+	// Extract user bio with fallback
+	userBio := func() string {
+		__safeNav := func() StringOption {
+			if apiUser.IsNone() {
+				return StringOption_None()
+			}
+			__apiUser0 := apiUser.Unwrap()
+			if __apiUser0.profile.IsNone() {
+				return ProfileOption_None()
+			}
+			__apiUser1 := __apiUser0.profile.Unwrap()
+			return __apiUser1.bio
+		}()
+
+		if __safeNav.IsSome() {
+			return __safeNav.Unwrap()
+		}
+		return "No bio available"
+	}()
+	fmt.Println("User bio:", userBio)
+
+	// Extract website, handle multiple levels of optionality
+	userWebsite := func() string {
+		__safeNav := func() StringOption {
+			if apiUser.IsNone() {
+				return StringOption_None()
+			}
+			__apiUser0 := apiUser.Unwrap()
+			if __apiUser0.profile.IsNone() {
+				return ProfileOption_None()
+			}
+			__apiUser1 := __apiUser0.profile.Unwrap()
+			return __apiUser1.website
+		}()
+
+		if __safeNav.IsSome() {
+			return __safeNav.Unwrap()
+		}
+		return "https://example.com"
+	}()
+	fmt.Println("Website:", userWebsite)
+
+	// Extract reputation with numeric fallback
+	reputation := func() int {
+		__safeNav := func() IntOption {
+			if apiUser.IsNone() {
+				return IntOption_None()
+			}
+			__apiUser0 := apiUser.Unwrap()
+			if __apiUser0.profile.IsNone() {
+				return ProfileOption_None()
+			}
+			__apiUser1 := __apiUser0.profile.Unwrap()
+			return __apiUser1.reputation
+		}()
+
+		if __safeNav.IsSome() {
+			return __safeNav.Unwrap()
+		}
+		return 0
+	}()
+	fmt.Println("Reputation:", reputation)
+
+	// Chained property access with address
+	userCity := func() string {
+		__safeNav := func() string {
+			if apiUser.IsNone() {
+				return ""
+			}
+			__apiUser0 := apiUser.Unwrap()
+			if __apiUser0.address.IsNone() {
+				return ""
+			}
+			__apiUser1 := __apiUser0.address.Unwrap()
+			return __apiUser1.city
+		}()
+
+		if __safeNav != "" {
+			return __safeNav
+		}
+		return "Unknown City"
+	}()
+	userCountry := func() string {
+		__safeNav := func() StringOption {
+			if apiUser.IsNone() {
+				return StringOption_None()
+			}
+			__apiUser0 := apiUser.Unwrap()
+			if __apiUser0.address.IsNone() {
+				return AddressOption_None()
+			}
+			__apiUser1 := __apiUser0.address.Unwrap()
+			return __apiUser1.country
+		}()
+
+		if __safeNav.IsSome() {
+			return __safeNav.Unwrap()
+		}
+		return "Unknown Country"
+	}()
+	fmt.Printf("Location: %s, %s\n", userCity, userCountry)
+
+	// ===== Test 2: Config Parsing with Fallbacks =====
+	// Scenario: Load config, use sensible defaults for missing values
+	config := loadConfig()
+
+	// Database configuration
+	dbHost := func() string {
+		if config == nil {
+			return "localhost"
+		}
+		if config.database == nil {
+			return "localhost"
+		}
+		if config.database.host == nil {
+			return "localhost"
+		}
+		return *config.database.host
+	}()
+	dbPort := func() int {
+		if config == nil {
+			return 5432
+		}
+		if config.database == nil {
+			return 5432
+		}
+		if config.database.port == nil {
+			return 5432
+		}
+		return *config.database.port
+	}()
+	dbTimeout := func() int {
+		if config == nil {
+			return 30
+		}
+		if config.database == nil {
+			return 30
+		}
+		if config.database.timeout == nil {
+			return 30
+		}
+		return *config.database.timeout
+	}()
+	dbMaxConns := func() int {
+		if config == nil {
+			return 10
+		}
+		if config.database == nil {
+			return 10
+		}
+		if config.database.maxConns == nil {
+			return 10
+		}
+		return *config.database.maxConns
+	}()
+	fmt.Printf("DB: %s:%d (timeout=%ds, maxConns=%d)\n", dbHost, dbPort, dbTimeout, dbMaxConns)
+
+	// Cache configuration
+	cacheEnabled := func() bool {
+		if config == nil {
+			return false
+		}
+		if config.cache == nil {
+			return false
+		}
+		if config.cache.enabled == nil {
+			return false
+		}
+		return *config.cache.enabled
+	}()
+	cacheTTL := func() int {
+		if config == nil {
+			return 300
+		}
+		if config.cache == nil {
+			return 300
+		}
+		if config.cache.ttl == nil {
+			return 300
+		}
+		return *config.cache.ttl
+	}()
+	cacheMaxSize := func() int {
+		if config == nil {
+			return 1000
+		}
+		if config.cache == nil {
+			return 1000
+		}
+		if config.cache.maxSize == nil {
+			return 1000
+		}
+		return *config.cache.maxSize
+	}()
+	fmt.Printf("Cache: enabled=%v, ttl=%ds, maxSize=%d\n", cacheEnabled, cacheTTL, cacheMaxSize)
+
+	// API configuration with nested rate limiter
+	apiURL := func() string {
+		if config == nil {
+			return "https://api.example.com"
+		}
+		if config.api == nil {
+			return "https://api.example.com"
+		}
+		if config.api.baseURL == nil {
+			return "https://api.example.com"
+		}
+		return *config.api.baseURL
+	}()
+	apiTimeout := func() int {
+		if config == nil {
+			return 60
+		}
+		if config.api == nil {
+			return 60
+		}
+		if config.api.timeout == nil {
+			return 60
+		}
+		return *config.api.timeout
+	}()
+	apiRetries := func() int {
+		if config == nil {
+			return 3
+		}
+		if config.api == nil {
+			return 3
+		}
+		if config.api.retries == nil {
+			return 3
+		}
+		return *config.api.retries
+	}()
+	rateLimitEnabled := func() bool {
+		if config == nil {
+			return true
+		}
+		if config.api == nil {
+			return true
+		}
+		if config.api.rateLimiter == nil {
+			return true
+		}
+		if config.api.rateLimiter.enabled == nil {
+			return true
+		}
+		return *config.api.rateLimiter.enabled
+	}()
+	rateLimitRPS := func() int {
+		if config == nil {
+			return 100
+		}
+		if config.api == nil {
+			return 100
+		}
+		if config.api.rateLimiter == nil {
+			return 100
+		}
+		if config.api.rateLimiter.requestsPerSec == nil {
+			return 100
+		}
+		return *config.api.rateLimiter.requestsPerSec
+	}()
+	fmt.Printf("API: %s (timeout=%ds, retries=%d)\n", apiURL, apiTimeout, apiRetries)
+	fmt.Printf("Rate Limit: enabled=%v, rps=%d\n", rateLimitEnabled, rateLimitRPS)
+
+	// ===== Test 3: Mixed Property and Method Calls =====
+	// Scenario: Extract data using both property access and method calls
+	user2 := getActiveUser()
+
+	// Method call with fallback
+	displayName := func() string {
+		__safeNav := func() StringOption {
+			if user2.IsNone() {
+				return StringOption_None()
+			}
+			__user20 := user2.Unwrap()
+			return __user20.getDisplayName()
+		}()
+
+		if __safeNav.IsSome() {
+			return __safeNav.Unwrap()
+		}
+		return "Anonymous"
+	}()
+	fmt.Println("Display name:", displayName)
+
+	// Chained: property then method
+	profileURL := func() string {
+		__safeNav := func() StringOption {
+			if user2.IsNone() {
+				return StringOption_None()
+			}
+			__user20 := user2.Unwrap()
+			if __user20.profile.IsNone() {
+				return ProfileOption_None()
+			}
+			__user21 := __user20.profile.Unwrap()
+			return __user21.formatURL()
+		}()
+
+		if __safeNav.IsSome() {
+			return __safeNav.Unwrap()
+		}
+		return "/default-profile"
+	}()
+	fmt.Println("Profile URL:", profileURL)
+
+	// Method with args, then property
+	formattedAddress := func() string {
+		__safeNav := func() string {
+			if user2.IsNone() {
+				return ""
+			}
+			__user20 := user2.Unwrap()
+			__tmp0 := __user20.formatAddress("short")
+			if __tmp0.IsNone() {
+				return ""
+			}
+			__tmp1 := __tmp0.Unwrap()
+			return __tmp1.city
+		}()
+
+		if __safeNav != "" {
+			return __safeNav
+		}
+		return "N/A"
+	}()
+	fmt.Println("Address:", formattedAddress)
+
+	// ===== Test 4: Expression-level Fallbacks =====
+	// Scenario: Use function calls as fallback values
+	user3 := findUser("jack")
+
+	city3 := func() string {
+		__safeNav := func() string {
+			if user3.IsNone() {
+				return ""
+			}
+			__user30 := user3.Unwrap()
+			if __user30.address.IsNone() {
+				return ""
+			}
+			__user31 := __user30.address.Unwrap()
+			return __user31.city
+		}()
+
+		if __safeNav != "" {
+			return __safeNav
+		}
+		return getDefaultCity()
+	}()
+	country3 := func() string {
+		__safeNav := func() StringOption {
+			if user3.IsNone() {
+				return StringOption_None()
+			}
+			__user30 := user3.Unwrap()
+			if __user30.address.IsNone() {
+				return AddressOption_None()
+			}
+			__user31 := __user30.address.Unwrap()
+			return __user31.country
+		}()
+
+		if __safeNav.IsSome() {
+			return __safeNav.Unwrap()
+		}
+		return detectCountryFromIP()
+	}()
+	fmt.Printf("Detected location: %s, %s\n", city3, country3)
+
+	// Chained fallbacks (a ?? b ?? c)
+	primaryEmail := func() string {
+		__opt1 := func() StringOption {
+			if user3.IsNone() {
+				return StringOption_None()
+			}
+			__user30 := user3.Unwrap()
+			if __user30.profile.IsNone() {
+				return ProfileOption_None()
+			}
+			__user31 := __user30.profile.Unwrap()
+			return __user31.getEmail()
+		}()
+
+		if __opt1.IsSome() {
+			return __opt1.Unwrap()
+		}
+
+		__opt2 := func() StringOption {
+			if user3.IsNone() {
+				return StringOption_None()
+			}
+			__user32 := user3.Unwrap()
+			return __user32.getBackupEmail()
+		}()
+
+		if __opt2.IsSome() {
+			return __opt2.Unwrap()
+		}
+
+		return "support@example.com"
+	}()
+	fmt.Println("Contact email:", primaryEmail)
+
+	// ===== Test 5: Nested Safe Navigation in Expressions =====
+	// Scenario: Complex expressions with safe nav
+	user4 := getUser(456)
+	user5 := getUser(789)
+
+	// Use safe nav result in comparison
+	areSameCity := (func() string {
+		__safeNav := func() string {
+			if user4.IsNone() {
+				return ""
+			}
+			__user40 := user4.Unwrap()
+			if __user40.address.IsNone() {
+				return ""
+			}
+			__user41 := __user40.address.Unwrap()
+			return __user41.city
+		}()
+
+		if __safeNav != "" {
+			return __safeNav
+		}
+		return ""
+	}()) == (func() string {
+		__safeNav := func() string {
+			if user5.IsNone() {
+				return ""
+			}
+			__user50 := user5.Unwrap()
+			if __user50.address.IsNone() {
+				return ""
+			}
+			__user51 := __user50.address.Unwrap()
+			return __user51.city
+		}()
+
+		if __safeNav != "" {
+			return __safeNav
+		}
+		return ""
+	}())
+	fmt.Println("Same city?", areSameCity)
+
+	// Use in JSON encoding
+	jsonData := map[string]interface{}{
+		"name": func() string {
+			__safeNav := func() string {
+				if user4.IsNone() {
+					return ""
+				}
+				__user40 := user4.Unwrap()
+				return __user40.name
+			}()
+
+			if __safeNav != "" {
+				return __safeNav
+			}
+			return "unknown"
+		}(),
+		"city": func() string {
+			__safeNav := func() string {
+				if user4.IsNone() {
+					return ""
+				}
+				__user40 := user4.Unwrap()
+				if __user40.address.IsNone() {
+					return ""
+				}
+				__user41 := __user40.address.Unwrap()
+				return __user41.city
+			}()
+
+			if __safeNav != "" {
+				return __safeNav
+			}
+			return "unknown"
+		}(),
+		"country": func() string {
+			__safeNav := func() StringOption {
+				if user4.IsNone() {
+					return StringOption_None()
+				}
+				__user40 := user4.Unwrap()
+				if __user40.address.IsNone() {
+					return AddressOption_None()
+				}
+				__user41 := __user40.address.Unwrap()
+				return __user41.country
+			}()
+
+			if __safeNav.IsSome() {
+				return __safeNav.Unwrap()
+			}
+			return "unknown"
+		}(),
+		"bio": func() string {
+			__safeNav := func() StringOption {
+				if user4.IsNone() {
+					return StringOption_None()
+				}
+				__user40 := user4.Unwrap()
+				if __user40.profile.IsNone() {
+					return ProfileOption_None()
+				}
+				__user41 := __user40.profile.Unwrap()
+				return __user41.bio
+			}()
+
+			if __safeNav.IsSome() {
+				return __safeNav.Unwrap()
+			}
+			return ""
+		}(),
+	}
+	json.Marshal(jsonData)
+}
+
+// ===== Helper Functions =====
+
+func fetchUserFromAPI(id int) UserOption {
+	// Simulate API call that may return None
+	if id == 123 {
+		profile := ProfileOption_Some(Profile{
+			bio:        StringOption_Some("Software engineer"),
+			website:    StringOption_Some("https://github.com/user"),
+			reputation: IntOption_Some(1500),
+		})
+		address := AddressOption_Some(Address{
+			street:  "123 Main St",
+			city:    "San Francisco",
+			country: StringOption_Some("USA"),
+		})
+		return UserOption_Some(User{
+			id:      123,
+			name:    "Alice",
+			profile: profile,
+			address: address,
+		})
+	}
+	return UserOption_None()
+}
+
+func loadConfig() *Config {
+	// Simulate partial config loading (some fields nil)
+	dbHost := "db.example.com"
+	dbPort := 3306
+	cacheEnabled := true
+
+	return &Config{
+		database: &DatabaseConfig{
+			host:    &dbHost,
+			port:    &dbPort,
+			timeout: nil, // Will use default
+		},
+		cache: &CacheConfig{
+			enabled: &cacheEnabled,
+			ttl:     nil, // Will use default
+		},
+		api: nil, // Entire API config missing, use defaults
+	}
+}
+
+func getActiveUser() UserOption {
+	return UserOption_None()
+}
+
+func findUser(username string) UserOption {
+	return UserOption_None()
+}
+
+func getUser(id int) UserOption {
+	return UserOption_None()
+}
+
+func getDefaultCity() string {
+	return "San Francisco"
+}
+
+func detectCountryFromIP() string {
+	return "USA"
+}
+
+// User methods
+func (u User) getDisplayName() StringOption {
+	if u.name != "" {
+		return StringOption_Some(u.name)
+	}
+	return StringOption_None()
+}
+
+func (u User) getBackupEmail() StringOption {
+	return StringOption_Some("backup@example.com")
+}
+
+func (u User) formatAddress(format string) AddressOption {
+	return u.address
+}
+
+// Profile methods
+func (p Profile) formatURL() StringOption {
+	return StringOption_Some("/profile/123")
+}
+
+func (p Profile) getEmail() StringOption {
+	return StringOption_None()
+}

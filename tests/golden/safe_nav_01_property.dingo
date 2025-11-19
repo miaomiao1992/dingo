@@ -1,0 +1,39 @@
+package main
+
+// Test: Basic property access with safe navigation operator
+// Feature: Safe Navigation (?.) - Property Chains
+// Complexity: basic
+
+enum UserOption {
+	Some(User),
+	None,
+}
+
+enum AddressOption {
+	Some(Address),
+	None,
+}
+
+type User struct {
+	name    string
+	address AddressOption
+}
+
+type Address struct {
+	city string
+}
+
+func getUser(id int) UserOption {
+	if id > 0 {
+		addr := AddressOption_Some(Address{city: "Boston"})
+		return UserOption_Some(User{name: "Alice", address: addr})
+	}
+	return UserOption_None()
+}
+
+func main() {
+	user := getUser(1)
+	// Basic property chain: user?.address?.city
+	city := user?.address?.city
+	println(city)
+}

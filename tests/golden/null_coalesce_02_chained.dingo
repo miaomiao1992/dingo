@@ -1,34 +1,43 @@
 package main
 
-// Test: Chained null coalescing
+// Test: Chained null coalescing (single IIFE optimization)
 // Feature: Null coalescing with multiple fallbacks
 // Complexity: intermediate
 
-enum Option {
+enum StringOption {
 	Some(string),
 	None,
 }
 
 func main() {
-	let firstName Option = Option_None()
-	let middleName Option = Option_None()
-	let lastName Option = Option_Some("Smith")
+	// Test 1: Chain of Option values (a ?? b ?? c)
+	let firstName: StringOption = StringOption_None()
+	let middleName: StringOption = StringOption_None()
+	let lastName: StringOption = StringOption_Some("Smith")
 
 	// Chained null coalescing - try each in order
 	let name = firstName ?? middleName ?? lastName ?? "Unknown"
 
-	// With function calls
+	// Test 2: Chain with function calls
 	let primary = getConfig("primary")
 	let fallback = getConfig("fallback")
 	let config = primary ?? fallback ?? "default"
 
+	// Test 3: Long chain
+	let opt1: StringOption = StringOption_None()
+	let opt2: StringOption = StringOption_None()
+	let opt3: StringOption = StringOption_None()
+	let opt4: StringOption = StringOption_Some("Found")
+	let result = opt1 ?? opt2 ?? opt3 ?? opt4 ?? "Not Found"
+
 	println("Name:", name)
 	println("Config:", config)
+	println("Result:", result)
 }
 
-func getConfig(key string) Option {
+func getConfig(key string) StringOption {
 	if key == "fallback" {
-		return Option_Some("backup-value")
+		return StringOption_Some("backup-value")
 	}
-	return Option_None()
+	return StringOption_None()
 }

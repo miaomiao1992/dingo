@@ -1,0 +1,124 @@
+package main
+
+// Test: Basic method calls with safe navigation operator
+// Feature: Safe Navigation (?.) - Method Calls
+// Complexity: basic
+
+type UserOption_Tag int
+
+const (
+	UserOption_Tag_Some UserOption_Tag = iota
+	UserOption_Tag_None
+)
+
+type UserOption struct {
+	tag  UserOption_Tag
+	some *User
+}
+
+func UserOption_Some(value User) UserOption {
+	return UserOption{tag: UserOption_Tag_Some, some: &value}
+}
+
+func UserOption_None() UserOption {
+	return UserOption{tag: UserOption_Tag_None, some: nil}
+}
+
+func (o UserOption) IsSome() bool {
+	return o.tag == UserOption_Tag_Some
+}
+
+func (o UserOption) IsNone() bool {
+	return o.tag == UserOption_Tag_None
+}
+
+func (o UserOption) Unwrap() User {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return *o.some
+}
+
+type StringOption_Tag int
+
+const (
+	StringOption_Tag_Some StringOption_Tag = iota
+	StringOption_Tag_None
+)
+
+type StringOption struct {
+	tag  StringOption_Tag
+	some *string
+}
+
+func StringOption_Some(value string) StringOption {
+	return StringOption{tag: StringOption_Tag_Some, some: &value}
+}
+
+func StringOption_None() StringOption {
+	return StringOption{tag: StringOption_Tag_None, some: nil}
+}
+
+func (o StringOption) IsSome() bool {
+	return o.tag == StringOption_Tag_Some
+}
+
+func (o StringOption) IsNone() bool {
+	return o.tag == StringOption_Tag_None
+}
+
+func (o StringOption) Unwrap() string {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return *o.some
+}
+
+type User struct {
+	name  string
+	email string
+}
+
+func (u User) getName() string {
+	return u.name
+}
+
+func (u User) getEmail() StringOption {
+	if u.email != "" {
+		return StringOption_Some(u.email)
+	}
+	return StringOption_None()
+}
+
+func getUser(id int) UserOption {
+	if id > 0 {
+		return UserOption_Some(User{name: "Alice", email: "alice@example.com"})
+	}
+	return UserOption_None()
+}
+
+func main() {
+	user := getUser(1)
+
+	// Basic method call: user?.getName()
+	name := func() string {
+		if user.IsNone() {
+			return ""
+		}
+		_user := user.Unwrap()
+
+		return _user.getName()
+	}()
+	println(name)
+
+	// Method returning Option: user?.getEmail()
+	email := func() StringOption {
+		if user.IsNone() {
+			return StringOption_None()
+		}
+		_user := user.Unwrap()
+
+		return _user.getEmail()
+	}()
+	println(email)
+}

@@ -1,6 +1,129 @@
 package main
 
+// Test: Basic null coalescing with simple cases (inline optimization)
+// Feature: Null coalescing (??)
+// Complexity: basic
+
+type StringOption_Tag int
+
+const (
+	StringOption_Tag_Some StringOption_Tag = iota
+	StringOption_Tag_None
+)
+
+type StringOption struct {
+	tag  StringOption_Tag
+	some *string
+}
+
+func StringOption_Some(value string) StringOption {
+	return StringOption{tag: StringOption_Tag_Some, some: &value}
+}
+
+func StringOption_None() StringOption {
+	return StringOption{tag: StringOption_Tag_None, some: nil}
+}
+
+func (o StringOption) IsSome() bool {
+	return o.tag == StringOption_Tag_Some
+}
+
+func (o StringOption) IsNone() bool {
+	return o.tag == StringOption_Tag_None
+}
+
+func (o StringOption) Unwrap() string {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return *o.some
+}
+
+type IntOption_Tag int
+
+const (
+	IntOption_Tag_Some IntOption_Tag = iota
+	IntOption_Tag_None
+)
+
+type IntOption struct {
+	tag  IntOption_Tag
+	some *int
+}
+
+func IntOption_Some(value int) IntOption {
+	return IntOption{tag: IntOption_Tag_Some, some: &value}
+}
+
+func IntOption_None() IntOption {
+	return IntOption{tag: IntOption_Tag_None, some: nil}
+}
+
+func (o IntOption) IsSome() bool {
+	return o.tag == IntOption_Tag_Some
+}
+
+func (o IntOption) IsNone() bool {
+	return o.tag == IntOption_Tag_None
+}
+
+func (o IntOption) Unwrap() int {
+	if o.IsNone() {
+		panic("called Unwrap on None")
+	}
+	return *o.some
+}
+
 func main() {
-	var name = (optName)
-	var count = (optCount)
+	// Test 1: Simple identifier ?? literal (inline optimization)
+	var name StringOption = getUserName()
+	var displayName = func() string {
+		if name.IsSome() {
+			return name.Unwrap()
+		}
+		return "Guest"
+	}()
+
+	// Test 2: Simple identifier ?? identifier
+	var fallback StringOption = StringOption_Some("Default")
+	var result = func() string {
+		if name.IsSome() {
+			return name.Unwrap()
+		}
+		return fallback.Unwrap()
+	}()
+
+	// Test 3: Option<int> ?? literal
+	var count IntOption = getCount()
+	var finalCount = func() int {
+		if count.IsSome() {
+			return count.Unwrap()
+		}
+		return 0
+	}()
+
+	// Test 4: Multiple separate ?? operations
+	var firstName StringOption = StringOption_None()
+	var firstDisplay = func() string {
+		if firstName.IsSome() {
+			return firstName.Unwrap()
+		}
+		return "Anonymous"
+	}()
+
+	var age IntOption = IntOption_None()
+	var ageDisplay = func() int {
+		if age.IsSome() {
+			return age.Unwrap()
+		}
+		return 18
+	}()
+}
+
+func getUserName() StringOption {
+	return StringOption_None()
+}
+
+func getCount() IntOption {
+	return IntOption_Some(42)
 }

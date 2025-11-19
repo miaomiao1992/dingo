@@ -1,0 +1,71 @@
+package main
+
+// Test: Null coalescing integration with safe navigation
+// Feature: ?? operator combined with ?.
+// Complexity: intermediate
+
+enum UserOption {
+	Some(User),
+	None,
+}
+
+enum AddressOption {
+	Some(Address),
+	None,
+}
+
+enum StringOption {
+	Some(string),
+	None,
+}
+
+type User struct {
+	name    string
+	address AddressOption
+}
+
+type Address struct {
+	city StringOption
+	zip  string
+}
+
+func main() {
+	// Test 1: user?.name ?? "unknown"
+	let user: UserOption = getUser(1)
+	let userName = user?.name ?? "unknown"
+
+	// Test 2: user?.address?.city ?? defaultCity
+	let defaultCity = "San Francisco"
+	let city = user?.address?.city ?? defaultCity
+
+	// Test 3: Chain with method calls
+	let profile: UserOption = fetchProfile()
+	let email = profile?.getEmail() ?? "no-email@example.com"
+
+	// Test 4: Multiple safe nav with different fallbacks
+	let user2: UserOption = getUser(2)
+	let zip = user2?.address?.zip ?? "00000"
+	let city2 = user2?.address?.city ?? "Unknown City"
+
+	println("User:", userName, "City:", city, "Email:", email)
+	println("Zip:", zip, "City2:", city2)
+}
+
+func getUser(id int) UserOption {
+	if id == 1 {
+		addr := AddressOption_Some(Address{
+			city: StringOption_Some("New York"),
+			zip:  "10001",
+		})
+		return UserOption_Some(User{name: "Alice", address: addr})
+	}
+	return UserOption_None()
+}
+
+func fetchProfile() UserOption {
+	return UserOption_None()
+}
+
+func (u User) getEmail() StringOption {
+	return StringOption_Some(u.name + "@example.com")
+}

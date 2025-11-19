@@ -1,0 +1,49 @@
+package main
+
+// Test: Null coalescing with Go raw pointers
+// Feature: ?? operator with pointer types
+// Complexity: intermediate
+
+type User struct {
+	name string
+	age  int
+}
+
+func main() {
+	// Test 1: Pointer ?? literal
+	let user: *User = getUser(1)
+	let name = user?.name ?? "Unknown"
+
+	// Test 2: Pointer ?? pointer
+	let primary: *string = getPrimary()
+	let fallback: *string = getFallback()
+	let result = primary ?? fallback
+
+	// Test 3: Nested pointer access
+	let userPtr: *User = getUser(2)
+	let age = userPtr?.age ?? 0
+
+	// Test 4: Nil pointer handling
+	let nilUser: *User = nil
+	let nilName = nilUser?.name ?? "Default"
+
+	println("Name:", name)
+	println("Age:", age)
+	println("Nil:", nilName)
+}
+
+func getUser(id int) *User {
+	if id == 1 {
+		return &User{name: "Alice", age: 30}
+	}
+	return nil
+}
+
+func getPrimary() *string {
+	return nil
+}
+
+func getFallback() *string {
+	s := "Fallback"
+	return &s
+}

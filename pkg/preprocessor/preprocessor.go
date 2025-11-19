@@ -76,28 +76,33 @@ func newWithConfigAndCache(source []byte, cfg *config.Config, cache *FunctionExc
 		// Order matters! Process in this sequence:
 		// 0. Generic syntax (<> → []) - must be FIRST before type annotations
 		NewGenericSyntaxProcessor(),
-		// 1. Type annotations (: → space) - after generic syntax
+		// 1. Lambdas (x => expr, |x| expr) - BEFORE type annotations (contains : syntax)
+		NewLambdaProcessorWithConfig(cfg),
+		// 2. Type annotations (: → space) - after lambdas, after generic syntax
 		NewTypeAnnotProcessor(),
-		// 2. Error propagation (expr?) - always enabled
+		// 3. Error propagation (expr?) - always enabled
 		NewErrorPropProcessor(),
 	}
 
-	// 3. Enums (enum Name { ... }) - after error prop, before keywords
+	// 4. Enums (enum Name { ... }) - after error prop, before keywords
 	processors = append(processors, NewEnumProcessor())
 
-	// 4. Pattern matching (match) - Always use Rust syntax (Swift removed in Phase 4.2)
+	// 5. Pattern matching (match) - Always use Rust syntax (Swift removed in Phase 4.2)
 	processors = append(processors, NewRustMatchProcessor())
 
-	// 5. Keywords (let → var) - after error prop, enum, and pattern match so it doesn't interfere
+	// 6. Keywords (let → var) - after error prop, enum, and pattern match so it doesn't interfere
 	processors = append(processors, NewKeywordProcessor())
 
-	// 6. Unqualified imports (ReadFile → os.ReadFile) - requires cache
+	// 7. Safe navigation (?.) - BEFORE null coalescing (order matters for chains like user?.name ?? "default")
+	processors = append(processors, NewSafeNavProcessor())
+
+	// 8. Null coalescing (??) - AFTER safe navigation
+	processors = append(processors, NewNullCoalesceProcessor())
+
+	// 9. Unqualified imports (ReadFile → os.ReadFile) - requires cache
 	if cache != nil {
 		processors = append(processors, NewUnqualifiedImportProcessor(cache))
 	}
-
-	// 7. Lambdas (|x| expr) - future
-	// 8. Operators (ternary, ??, ?.) - future
 
 	return &Preprocessor{
 		source:     source,

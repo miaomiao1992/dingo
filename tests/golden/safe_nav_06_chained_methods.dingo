@@ -1,0 +1,74 @@
+package main
+
+// Test: Chained method calls with safe navigation operator
+// Feature: Safe Navigation (?.) - Chained Methods
+// Complexity: intermediate
+
+enum UserOption {
+	Some(User),
+	None,
+}
+
+enum StringOption {
+	Some(string),
+	None,
+}
+
+enum ProfileOption {
+	Some(Profile),
+	None,
+}
+
+type User struct {
+	name string
+}
+
+type Profile struct {
+	bio string
+}
+
+func (u User) getName() StringOption {
+	if u.name != "" {
+		return StringOption_Some(u.name)
+	}
+	return StringOption_None()
+}
+
+func (s StringOption) toUpper() StringOption {
+	if s.IsNone() {
+		return StringOption_None()
+	}
+	str := s.Unwrap()
+	// Simplified uppercase conversion
+	return StringOption_Some(str)
+}
+
+func (u User) getProfile() ProfileOption {
+	return ProfileOption_Some(Profile{bio: "Engineer"})
+}
+
+func (p Profile) getBio() StringOption {
+	if p.bio != "" {
+		return StringOption_Some(p.bio)
+	}
+	return StringOption_None()
+}
+
+func getUser(id int) UserOption {
+	if id > 0 {
+		return UserOption_Some(User{name: "Alice"})
+	}
+	return UserOption_None()
+}
+
+func main() {
+	user := getUser(1)
+
+	// Chained methods on same type: user?.getName()?.toUpper()
+	upperName := user?.getName()?.toUpper()
+	println(upperName)
+
+	// Chained methods across types: user?.getProfile()?.getBio()
+	bio := user?.getProfile()?.getBio()
+	println(bio)
+}
