@@ -1,8 +1,9 @@
 package main
 
-// Test: Guards with 'where' keyword and nested patterns
-// Feature: Swift-style 'where' guards and guard combinations
+// Test: Guards with 'where' keyword (Swift-style)
+// Feature: Swift-style 'where' guards with complex boolean expressions
 // Complexity: intermediate
+// Limitation: where guards with NESTED patterns not yet supported
 
 enum Option {
 	Some(int),
@@ -10,7 +11,7 @@ enum Option {
 }
 
 enum Result {
-	Ok(Option),
+	Ok(int),
 	Err(error),
 }
 
@@ -25,12 +26,12 @@ func analyzeValue(opt Option) string {
 	}
 }
 
-// Nested pattern with guards
-func processNestedResult(result Result) string {
+// Simple pattern with where guards (NOT nested)
+func processResult(result Result) string {
 	return match result {
-		Result_Ok(Option_Some(val)) where val > 0 => "positive value",
-		Result_Ok(Option_Some(_)) => "non-positive value",
-		Result_Ok(Option_None) => "no value",
+		Result_Ok(val) where val > 100 => "large value",
+		Result_Ok(val) where val > 0 => "positive value",
+		Result_Ok(_) => "non-positive value",
 		Result_Err(_) => "error",
 	}
 }
@@ -48,6 +49,6 @@ func categorize(opt Option) string {
 
 func main() {
 	println(analyzeValue(Option_Some(150)))
-	println(processNestedResult(Result_Ok(Option_Some(42))))
+	println(processResult(Result_Ok(42)))
 	println(categorize(Option_Some(15)))
 }

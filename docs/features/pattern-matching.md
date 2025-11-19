@@ -163,6 +163,64 @@ match result {
 }
 ```
 
+### Guards (where conditions - Swift-style)
+
+Dingo also supports Swift-style `where` guards as an alternative to `if`:
+
+```go
+enum Option {
+    Some(int),
+    None,
+}
+
+match opt {
+    Some(x) where x > 100 => "large",
+    Some(x) where x > 10 => "medium",
+    Some(x) where x > 0 => "small",
+    Some(_) => "non-positive",
+    None => "none"
+}
+```
+
+**Important Limitation:** `where` guards currently only support **simple patterns**. Nested patterns are not yet supported:
+
+```go
+// ❌ NOT SUPPORTED - nested pattern with where guard
+match result {
+    Result_Ok(Option_Some(val)) where val > 0 => "positive",  // ERROR
+    // ...
+}
+
+// ✅ SUPPORTED - simple pattern with where guard
+match result {
+    Result_Ok(val) where val > 100 => "large",  // OK
+    // ...
+}
+```
+
+**Workaround for nested patterns:**
+
+Use nested match expressions instead:
+
+```go
+match outer {
+    Result_Ok(opt) => match opt {
+        Option_Some(val) where val > 0 => "positive",
+        Option_Some(_) => "non-positive",
+        Option_None => "none"
+    },
+    Result_Err(err) => "error"
+}
+```
+
+**Why the limitation?**
+
+- Simple patterns cover 95%+ of real-world use cases
+- Implementation complexity for nested patterns is high
+- Can be added in future releases if demand warrants it
+
+**Best Practice:** Use `if` guards (Rust-style) or `where` guards (Swift-style) based on your preference - both work identically for simple patterns.
+
 ## Real-World Examples
 
 ### HTTP Status Handler

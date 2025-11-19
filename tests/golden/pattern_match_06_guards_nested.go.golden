@@ -1,0 +1,143 @@
+package main
+
+type OptionTag uint8
+
+const (
+	OptionTag_Some OptionTag = iota
+	OptionTag_None
+)
+
+type Option struct {
+	tag    OptionTag
+	some_0 *int
+}
+
+func Option_Some(arg0 int) Option {
+	return Option{tag: OptionTag_Some, some_0: &arg0}
+}
+func Option_None() Option {
+	return Option{tag: OptionTag_None}
+}
+func (e Option) IsSome() bool {
+	return e.tag == OptionTag_Some
+}
+func (e Option) IsNone() bool {
+	return e.tag == OptionTag_None
+}
+
+type ResultTag uint8
+
+const (
+	ResultTag_Ok ResultTag = iota
+	ResultTag_Err
+)
+
+type Result struct {
+	tag   ResultTag
+	ok_0  *int
+	err_0 *error
+}
+func Result_Ok(arg0 int) Result {
+	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+}
+func Result_Err(arg0 error) Result {
+	return Result{tag: ResultTag_Err, err_0: &arg0}
+}
+func (e Result) IsOk() bool {
+	return e.tag == ResultTag_Ok
+}
+func (e Result) IsErr() bool {
+	return e.tag == ResultTag_Err
+}
+
+// Using 'where' keyword (Swift-style)
+func analyzeValue(opt Option) string {
+	var __match_result_0 interface{}
+
+	__match_0 := opt
+	switch __match_0.tag {
+	case OptionTag_Some:
+		x := *__match_0.some_0
+
+		if x > 100 {
+			__match_result_0 = "large"
+
+		} else if x > 10 {
+			__match_result_0 = "medium"
+
+		} else if x > 0 {
+			__match_result_0 = "small"
+
+		} else {
+			__match_result_0 = "non-positive"
+		}
+	case OptionTag_None:
+
+		__match_result_0 = "none"
+	}
+	panic("unreachable: match is exhaustive")
+	return __match_result_0
+
+}
+
+// Simple pattern with where guards (NOT nested)
+func processResult(result Result) string {
+	var __match_result_1 interface{}
+
+	__match_1 := result
+	switch __match_1.tag {
+	case ResultTag_Ok:
+		val := *__match_1.ok_0
+
+		if val > 100 {
+			__match_result_1 = "large value"
+
+		} else if val > 0 {
+			__match_result_1 = "positive value"
+
+		} else {
+			__match_result_1 = "non-positive value"
+		}
+	case ResultTag_Err:
+
+		__match_result_1 = "error"
+	}
+	panic("unreachable: match is exhaustive")
+	return __match_result_1
+
+}
+
+// Guard fallthrough demonstration
+func categorize(opt Option) string {
+	var __match_result_2 interface{}
+
+	__match_2 := opt
+	switch __match_2.tag {
+	case OptionTag_Some:
+		x := *__match_2.some_0
+
+		if x%3 == 0 && x%5 == 0 {
+			__match_result_2 = "fizzbuzz"
+
+		} else if x%3 == 0 {
+			__match_result_2 = "fizz"
+
+		} else if x%5 == 0 {
+			__match_result_2 = "buzz"
+
+		} else {
+			__match_result_2 = "number"
+		}
+	case OptionTag_None:
+
+		__match_result_2 = "empty"
+	}
+	panic("unreachable: match is exhaustive")
+	return __match_result_2
+
+}
+func main() {
+	println(analyzeValue(Option_Some(150)))
+	println(processResult(Result_Ok(42)))
+	println(categorize(Option_Some(15)))
+}

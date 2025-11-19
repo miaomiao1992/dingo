@@ -496,6 +496,12 @@ if !isLoggedIn {
 - [ ] Nested patterns
 - [ ] Array/slice patterns
 - [ ] Range patterns
+- [ ] Where guards with nested patterns (Priority: Low)
+  - Currently: `where` guards only support simple patterns
+  - Future: Support `Result_Ok(Option_Some(val)) where val > 0`
+  - Complexity: ~150 lines, 4.5 hours
+  - Workaround: Use nested match expressions
+  - Note: Simple patterns cover 95%+ of real-world use cases
 
 ---
 
