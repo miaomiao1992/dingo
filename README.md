@@ -431,15 +431,15 @@ type Status struct {
 }
 
 func Status_Pending() Status {
-    return Status{tag: StatusTag_Pending}
+    return Status{tag: StatusTagPending}
 }
 
 func Status_Active() Status {
-    return Status{tag: StatusTag_Active}
+    return Status{tag: StatusTagActive}
 }
 
 func Status_Complete() Status {
-    return Status{tag: StatusTag_Complete}
+    return Status{tag: StatusTagComplete}
 }
 
 func (e Status) IsPending() bool {
@@ -1204,9 +1204,9 @@ func findUser(email string) OptionUser {
     return OptionUser{value: &users[0], isSet: true}
 }
 
-__opt := findUser("test@example.com")
-if __opt.isSet {
-    user := *__opt.value
+opt := findUser("test@example.com")
+if opt.isSet {
+    user := *opt.value
     sendEmail(user)
 } else {
     fmt.Println("Not found")
@@ -1583,6 +1583,8 @@ dingo/
 
 ### Development Progress
 
+#### ✅ Completed (v0.1.0-alpha)
+
 | Phase | Status | Features | Results |
 |-------|--------|----------|---------|
 | **Phase 0** | ✅ Complete | Research & Architecture | N/A |
@@ -1594,6 +1596,34 @@ dingo/
 | **Phase 3** | ✅ Complete | Fix A4/A5 + Option<T> | 261/267 tests (97.8%) |
 | **Phase 4** | ✅ Complete | Pattern Matching Enhancements | 57/57 tests passing |
 | **Phase V** | ✅ Complete | Infrastructure & Developer Experience | **3/4 external approval** |
+
+**Current Capabilities:** Result<T,E>, Option<T>, sum types (enum), pattern matching (Rust/Swift syntax), error propagation (?), functional utilities (map/filter/reduce), exhaustiveness checking, workspace builds, source maps (98.7% accuracy)
+
+#### 🚧 Planned for v1.0 (Q1 2026)
+
+| Phase | Priority | Features | Timeline | Status |
+|-------|----------|----------|----------|--------|
+| **Phase 6** | P1 | Lambda Functions (4 syntax styles) | 2-3 weeks | 🔴 Not Started |
+| **Phase 7** | P1 | Null Safety Operators (`?.`, `??`) | 2 weeks | 🔴 Not Started |
+| **Phase 8** | P2 | Tuples (full implementation) | 1-2 weeks | 🟡 Partial (10%) |
+| **Phase 9** | P2 | Ternary Operator (`? :`) | 2-3 days | 🔴 Not Started |
+| **Phase 10** | P0 | Language Server (gopls proxy) | 8-10 weeks | 🔴 Not Started |
+| **Phase 11** | P0 | IDE Integration (VS Code, Neovim) | 4-6 weeks | 🔴 Not Started |
+
+**v1.0 Goals:** Production-ready transpiler with full IDE support, comprehensive documentation, and battle-tested core features
+
+#### 🔮 Post-v1.0 Roadmap
+
+| Phase | Priority | Features | Timeline | Community Demand |
+|-------|----------|----------|----------|------------------|
+| **v1.1** | P2 | Immutability (const tracking) | 4+ weeks | ⭐⭐⭐ |
+| **v1.1** | P3 | Default Parameters | 2 weeks | ⭐⭐ |
+| **v1.2** | P4 | Function Overloading | 3 weeks | ⭐⭐ (specialized use) |
+| **v1.2** | P4 | Operator Overloading | 2 weeks | ⭐⭐ (math/DSL users) |
+| **Future** | P5 | Async/await sugar | TBD | ⭐⭐⭐ |
+| **Future** | P5 | Macros/metaprogramming | TBD | ⭐⭐ |
+
+**Legend:** 🔴 Not Started | 🟡 In Progress | 🟢 In Development | ✅ Complete
 
 **Phase V Deliverables (2025-11-19):**
 - 📚 12 comprehensive documentation guides (8,000+ lines)
