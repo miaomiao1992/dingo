@@ -1,0 +1,75 @@
+package main
+
+type ColorTag uint8
+
+const (
+	ColorTag_Red ColorTag = iota
+	ColorTag_Green
+	ColorTag_Blue
+	ColorTag_RGB
+)
+
+type Color struct {
+	tag   ColorTag
+	rgb_r *int
+	rgb_g *int
+	rgb_b *int
+}
+
+func Color_Red() Color {
+	return Color{tag: ColorTag_Red}
+}
+func Color_Green() Color {
+	return Color{tag: ColorTag_Green}
+}
+func Color_Blue() Color {
+	return Color{tag: ColorTag_Blue}
+}
+func Color_RGB(r int, g int, b int) Color {
+	return Color{tag: ColorTag_RGB, rgb_r: &r, rgb_g: &g, rgb_b: &b}
+}
+func (e Color) IsRed() bool {
+	return e.tag == ColorTag_Red
+}
+func (e Color) IsGreen() bool {
+	return e.tag == ColorTag_Green
+}
+func (e Color) IsBlue() bool {
+	return e.tag == ColorTag_Blue
+}
+func (e Color) IsRGB() bool {
+	return e.tag == ColorTag_RGB
+}
+func colorToHex(c Color) string {
+
+	__match_0 := c
+	switch __match_0.tag {
+	case ColorTag_Red:
+
+		"#FF0000"
+	case ColorTag_Green:
+
+		"#00FF00"
+	case ColorTag_Blue:
+
+		"#0000FF"
+	case ColorTag_RGB{r, g, b}:
+
+		"#" + toHex(r) + toHex(g) + toHex(b)
+	}
+
+}
+func toHex(n int) string {
+
+	if n < 16 {
+		return "0" + string(n)
+	}
+	return string(n)
+}
+func main() {
+	red := Color_Red()
+	custom := Color_RGB{r: 128, g: 64, b: 32}
+
+	println("Red:", colorToHex(red))
+	println("Custom:", colorToHex(custom))
+}

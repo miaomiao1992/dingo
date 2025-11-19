@@ -1,0 +1,106 @@
+package main
+
+type ResultTag uint8
+
+const (
+	ResultTag_Ok ResultTag = iota
+	ResultTag_Err
+)
+
+type Result struct {
+	tag   ResultTag
+	ok_0  *int
+	err_0 *error
+}
+
+func Result_Ok(arg0 int) Result {
+	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+}
+func Result_Err(arg0 error) Result {
+	return Result{tag: ResultTag_Err, err_0: &arg0}
+}
+func (e Result) IsOk() bool {
+	return e.tag == ResultTag_Ok
+}
+func (e Result) IsErr() bool {
+	return e.tag == ResultTag_Err
+}
+
+// Simple guard on Result type
+func classifyNumber(result Result) string {
+
+	__match_0 := result
+	switch __match_0.tag {
+	case ResultTag_Ok:
+
+		x := __match_0.result_ok_0
+		"positive"
+	case ResultTag_Ok:
+
+		x := __match_0.result_ok_0
+		"negative"
+	case ResultTag_Ok:
+
+		_ := __match_0.result_ok_0
+		"zero"
+	case ResultTag_Err:
+
+		e := __match_0.result_err_0
+		"error"
+	}
+
+}
+
+// Guard with multiple conditions
+func validateAge(result Result) string {
+
+	__match_1 := result
+	switch __match_1.tag {
+	case ResultTag_Ok:
+
+		age := __match_1.result_ok_0
+		"adult"
+	case ResultTag_Ok:
+
+		age := __match_1.result_ok_0
+		"senior"
+	case ResultTag_Ok:
+
+		_ := __match_1.result_ok_0
+		"minor"
+	case ResultTag_Err:
+
+		_ := __match_1.result_err_0
+		"invalid"
+	}
+
+}
+
+// Guard with function call
+func checkLength(result Result) string {
+
+	__match_2 := result
+	switch __match_2.tag {
+	case ResultTag_Ok:
+
+		n := __match_2.result_ok_0
+		"even"
+	case ResultTag_Ok:
+
+		_ := __match_2.result_ok_0
+		"odd"
+	case ResultTag_Err:
+
+		_ := __match_2.result_err_0
+		"error"
+	}
+
+}
+func isEven(n int) bool {
+	return n%2 == 0
+}
+func main() {
+	println(classifyNumber(Result_Ok(42)))
+	println(validateAge(Result_Ok(25)))
+	println(checkLength(Result_Ok(10)))
+}

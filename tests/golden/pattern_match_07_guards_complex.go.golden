@@ -1,0 +1,199 @@
+package main
+
+import (
+	"strings"
+)
+
+type RequestTag uint8
+
+const (
+	RequestTag_Get RequestTag = iota
+	RequestTag_Post
+	RequestTag_Delete
+)
+
+type Request struct {
+	tag      RequestTag
+	get_0    *string
+	post_0   *string
+	post_1   *string
+	delete_0 *string
+}
+
+func Request_Get(arg0 string) Request {
+	return Request{tag: RequestTag_Get, get_0: &arg0}
+}
+func Request_Post(arg0 string, arg1 string) Request {
+	return Request{tag: RequestTag_Post, post_0: &arg0, post_1: &arg1}
+}
+func Request_Delete(arg0 string) Request {
+	return Request{tag: RequestTag_Delete, delete_0: &arg0}
+}
+func (e Request) IsGet() bool {
+	return e.tag == RequestTag_Get
+}
+func (e Request) IsPost() bool {
+	return e.tag == RequestTag_Post
+}
+func (e Request) IsDelete() bool {
+	return e.tag == RequestTag_Delete
+}
+
+type StatusTag uint8
+
+const (
+	StatusTag_Active StatusTag = iota
+	StatusTag_Paused
+	StatusTag_Stopped
+)
+
+type Status struct {
+	tag      StatusTag
+	active_0 *int
+	paused_0 *int
+}
+func Status_Active(arg0 int) Status {
+	return Status{tag: StatusTag_Active, active_0: &arg0}
+}
+func Status_Paused(arg0 int) Status {
+	return Status{tag: StatusTag_Paused, paused_0: &arg0}
+}
+func Status_Stopped() Status {
+	return Status{tag: StatusTag_Stopped}
+}
+func (e Status) IsActive() bool {
+	return e.tag == StatusTag_Active
+}
+func (e Status) IsPaused() bool {
+	return e.tag == StatusTag_Paused
+}
+func (e Status) IsStopped() bool {
+	return e.tag == StatusTag_Stopped
+}
+
+// Mixed if/where keywords in same match
+func routeRequest(req Request) string {
+
+	__match_0 := req
+	switch __match_0.tag {
+	case RequestTag_Get:
+
+		path := __match_0.request_get_0
+		if strings.HasPrefix(path, "/api/") {
+			"API endpoint"
+		}
+	case RequestTag_Get:
+
+		path := __match_0.request_get_0
+		if len(path) > 0 {
+			"static resource"
+		}
+	case RequestTag_Post:
+
+		path, body := __match_0.request_post_0
+		if len(body) > 100 && strings.Contains(path, "upload") {
+			"large upload"
+		}
+	case RequestTag_Post:
+
+		_, body := __match_0.request_post_0
+		if len(body) > 0 {
+			"post request"
+		}
+	case RequestTag_Delete:
+
+		path := __match_0.request_delete_0
+		if isProtected(path) {
+			"forbidden"
+		}
+	case RequestTag_Delete:
+
+		_ := __match_0.request_delete_0
+		"delete request"
+	default:
+
+		"unknown"
+	}
+
+}
+
+// Guards with logical operators
+func classifyStatus(status Status) string {
+
+	__match_1 := status
+	switch __match_1.tag {
+	case StatusTag_Active:
+
+		count := __match_1.status_active_0
+		if count > 1000 || count < 0 {
+			"unusual"
+		}
+	case StatusTag_Active:
+
+		count := __match_1.status_active_0
+		if count >= 100 && count <= 1000 {
+			"normal"
+		}
+	case StatusTag_Active:
+
+		_ := __match_1.status_active_0
+		"low activity"
+	case StatusTag_Paused:
+
+		duration := __match_1.status_paused_0
+		if duration > 3600 {
+			"long pause"
+		}
+	case StatusTag_Paused:
+
+		_ := __match_1.status_paused_0
+		if true {
+			"short pause"
+		}
+	case StatusTag_Stopped:
+
+		"stopped"
+	}
+
+}
+
+// Guards on different pattern types
+func processValue(val interface{}) string {
+
+	__match_2 := val.(type)
+	switch __match_2.tag {
+	case intTag:
+
+		if val.(int) > 0 {
+			"positive integer"
+		}
+	case intTag:
+
+		if val.(int) < 0 {
+			"negative integer"
+		}
+	case intTag:
+
+		"zero"
+	case stringTag:
+
+		if len(val.(string)) > 0 {
+			"non-empty string"
+		}
+	case stringTag:
+
+		"empty string"
+	default:
+
+		"other type"
+	}
+
+}
+func isProtected(path string) bool {
+	return strings.HasPrefix(path, "/admin/")
+}
+func main() {
+	println(routeRequest(Request_Get("/api/users")))
+	println(classifyStatus(Status_Active(500)))
+	println(processValue(42))
+}

@@ -1,0 +1,92 @@
+package main
+
+import (
+	"errors"
+)
+
+type ResultTag uint8
+
+const (
+	ResultTag_Ok ResultTag = iota
+	ResultTag_Err
+)
+
+type Result struct {
+	tag   ResultTag
+	ok_0  *int
+	err_0 *error
+}
+
+func Result_Ok(arg0 int) Result {
+	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+}
+func Result_Err(arg0 error) Result {
+	return Result{tag: ResultTag_Err, err_0: &arg0}
+}
+func (e Result) IsOk() bool {
+	return e.tag == ResultTag_Ok
+}
+func (e Result) IsErr() bool {
+	return e.tag == ResultTag_Err
+}
+
+// 6-element tuple (max limit) - demonstrates exhaustiveness with wildcards
+func validateSixSteps(s1, s2, s3, s4, s5, s6 Result) string {
+
+	__match_0_elem0, __match_0_elem1, __match_0_elem2, __match_0_elem3, __match_0_elem4, __match_0_elem5 := s1, s2, s3, s4, s5, s6
+
+	switch __match_0_elem0.tag {
+	case ResultTagOk:
+
+		"All 6 steps succeeded"
+	case ResultTagErr:
+
+		"Step 1 failed: " + e.Error()
+	default:
+
+		"Step 2 failed: " + e.Error()
+	default:
+
+		"Step 3 failed: " + e.Error()
+	default:
+
+		"Step 4 failed: " + e.Error()
+	default:
+
+		"Step 5 failed: " + e.Error()
+	default:
+
+		"Step 6 failed: " + e.Error()
+	}
+
+}
+
+// Example of exhaustive 4-element tuple
+func processFourResults(r1, r2, r3, r4 Result) string {
+
+	__match_1_elem0, __match_1_elem1, __match_1_elem2, __match_1_elem3 := r1, r2, r3, r4
+
+	switch __match_1_elem0.tag {
+	case ResultTagOk:
+
+		"All ok: " + string(a+b+c+d)
+	default:
+
+		"At least one error occurred"
+	}
+
+}
+func main() {
+	r1 := Result_Ok(1)
+	r2 := Result_Ok(2)
+	r3 := Result_Err(errors.New("step 3 error"))
+	r4 := Result_Ok(4)
+	r5 := Result_Ok(5)
+	r6 := Result_Ok(6)
+
+	result := validateSixSteps(r1, r2, r3, r4, r5, r6)
+	println(result)
+
+	result2 := processFourResults(r1, r2, r3, r4)
+	println(result2)
+}
