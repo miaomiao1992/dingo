@@ -54,14 +54,14 @@ func (r *RustMatchProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 		trimmed := strings.TrimSpace(line)
 		isMatchExpr := false
 		if !strings.HasPrefix(trimmed, "//") && !strings.HasPrefix(trimmed, "/*") {
-			// Look for standalone "match " keyword (not part of another word)
-			if strings.Contains(line, "match ") {
-				// Simple heuristic: check it's not in the middle of a word
-				// by verifying character before "match" is whitespace or punctuation
-				idx := strings.Index(line, "match ")
-				if idx == 0 || !isAlphanumeric(rune(line[idx-1])) {
-					isMatchExpr = true
-				}
+			// FIX: Only detect match expressions that start with match keyword
+			// This prevents reprocessing generated code like panic("unreachable: match is exhaustive")
+			// Valid patterns: "match expr", "let x = match", "var y = match", "return match"
+			if strings.HasPrefix(trimmed, "match ") ||
+				strings.HasPrefix(trimmed, "let ") && strings.Contains(trimmed, " match ") ||
+				strings.HasPrefix(trimmed, "var ") && strings.Contains(trimmed, " match ") ||
+				strings.HasPrefix(trimmed, "return ") && strings.Contains(trimmed, " match ") {
+				isMatchExpr = true
 			}
 		}
 
@@ -114,7 +114,6 @@ func (r *RustMatchProcessor) collectMatchExpression(lines []string, startLine in
 	var buf bytes.Buffer
 	braceDepth := 0
 	linesConsumed := 0
-	foundMatch := false
 
 	for i := startLine; i < len(lines); i++ {
 		line := lines[i]
@@ -125,10 +124,9 @@ func (r *RustMatchProcessor) collectMatchExpression(lines []string, startLine in
 		for _, ch := range line {
 			if ch == '{' {
 				braceDepth++
-				foundMatch = true
 			} else if ch == '}' {
 				braceDepth--
-				if braceDepth == 0 && foundMatch {
+				if braceDepth == 0 {
 					// Complete match expression
 					return buf.String(), linesConsumed
 				}
@@ -147,14 +145,23 @@ func (r *RustMatchProcessor) collectMatchExpression(lines []string, startLine in
 
 // transformMatch transforms a Rust-like match expression to Go switch
 func (r *RustMatchProcessor) transformMatch(matchExpr string, originalLine int, outputLine int) (string, []Mapping, error) {
-	// Extract scrutinee and arms
-	matches := matchExprPattern.FindStringSubmatch(matchExpr)
-	if len(matches) < 3 {
-		return "", nil, fmt.Errorf("invalid match expression syntax")
+	// DEBUG: Print the match expression being processed
+	fmt.Printf("\n=== transformMatch DEBUG ===\n")
+	fmt.Printf("matchExpr = %q\n", matchExpr)
+	fmt.Printf("matchExpr length = %d\n", len(matchExpr))
+
+	// Extract scrutinee and arms using boundary-aware parsing instead of regex
+	// This fixes the issue where DOTALL flag (.+) matches across all newlines until EOF
+	// in files with multiple match expressions
+	scrutinee, armsText, err := r.extractScrutineeAndArms(matchExpr)
+	if err != nil {
+		fmt.Printf("ERROR: extractScrutineeAndArms failed: %v\n", err)
+		return "", nil, fmt.Errorf("extracting match components: %w", err)
 	}
 
-	scrutinee := strings.TrimSpace(matches[1])
-	armsText := matches[2]
+	fmt.Printf("scrutinee = %q\n", scrutinee)
+	fmt.Printf("armsText = %q\n", armsText)
+	fmt.Printf("=== END DEBUG ===\n\n")
 
 	// Check if match expression is in assignment context and extract variable name
 	// If the entire match expression starts with "let x = match" or "var x = match",
@@ -188,6 +195,66 @@ func (r *RustMatchProcessor) transformMatch(matchExpr string, originalLine int, 
 	// Generate Go switch statement
 	result, mappings := r.generateSwitch(scrutinee, arms, originalLine, outputLine, isInAssignment, assignmentVar)
 	return result, mappings, nil
+}
+
+// extractScrutineeAndArms extracts the scrutinee expression and arms text from a match expression
+// using boundary-aware parsing instead of regex to avoid DOTALL flag issues
+// This properly separates "match expr { arms }" without capturing beyond the closing brace
+func (r *RustMatchProcessor) extractScrutineeAndArms(matchExpr string) (scrutinee string, armsText string, err error) {
+	matchExpr = strings.TrimSpace(matchExpr)
+
+	// Find the opening brace for the arms
+	// We need to find the first { that comes after the match keyword and expression
+	matchKeywordIdx := strings.Index(matchExpr, "match")
+	if matchKeywordIdx == -1 {
+		return "", "", fmt.Errorf("no match keyword found")
+	}
+
+	// Find the opening brace - it's the first { after the expression
+	braceIdx := -1
+	for i := matchKeywordIdx + len("match"); i < len(matchExpr); i++ {
+		if matchExpr[i] == '{' {
+			// Found the opening brace for the arms
+			braceIdx = i
+			break
+		}
+	}
+
+	if braceIdx == -1 {
+		return "", "", fmt.Errorf("no opening brace found in match expression")
+	}
+
+	// Scrutinee is everything between "match" and the opening brace
+	scrutineeStart := matchKeywordIdx + len("match")
+	scrutinee = strings.TrimSpace(matchExpr[scrutineeStart:braceIdx])
+
+	// Arms text is between the braces
+	// Use depth-aware search starting from braceIdx to find the matching closing brace
+	// This ensures we don't stop at a } from a nested block expression
+	armsStart := braceIdx + 1
+	armsEnd := -1
+	depth := 1 // Start with depth 1 because we're already past the opening brace
+
+	for i := braceIdx + 1; i < len(matchExpr); i++ {
+		if matchExpr[i] == '{' {
+			depth++
+		} else if matchExpr[i] == '}' {
+			depth--
+			if depth == 0 {
+				// Found the matching closing brace for the arms
+				armsEnd = i
+				break
+			}
+		}
+	}
+
+	if armsEnd == -1 {
+		return "", "", fmt.Errorf("no closing brace found in match expression")
+	}
+
+	armsText = strings.TrimSpace(matchExpr[armsStart:armsEnd])
+
+	return scrutinee, armsText, nil
 }
 
 // extractAssignmentVar extracts the variable name if match is in assignment context
