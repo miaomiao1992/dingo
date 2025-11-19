@@ -206,119 +206,27 @@ Dingo delivers **TWO revolutionary benefits simultaneously**:
 
 ### Current Stage
 
-**Phase 0: Research & Design** ✅ Complete
-
-Completed comprehensive research on:
-- Meta-language patterns (TypeScript, Borgo, templ)
-- Go AST manipulation
-- Language server proxy architecture
-- Source mapping strategies
-
-**Phase 3: Fix A4/A5 + Complete Result/Option** ✅ Complete
-
-Implemented:
-1. Two-stage transpilation: Preprocessor + go/parser ✅
-2. Enum preprocessor for sum types ✅
-3. Plugin pipeline for AST transformations ✅
-4. Result<T,E> type with complete helper methods ✅
-5. Option<T> type with complete helper methods ✅
-6. Fix A5: go/types integration for type inference (>90% accuracy) ✅
-7. Fix A4: IIFE pattern for literal handling (Ok(42), Some("hello")) ✅
-8. Comprehensive test suite (261/267 passing, 97.8%) ✅
-9. End-to-end: `.dingo` → preprocessor → `.go` → compile ✅
-
-**Phase 4.1: Pattern Matching + None Inference** ✅ Complete (2025-11-18)
-
-Implemented:
-1. Configuration system (dingo.toml) for pattern matching syntax ✅
-2. AST parent tracking for context-aware inference (<10ms) ✅
-3. Rust pattern match syntax (`match result { Ok(x) => ... }`) ✅
-4. Strict exhaustiveness checking (compile-time errors) ✅
-5. Pattern transformation with tag-based dispatch ✅
-6. None context inference (5 context types) ✅
-7. 57/57 Phase 4 tests passing, 9 critical fixes applied ✅
-
-**Phase 4.2: Pattern Matching Enhancements** ✅ Complete
-
-Implemented:
-1. Pattern guards (`pattern if condition => expr`) ✅
-2. Swift pattern syntax (`switch { case .Variant(let x): }`) ✅
-3. Tuple destructuring (`(pattern1, pattern2)`) ✅
-4. Enhanced error messages (rustc-style source snippets) ✅
-
-**CamelCase Naming Migration** ✅ Complete (2025-11-19)
-
-Based on unanimous recommendation from 6 expert models (MiniMax M2, Grok Code Fast, GPT-5.1 Codex, Gemini 3 Pro, Sherlock Think Alpha, and internal Sonnet 4.5), migrated from underscore naming to pure CamelCase for Go idiomaticity:
-
-**Changes:**
-- Tag constants: `StatusTag_Pending` → `StatusTagPending`
-- Constructor functions: `Status_Pending()` → `StatusPending()`
-- Field names: `int_0` → `int0`, `ok_0` → `ok0`
-
-**Rationale:**
-- Matches Go stdlib patterns (`http.MethodGet`, `ast.BadDecl`, `io.EOF`)
-- Better IDE autocomplete and gopls integration
-- Passes `golint` and `go vet` without warnings
-- Generated code looks hand-written, not transpiled
-
-**Session:** `ai-docs/sessions/20251119-134800/` - 6-model consultation
-**Implementation:** `ai-docs/sessions/20251119-142739/` - Code changes
-
 **Phase V: Infrastructure & Developer Experience** ✅ Complete (2025-11-19)
 
-Comprehensive infrastructure implementation focused on production readiness:
+**Status: READY FOR v1.0**
 
-**Deliverables:**
-1. **Package Management Documentation** ✅
-   - Hybrid strategy: Libraries → transpile-on-publish (.go), Apps → direct .dingo
-   - 3 complete example projects (40+ files)
-   - Workflow documentation (500+ lines)
+Dingo has completed all core language features (Result/Option types, error propagation, pattern matching, sum types) and production infrastructure (documentation, CI/CD, workspace builds, source maps). The transpiler is feature-complete with 92%+ test passing rate.
 
-2. **Source Map Validation Suite** ✅
-   - Read-only validation infrastructure
-   - 98.7% accuracy achieved
-   - Schema documentation and benchmarks
-   - Comprehensive test coverage
+**Key Features Implemented:**
+- Two-stage transpilation (preprocessor + go/parser)
+- Result<T,E> and Option<T> types with full helper methods
+- Error propagation (`?` operator)
+- Pattern matching (Rust and Swift syntax)
+- Sum types/enums with exhaustiveness checking
+- Multi-package workspace builds
+- Comprehensive developer documentation
 
-3. **Developer Documentation** ✅
-   - Getting Started Guide
-   - 5 Feature Guides (Result, Option, Error Propagation, Pattern Matching, Sum Types)
-   - Migration from Go Guide
-   - 12 comprehensive guides, 8,000+ lines total
-
-4. **CI/CD Enhancements** ✅
-   - Golden test diff visualizer
-   - Performance tracking system
-   - GitHub Actions workflow
-   - Auto-documentation generation
-
-5. **Workspace Builds** ✅
-   - Multi-package build support (`dingo build ./...`)
-   - Automatic dependency resolution
-   - Parallel builds for independent packages
-   - Incremental build caching
-   - Circular dependency detection
-
-**Quality Assurance:**
-- 4 external model validations (Grok 4 Fast, Gemini 3 Pro, GPT-5, Claude Opus 4)
-- 3/4 APPROVED for v1.0 (75% approval rate)
+**Quality Metrics:**
+- 3/4 external model approval for v1.0 (Grok 4 Fast, Gemini 3 Pro, GPT-5, Claude Opus 4)
 - Average scores: 8.9/10 Quality, 8.9/10 Completeness, 8.1/10 Production Readiness
-- All 13 critical/important code review issues fixed
-- 6/6 infrastructure test categories passing
+- 92.2% test passing rate (245/266 tests)
 
-**Constraints Maintained:**
-- ✅ Zero engine changes (no transpiler/parser/AST modifications)
-- ✅ Zero test fixes (separate workstream)
-- ✅ Infrastructure only (docs, CI/CD, validation, workspace builds)
-
-**Files Created:** 60+ (12 docs, 3 example projects, 15 Go infrastructure files)
-
-**Session:** `ai-docs/sessions/20251119-150114/`
-**Status:** READY FOR v1.0
-
-**Known Issues (Out of Scope):**
-- 8 engine plugin test failures (other agent handling)
-- Documented in: `ai-docs/sessions/20251119-150114/04-testing/engine-test-failures.md`
+See `ai-docs/sessions/20251119-150114/` for detailed Phase V implementation and `CHANGELOG.md` for complete project history.
 
 ### Key Research Findings
 
@@ -456,520 +364,101 @@ For complex delegation workflows, use these **skills** (detailed instructions lo
 - **Consistency**: Standardized execution across all delegation tasks
 - **Maintainability**: Update patterns in one place, all uses benefit
 
-## 🎯 Delegation Strategy & Context Economy
+## 🚨 MANDATORY DELEGATION POLICY
 
-### Core Principle: Main Chat = Orchestration Only
+**CRITICAL RULE: Main chat is STRICTLY PROHIBITED from doing detailed work. ALL multi-step tasks, code analysis, implementation, and testing MUST be delegated to specialized agents.**
 
-The main conversation context should be **minimal and lean**, containing ONLY:
-- High-level decisions and next steps
-- Brief agent summaries (2-5 sentences max)
-- User interactions and approvals
-- File paths (NOT file contents)
+### What Main Chat CAN Do (Orchestration Only)
 
-**All detailed work happens in agent threads and files.**
+✅ **ALLOWED** - High-level orchestration:
+- User interaction (questions, approvals, presenting summaries)
+- Single git status check
+- Single file read for user presentation (NOT for analysis)
+- Launching agents via Task tool or Skills
+- Coordinating workflow and deciding next steps
 
-### The Problem We're Solving
+❌ **FORBIDDEN** - Any detailed work:
+- Reading multiple files (>2 files OR >200 lines total)
+- Implementing code or editing files
+- Running tests or analyzing output
+- Searching codebase (multiple Grep calls)
+- Deep analysis or investigation
+- Writing detailed documentation
 
-**BAD (Context Bloat)**:
+### Mandatory Delegation Triggers
+
+**IF any of these conditions are true → MUST delegate immediately:**
+
+| Condition | Delegate To |
+|-----------|-------------|
+| Reading 3+ files | Explore or golang-developer agent |
+| Implementing any code | golang-developer agent |
+| Running tests | golang-tester agent |
+| Analyzing architecture | golang-architect agent |
+| Code review | code-reviewer agent |
+| Multi-step task (>3 steps) | Appropriate specialized agent |
+| Codebase investigation | Explore agent (via Skill or Task) |
+
+### Quick Reference: Agent Selection
+
+- **Investigation/Search** → Explore agent (fast, optimized for codebase exploration)
+- **Implementation** → golang-developer agent
+- **Testing** → golang-tester agent
+- **Architecture/Design** → golang-architect agent
+- **Code Review** → code-reviewer agent
+- **Multi-model consultation** → Use `claudish-usage` skill
+
+### Response Format: Agents Return Summaries Only
+
+Agents MUST return **2-5 sentence summaries** in this format:
+
 ```
-Main Chat:
-User: "Implement feature X"
-Assistant: [Reads 5 files, 500 lines total]
-Assistant: [Pastes full implementation plan, 200 lines]
-Assistant: [Shows full code review, 150 lines]
-Assistant: [Displays all test results, 100 lines]
-Result: 950 lines in main context, can't remember earlier decisions
-```
-
-**GOOD (Context Economy)**:
-```
-Main Chat:
-User: "Implement feature X"
-Assistant: "Delegating to golang-developer agent..."
-Agent returns: "Feature X implemented. 3 files modified. Summary: ai-docs/session-123/summary.txt"
-Assistant: "Implementation complete. Ready for review?"
-Result: <20 lines in main context, crisp decision-making
-```
-
-### Delegation Pattern: The Three-Layer Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ Layer 1: MAIN CHAT (Orchestrator)                      │
-│ Role: Strategy, decisions, user interaction            │
-│ Context: Minimal (summaries only)                      │
-│ Output: Next action, delegation instructions           │
-└─────────────────────────────────────────────────────────┘
-                           ↓ Delegates via Task tool
-┌─────────────────────────────────────────────────────────┐
-│ Layer 2: AGENTS (Specialized Workers)                  │
-│ Role: Deep investigation, implementation, analysis     │
-│ Context: Full access to codebase                       │
-│ Output: Files + Brief summary (3-5 sentences)          │
-└─────────────────────────────────────────────────────────┘
-                           ↓ Writes to
-┌─────────────────────────────────────────────────────────┐
-│ Layer 3: FILES (Persistent Storage)                    │
-│ Role: Detailed reports, code, analysis                 │
-│ Context: Complete implementation details               │
-│ Output: Referenced by path, read only when needed      │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Communication Protocol
-
-#### Main Chat → Agent (Delegation)
-
-**Template**:
-```
-Use Task tool with [agent-name]:
-
-Task: [Specific, actionable task]
-
-Input Files:
-- [file1]
-- [file2]
-
-Your Job:
-1. [Action 1]
-2. [Action 2]
-3. Write detailed results to: [output-path]
-
-Return to Main Chat:
-ONLY a 2-5 sentence summary in this format:
-
 # [Task Name] Complete
 
 Status: [Success/Partial/Failed]
 Key Finding: [One-liner]
 Changed: [N] files
-Details: [output-path]
+Details: [file-path]
 ```
 
-#### Agent → Main Chat (Return)
-
-**Agents MUST return concise summaries:**
-```
-# Error Propagation Implementation Complete
-
-Status: Success
-Implemented: ? operator in 3 files (preprocessor, transformer, tests)
-Tests: 15/15 passing
-Details: ai-docs/sessions/20251118-143022/implementation-summary.md
-```
-
-**Agents MUST NOT return:**
-- ❌ Full implementation code
-- ❌ Complete test output
-- ❌ Detailed file listings
-- ❌ Long explanations (save for files)
-
-#### Main Chat Uses Summary
-
-**Main chat reads agent summary and decides:**
-- ✅ Success? → Move to next phase
-- ⚠️ Partial? → Ask user for guidance
-- ❌ Failed? → Investigate or retry
-
-**Main chat does NOT:**
-- ❌ Read full implementation files (unless needed for user presentation)
-- ❌ Parse detailed logs
-- ❌ Store large data in context
-
-### Agent Self-Awareness Rules (Anti-Recursion)
-
-**CRITICAL FOR ALL AGENTS:**
-
-#### Rule 1: Know Thyself
-
-Every agent MUST be aware of its own type:
-- If you are `golang-developer`, you cannot delegate to `golang-developer`
-- If you are `astro-developer`, you cannot delegate to `astro-developer`
-- If you are `code-reviewer`, you cannot delegate to `code-reviewer`
-- If you are `golang-tester`, you cannot delegate to `golang-tester`
-- If you are `golang-architect`, you cannot delegate to `golang-architect`
-- If you are `astro-reviewer`, you cannot delegate to `astro-reviewer`
-
-**Why:** You ARE the specialized agent. Delegating to yourself causes recursion and failures.
-
-#### Rule 2: Delegation Decision Tree
-
-```
-Before using Task tool, ask:
-│
-├─ What is my agent type?
-│  └─ I am: [agent-name]
-│
-├─ What agent type does this task need?
-│  ├─ Same as me → ❌ DO NOT delegate. Implement directly.
-│  └─ Different → ✅ CAN delegate to that different agent
-│
-└─ Why do I want to delegate?
-   ├─ "To save context" → ❌ WRONG REASON. Just do the work.
-   ├─ "Instructions say to" → ❌ Those are for CALLERS, not you.
-   └─ "Need different expertise" → ✅ OK if it's a different agent type.
-```
-
-#### Rule 3: Proxy Mode Is Not Self-Delegation
-
-**Proxy Mode Means:**
-- Using `claudish` to consult external models (Grok, Gemini, Codex)
-- Getting suggestions/implementations from those models
-- Implementing their suggestions yourself
-
-**Proxy Mode Does NOT Mean:**
-- Using Task tool to invoke yourself
-- Creating another instance of your own agent
-- Delegating work you should do directly
-
-#### Rule 4: Instructions Are Context-Dependent
-
-When agents read their prompts and see:
-- "Use the Task tool to invoke the golang-developer agent"
-- "Delegate to astro-developer for implementation"
-
-**Understand:** These instructions are for MAIN CHAT and EXTERNAL MODELS to use when calling the agent.
-
-**NOT** for the agent to use to call itself.
-
-The agent is the **destination** of those calls, not the **source**.
-
-#### Rule 5: When In Doubt, Implement
-
-If an agent is uncertain whether to delegate:
-1. Check if delegating to own agent type → If yes, DON'T
-2. Check if it has the expertise to implement → If yes, DO IT
-3. Check if trying to save context → NOT A VALID REASON
-
-**Default action for agents: Implement directly.**
-
-#### Rule 6: External Model Invocation
-
-When a specialized agent (golang-architect, astro-developer, etc.) is asked to invoke an external model:
-
-✅ **Correct approach:**
-- Use Bash tool to invoke claudish
-- Read input prompt from file
-- Save full response to file
-- Return brief summary (MAX 5 sentences)
-
-❌ **Incorrect approaches:**
-- Delegating to another agent to invoke claudish
-- Trying to invoke claudish via Task tool
-- Returning full analysis in response (context bloat)
-
-**Example (golang-architect agent)**:
-```bash
-# Read prompt
-cat /path/to/investigation-prompt.md | \
-  claudish --model openai/gpt-5.1-codex > \
-  /path/to/output/gpt-5.1-codex-analysis.md
-
-# Return brief summary only
-```
-
-#### Examples
-
-**✅ CORRECT Delegation (Different Agent Types):**
-- `golang-developer` delegates to `golang-tester` (different agent ✅)
-- `astro-developer` delegates to `astro-reviewer` (different agent ✅)
-- `golang-developer` delegates to `Explore` (different agent ✅)
-- `golang-architect` delegates to `golang-developer` (different agent ✅)
-
-**❌ WRONG Delegation (Recursion - Same Agent Type):**
-- `golang-developer` delegates to `golang-developer` (same agent ❌)
-- `astro-developer` delegates to `astro-developer` (same agent ❌)
-- `code-reviewer` delegates to `code-reviewer` (same agent ❌)
-
-### When to Delegate vs. Handle Directly
-
-#### ✅ DELEGATE (Use Skills or Task Tool)
-
-**Use Skills for Common Patterns**:
-- Multi-model consultation → `multi-model-consult` skill
-- Codebase investigation → `investigate` skill
-- Feature implementation → `implement` skill
-- Testing tasks → `test` skill
-
-**Use Task Tool Directly** (without skill):
-- One-off agent tasks
-- Simple code review
-- Quick analysis
-- Tasks not covered by skills
-
-#### ⚠️ HANDLE DIRECTLY (Main Chat)
-
-**Only handle these yourself**:
-- User interaction (questions, approvals, summaries)
-- Single file read (known path)
-- Single line fix
-- Git status check
-- Coordination (launching agents, deciding next phase)
-
-**Rule of thumb**: If it takes >3 steps or >2 files → Delegate!
-
-### File-Based Communication Patterns
-
-#### Session Folders (Recommended for Workflows)
-
-For orchestrated workflows (like `/dev`), use session folders:
-
-```
-ai-docs/sessions/YYYYMMDD-HHMMSS/
-├── 01-planning/
-│   ├── requirements.md       # Agent writes
-│   ├── plan.md              # Agent writes
-│   └── plan-summary.txt     # Agent returns this to main chat
-├── 02-implementation/
-│   ├── changes.md           # Agent writes
-│   └── summary.txt          # Agent returns this to main chat
-├── 03-review/
-│   ├── review-full.md       # Agent writes
-│   └── summary.txt          # Agent returns this to main chat
-└── session-state.json       # Orchestrator writes
-```
-
-**Orchestrator** (main chat):
-- Reads ONLY: `*-summary.txt` files and `session-state.json`
-- Writes: `session-state.json` (tracks workflow state)
-- Presents summaries to user
-
-**Agents**:
-- Write: Full detailed reports to `.md` files
-- Write: Summary to `*-summary.txt`
-- Return: "Summary written to: [path]"
-
-#### Quick Tasks (Ad-hoc Delegation)
-
-For one-off tasks, use simpler paths:
-
-```
-Main Chat: "Understand how Result<T,E> works"
-
-Delegates to golang-developer:
-- Investigates codebase
-- Writes: ai-docs/analysis/result-type-analysis.md
-- Returns: "Result<T,E> is implemented via AST transformation.
-           Uses IIFE pattern for constructors.
-           Details: ai-docs/analysis/result-type-analysis.md"
-
-Main Chat:
-- Receives summary
-- Decides: Good enough? Or need more detail?
-- If need detail: Reads the file
-- Otherwise: Continues with next task
-```
+**Detailed work ALWAYS goes to files. Main chat reads ONLY summaries.**
 
 ### Parallel Execution
 
-**When agents can run in parallel**, launch ALL of them in a **single message**:
+When tasks are independent, launch agents in **parallel** (single message with multiple Task tool calls):
 
 ```
-I'm launching 3 agents in parallel:
-
-[Task tool call 1: golang-developer - Implement feature A]
-[Task tool call 2: golang-developer - Implement feature B]
-[Task tool call 3: golang-tester - Create tests]
-
-(All 3 tool calls in ONE message)
+✅ CORRECT: Single message with 3 Task tool calls
+❌ WRONG: 3 separate messages with 1 Task tool call each
 ```
 
-**Benefits**:
-- 3x speedup (tasks run simultaneously)
-- All summaries come back together
-- Can aggregate results efficiently
+**Benefits**: 2-3x faster execution, all summaries return together.
 
-**Rules**:
-- ✅ Parallel: Independent tasks (different files, separate features)
-- ❌ Sequential: Dependencies (tests need implementation first)
-
-### Example: Full Workflow with Delegation
-
-**User Request**: "Implement lambda syntax for Dingo"
+### Architecture: Three-Layer Pattern
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│ MAIN CHAT (Orchestrator)                                │
-└─────────────────────────────────────────────────────────┘
-
-User: "Implement lambda syntax for Dingo"
-
-Main Chat:
-1. Creates session: ai-docs/sessions/20251118-150000/
-2. Delegates to golang-architect: "Plan lambda implementation"
-
-┌─────────────────────────────────────────────────────────┐
-│ GOLANG-ARCHITECT AGENT                                  │
-└─────────────────────────────────────────────────────────┘
-
-Agent:
-- Reads features/lambdas.md
-- Designs implementation approach
-- Writes: 01-planning/plan.md (5 pages, detailed)
-- Writes: 01-planning/summary.txt (3 sentences)
-- Returns: "Lambda plan complete. 3-phase approach: preprocessor,
-           parser, codegen. Details: 01-planning/plan.md"
-
-┌─────────────────────────────────────────────────────────┐
-│ MAIN CHAT (Orchestrator)                                │
-└─────────────────────────────────────────────────────────┘
-
-Main Chat:
-- Receives summary (3 sentences)
-- Reads plan.md for user presentation
-- Shows plan to user
-- User approves
-
-Main Chat:
-3. Launches 2 parallel golang-developer agents:
-   - Agent A: Implement preprocessor
-   - Agent B: Implement parser
-
-┌─────────────────────────────────────────────────────────┐
-│ GOLANG-DEVELOPER AGENTS (Parallel)                      │
-└─────────────────────────────────────────────────────────┘
-
-Agent A:
-- Implements preprocessor in pkg/generator/preprocessor/
-- Writes: 02-implementation/preprocessor-changes.md
-- Returns: "Preprocessor complete. 2 files modified.
-           Details: 02-implementation/preprocessor-changes.md"
-
-Agent B (simultaneously):
-- Implements parser patterns
-- Writes: 02-implementation/parser-changes.md
-- Returns: "Parser complete. 3 files modified.
-           Details: 02-implementation/parser-changes.md"
-
-┌─────────────────────────────────────────────────────────┐
-│ MAIN CHAT (Orchestrator)                                │
-└─────────────────────────────────────────────────────────┘
-
-Main Chat:
-- Receives both summaries
-- Aggregates: "5 files modified total"
-- Announces to user: "Implementation phase complete"
-
-Main Chat:
-4. Launches golang-tester: "Create tests for lambda syntax"
-
-┌─────────────────────────────────────────────────────────┐
-│ GOLANG-TESTER AGENT                                      │
-└─────────────────────────────────────────────────────────┘
-
-Agent:
-- Creates golden tests
-- Runs test suite
-- Writes: 04-testing/test-results.md (full output, 200 lines)
-- Writes: 04-testing/summary.txt (pass/fail counts)
-- Returns: "Tests complete. 45/45 passing.
-           Details: 04-testing/test-results.md"
-
-┌─────────────────────────────────────────────────────────┐
-│ MAIN CHAT (Orchestrator)                                │
-└─────────────────────────────────────────────────────────┘
-
-Main Chat:
-- Receives summary: "45/45 passing"
-- Announces to user: "Lambda implementation complete! All tests pass."
-- Total context used: <50 lines (not 500+ lines)
+Main Chat → Orchestrates, delegates, presents to user
+    ↓
+Agents → Investigate, implement, analyze (write to files)
+    ↓
+Files → Detailed results, code, analysis (persistent storage)
 ```
 
-### Metrics: Context Savings
+**Main chat never stores detailed data in conversation context.**
 
-**Traditional Approach** (no delegation):
-- User request: 1 line
-- Read 10 files: 500 lines
-- Implementation code shown: 200 lines
-- Test output shown: 150 lines
-- Review discussion: 100 lines
-- **Total: ~950 lines in main context** ❌
+### Full Detailed Guide
 
-**Delegation Approach**:
-- User request: 1 line
-- Agent delegation: 3 lines × 4 agents = 12 lines
-- Agent summaries: 3 lines × 4 agents = 12 lines
-- Orchestrator decisions: 10 lines
-- User announcements: 5 lines
-- **Total: ~40 lines in main context** ✅
+For complete delegation patterns, templates, examples, and anti-recursion rules, see:
 
-**Result**: **23x reduction in context usage** while achieving the same outcome!
+📖 **`ai-docs/delegation-strategy.md`**
 
-### Key Rules for All Participants
-
-#### Main Chat (Orchestrator) Rules:
-1. ✅ Delegate complex tasks to agents
-2. ✅ Read only summaries from agents
-3. ✅ Read full files only when presenting to user
-4. ✅ Launch parallel agents in single message
-5. ✅ Keep context minimal (summaries + decisions)
-6. ❌ Don't read full implementation files into context
-7. ❌ Don't store detailed data in conversation
-8. ❌ Don't do deep analysis yourself (delegate it)
-
-#### Agent Rules:
-1. ✅ Do deep investigation and implementation
-2. ✅ Write ALL details to files
-3. ✅ Return ONLY 2-5 sentence summary
-4. ✅ Include file paths in summary
-5. ✅ Use session folders for workflow tasks
-6. ❌ Don't return full code in response
-7. ❌ Don't return detailed logs in response
-8. ❌ Don't return multi-page explanations in response
-
-#### User Expectations:
-- Main chat shows high-level progress
-- Detailed results available in files
-- Can request to see specific files
-- Quick, clear decision points
-- No context overwhelm
-
-### Quick Delegation Templates
-
-**For common patterns**, use skills (investigate, implement, test, multi-model-consult).
-
-**For ad-hoc tasks**, delegate directly with Task tool:
-
-**Basic Template**:
-```
-Task tool → [agent-type]:
-
-[Task description]
-
-Your Tasks:
-1. [Action 1]
-2. [Action 2]
-3. Write detailed results to: [output-path]
-
-Return to Main Chat (MAX 5 sentences):
-[Brief summary format]
-Details: [output-path]
-
-DO NOT return full details in response.
-```
-
-**Agent MUST**:
-- Write ALL details to files
-- Return ONLY 2-5 sentence summary
-- Include file path in response
-
-See skills (`investigate.md`, `implement.md`, `test.md`) for detailed templates.
-
-### Summary: Delegation Strategy Benefits
-
-✅ **Context Economy**: 10-20x reduction in main chat context usage
-✅ **Clarity**: Clear separation between orchestration and execution
-✅ **Parallel Speedup**: 2-4x faster via concurrent agent execution
-✅ **Persistence**: All work saved to files, nothing lost
-✅ **Scalability**: Can handle large, complex multi-phase projects
-✅ **Focus**: Main chat stays focused on decisions, not details
-
-**Remember**:
-- **Main chat = Strategy and decisions**
-- **Agents = Investigation and execution**
-- **Files = Detailed persistent storage**
-
-This is the key to handling complex projects without context overload!
+**Key sections in detailed guide:**
+- Communication protocols
+- Agent self-awareness rules (anti-recursion)
+- File-based communication patterns
+- Session folder structure
+- Complete workflow examples
+- Context savings metrics (23x reduction)
 
 ---
 
@@ -1078,102 +567,6 @@ This is the key to handling complex projects without context overload!
 
 ### Golden Test Guidelines
 
-**IMPORTANT**: When writing or modifying golden tests in `tests/golden/`, you MUST follow the comprehensive guidelines in:
+**IMPORTANT**: When writing or modifying golden tests in `tests/golden/`, follow the comprehensive guidelines in `tests/golden/GOLDEN_TEST_GUIDELINES.md` and `tests/golden/README.md`.
 
-📖 **`tests/golden/GOLDEN_TEST_GUIDELINES.md`**
-
-**Quick Rules:**
-- **Naming:** `{feature}_{NN}_{description}.dingo` (e.g., `error_prop_01_simple.dingo`)
-- **Feature prefixes:** `error_prop_`, `result_`, `option_`, `sum_types_`, `lambda_`, `ternary_`, `null_coalesce_`, `safe_nav_`, `pattern_match_`, `tuples_`, `func_util_`, `immutable_`
-- **Files required:** Both `.dingo` and `.go.golden` for each test
-- **Content:** Realistic examples, 10-50 lines, one feature per test
-- **Quality:** Idiomatic Go output, compilable, no external deps
-- **Progression:** 01=basic, 02-03=intermediate, 04+=advanced
-
-See the full guidelines document for detailed rules, examples, and best practices.
-
-### Golden Test Documentation Structure
-
-**Main Documentation** (`tests/golden/README.md`):
-- Quick start guide for running tests
-- Complete test catalog (46 tests across 11 categories)
-- Naming conventions and file structure
-- Writing new tests workflow
-- **Reasoning Documentation Section** - Explains the "why" behind tests:
-  - Links to Go community proposals and discussions
-  - Design rationale for implementation choices
-  - External references (Rust, Swift, TypeScript, Kotlin)
-  - Code reduction metrics (sum types: 78-79%, error propagation: 65%, etc.)
-  - Go Proposal Reference Map with community voting data
-
-**Individual Reasoning Files** (`.reasoning.md`):
-Each test can have an optional reasoning file (e.g., `sum_types_01_simple_enum.reasoning.md`) that provides:
-- Community context and Go proposals
-- Design decisions and alternatives
-- Implementation highlights
-- Success metrics and future enhancements
-
-**Completed Reasoning Docs:**
-- `sum_types_01_simple_enum.reasoning.md` - Basic enum (79% code reduction, Go Proposal #19412)
-- `sum_types_02_struct_variant.reasoning.md` - Enum with data (78% code reduction)
-- `01_simple_statement.reasoning.md` - Error propagation suite (covers all 8 tests, Go Proposal #71203)
-
-**Key Community References:**
-- Go Proposal #19412 - Sum types (996+ 👍, highest-voted proposal ever)
-- Go Proposal #71203 - Error `?` operator (Active 2025, 200+ comments)
-- Go Proposal #21498 - Lambda functions (750+ 👍)
-
-See `tests/golden/README.md` for the complete reasoning documentation index and metrics.
-
-### 🎪 Showcase Example - THE Comprehensive Demo
-
-**CRITICAL**: `tests/golden/showcase_01_api_server.dingo` is THE flagship example that demonstrates ALL currently implemented Dingo features in one realistic, production-like scenario.
-
-**Purpose:**
-1. **Landing Page Hero** - First example visitors see at dingolang.com
-2. **Value Proposition** - Dramatic before/after comparison showing code reduction
-3. **Integration Test** - Ensures all features work together harmoniously
-4. **Marketing Asset** - Concrete proof of Dingo's productivity benefits
-
-**Maintenance Rules (CRITICAL):**
-
-✅ **ALWAYS update when implementing new features:**
-- New feature implemented? → Add it to showcase immediately
-- Feature modified? → Update showcase to reflect changes
-- Feature removed? → Remove from showcase
-
-✅ **Keep it comprehensive:**
-- Should demonstrate EVERY major feature currently working
-- Currently includes: Type annotations (`:` syntax), error propagation (`?` operator), `let` bindings
-- Future: Add enums, Result<T,E>, Option<T>, pattern matching as they stabilize
-
-✅ **Keep it realistic:**
-- Real-world scenario (currently: user registration API)
-- Production-quality code patterns
-- Demonstrates features in practical context
-
-✅ **Maintain documentation:**
-- `showcase_01_api_server.reasoning.md` must explain ALL features
-- Update metrics when code changes (line counts, reduction %)
-- Keep comparison accurate between Dingo and Go versions
-
-**Files to Update:**
-1. `tests/golden/showcase_01_api_server.dingo` - Dingo source
-2. `tests/golden/showcase_01_api_server.go.golden` - Transpiled Go (auto-generated via test)
-3. `tests/golden/showcase_01_api_server.reasoning.md` - Comprehensive documentation
-4. `tests/golden/README.md` - Reference in catalog
-
-**Test Status Check:**
-```bash
-go test ./tests -run TestGoldenFiles/showcase_01_api_server -v
-```
-Must ALWAYS pass. If it fails after adding a feature, fix immediately.
-
-**Landing Page Usage:**
-This example should be the FIRST code sample visitors see. It demonstrates:
-- How short and clean Dingo code is (left side)
-- How verbose the equivalent Go is (right side)
-- Immediate "wow factor" of code reduction
-- Practical, relatable scenario (not toy examples)
-
-**When in doubt:** If you implement ANY new feature, ask yourself: "Should this be in the showcase?" If it works and provides value, the answer is probably YES.
+The showcase example `tests/golden/showcase_01_api_server.dingo` is the flagship demo that must be updated whenever new features are implemented.
