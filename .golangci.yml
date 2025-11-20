@@ -56,14 +56,14 @@ linters:
       - "_test\\.go"
 
 formatters:
-  default: none
   enable:
     - gofmt
     - goimports
 
   settings:
     goimports:
-      local-prefixes: github.com/MadAppGang/dingo
+      local-prefixes:
+        - github.com/MadAppGang/dingo
 
 run:
   timeout: 5m
