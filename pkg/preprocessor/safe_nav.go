@@ -234,10 +234,19 @@ type safeNavPosition struct {
 }
 
 // findSafeNavStarts finds all safe navigation chains in a line
+// Note: Uses findCommentStart from null_coalesce.go (shared in same package)
 func findSafeNavStarts(line string) []safeNavPosition {
 	var positions []safeNavPosition
 
+	// Find comment start position to skip processing inside comments
+	commentStart := findCommentStart(line)
+
 	for i := 0; i < len(line); i++ {
+		// Skip if we're inside a comment
+		if commentStart != -1 && i >= commentStart {
+			break
+		}
+
 		// Look for ?. pattern
 		if i+1 < len(line) && line[i] == '?' && line[i+1] == '.' {
 			// Found ?. - now extract the base identifier before it
@@ -373,8 +382,30 @@ func (s *SafeNavProcessor) processLine(line string, originalLineNum int, outputL
 		return line, nil, nil
 	}
 
+	// Check if all ?. occurrences are inside comments
+	commentStart := findCommentStart(line)
+	if commentStart != -1 {
+		// Find first ?. position
+		firstSafeNav := strings.Index(line, "?.")
+		if firstSafeNav >= commentStart {
+			// All ?. operators are inside comments, skip processing
+			return line, nil, nil
+		}
+	}
+
 	// Check for trailing ?. operator (error case)
-	if strings.HasSuffix(strings.TrimSpace(line), "?.") {
+	// But skip if the trailing ?. is inside a comment
+	trimmed := strings.TrimSpace(line)
+	if strings.HasSuffix(trimmed, "?.") {
+		// Check if this trailing ?. is inside a comment
+		if commentStart != -1 && len(trimmed) > 0 {
+			// Find position of trailing ?. in original line
+			trailingPos := strings.LastIndex(line, "?.")
+			if trailingPos >= commentStart {
+				// Trailing ?. is inside comment, skip error
+				return line, nil, nil
+			}
+		}
 		// Find the base identifier
 		parts := strings.Split(strings.TrimSpace(line), "?.")
 		if len(parts) > 0 {

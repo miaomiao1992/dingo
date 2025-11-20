@@ -261,12 +261,18 @@ func (e *ErrorPropProcessor) GetNeededImports() []string {
 func (e *ErrorPropProcessor) processLine(line string, originalLineNum int, outputLineNum int) (string, []Mapping, error) {
 	// Check if line contains ? operator (and not ternary)
 	if !strings.Contains(line, "?") {
-		return line, nil, nil
+		// CRITICAL FIX: Create identity mapping for lines without transformations
+		// This ensures ALL source lines map to their corresponding output lines
+		// Example: "return data, nil" on line 5 → maps to line 15 in generated Go
+		mapping := e.createIdentityMapping(line, originalLineNum, outputLineNum)
+		return line, mapping, nil
 	}
 
 	// Check if it's a ternary (has : after ?)
 	if e.isTernaryLine(line) {
-		return line, nil, nil
+		// CRITICAL FIX: Create identity mapping for ternary lines (not error propagation)
+		mapping := e.createIdentityMapping(line, originalLineNum, outputLineNum)
+		return line, mapping, nil
 	}
 
 	// Pattern: let/var NAME = EXPR? ["message"]
@@ -295,8 +301,9 @@ func (e *ErrorPropProcessor) processLine(line string, originalLineNum int, outpu
 		}
 	}
 
-	// If we can't recognize the pattern, leave as-is
-	return line, nil, nil
+	// If we can't recognize the pattern, leave as-is with identity mapping
+	mapping := e.createIdentityMapping(line, originalLineNum, outputLineNum)
+	return line, mapping, nil
 }
 
 // extractExpressionAndMessage extracts the expression and optional error message
@@ -948,6 +955,44 @@ func (e *ErrorPropProcessor) isTernaryLine(line string) bool {
 	}
 
 	return false
+}
+
+// createIdentityMapping creates a mapping for a line that wasn't transformed
+// This ensures ALL source lines map to their corresponding output lines, even if unchanged
+// Identity mappings are essential for LSP features like hover, go-to-definition, etc.
+func (e *ErrorPropProcessor) createIdentityMapping(line string, originalLineNum int, outputLineNum int) []Mapping {
+	// Skip empty lines and comments (no meaningful content to map)
+	trimmed := strings.TrimSpace(line)
+	if trimmed == "" || strings.HasPrefix(trimmed, "//") {
+		return nil
+	}
+
+	// Find first non-whitespace character for accurate column mapping
+	firstNonSpace := 0
+	for i, ch := range line {
+		if ch != ' ' && ch != '\t' {
+			firstNonSpace = i
+			break
+		}
+	}
+
+	// Create mapping for the entire line content (excluding leading whitespace)
+	// Example: "	return data, nil" → maps from col 2 (after tab) for length of "return data, nil"
+	contentLength := len(trimmed)
+	if contentLength == 0 {
+		return nil
+	}
+
+	return []Mapping{
+		{
+			OriginalLine:    originalLineNum,
+			OriginalColumn:  firstNonSpace + 1, // 1-based column
+			GeneratedLine:   outputLineNum,
+			GeneratedColumn: firstNonSpace + 1, // Same column in output (identity mapping)
+			Length:          contentLength,
+			Name:            "identity",
+		},
+	}
 }
 
 // trackFunctionCallInExpr extracts function name from expression and tracks it
