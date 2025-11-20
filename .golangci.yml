@@ -50,9 +50,9 @@ linters:
 
   exclusions:
     paths:
-      - "tests/"
-      - "scripts/"
-      - "_test\\.go"
+      - "tests/**/*.go"
+      - "scripts/**/*.go"
+      - "**/*_test.go"
 
 formatters:
   enable:
