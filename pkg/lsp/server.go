@@ -235,11 +235,16 @@ func (s *Server) handleDidOpen(ctx context.Context, reply jsonrpc2.Replier, req 
 		return reply(ctx, nil, err)
 	}
 
-	// IMPORTANT: Don't forward .dingo file opens to gopls
-	// gopls should only know about .go files on disk, not .dingo source
-	// We translate positions during queries (hover, completion, etc.)
+	// CRITICAL FIX D1: When .dingo file opens, open corresponding .go file with gopls
+	// This is necessary for gopls to analyze the file and send diagnostics
 	if isDingoFile(params.TextDocument.URI) {
-		s.config.Logger.Debugf("Opened .dingo file (not forwarding to gopls): %s", params.TextDocument.URI)
+		s.config.Logger.Debugf("Opened .dingo file: %s", params.TextDocument.URI)
+
+		// Open corresponding .go file with gopls so it can analyze and send diagnostics
+		if err := s.openGoFileWithGopls(ctx, params.TextDocument.URI.Filename()); err != nil {
+			s.config.Logger.Warnf("Failed to open .go file with gopls: %v", err)
+		}
+
 		return reply(ctx, nil, nil)
 	}
 

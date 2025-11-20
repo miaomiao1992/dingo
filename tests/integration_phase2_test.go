@@ -18,21 +18,15 @@ func TestIntegrationPhase2EndToEnd(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	// Test case 1: Error propagation with Result type
+	// Test case 1: Error propagation with error handling
 	t.Run("error_propagation_result_type", func(t *testing.T) {
 		dingoFile := filepath.Join(tmpDir, "test_result.dingo")
 		dingoCode := `package main
 
 import "fmt"
 
-type Result<T, E> struct {
-	tag ResultTag
-	ok_0 *T
-	err_0 *E
-}
-
 func processNumber(s string) (int, error) {
-	num := parseInt(s)?
+	let num = parseInt(s)?
 	return num * 2, nil
 }
 
@@ -91,7 +85,7 @@ enum Status {
 }
 
 func main() {
-	s := Status_Active()
+	s := StatusActive()
 	if s.IsActive() {
 		println("Status is active")
 	}
@@ -129,8 +123,8 @@ func main() {
 		if !strings.Contains(goCode, "StatusTag") {
 			t.Error("Generated code missing StatusTag enum")
 		}
-		if !strings.Contains(goCode, "Status_Pending") {
-			t.Error("Generated code missing Status_Pending constructor")
+		if !strings.Contains(goCode, "StatusPending") {
+			t.Error("Generated code missing StatusPending constructor")
 		}
 		if !strings.Contains(goCode, "IsActive()") {
 			t.Error("Generated code missing IsActive() method")
