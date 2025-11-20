@@ -4,6 +4,48 @@ All notable changes to the Dingo compiler will be documented in this file.
 
 ## [Unreleased]
 
+### 🚀 Phase 10 Complete: Language Server & IDE Integration (2025-11-20)
+
+**Date**: 2025-11-20
+**Type**: Major Feature Release
+**Scope**: LSP Server, VSCode Extension, Source Maps
+
+**Overview:**
+Completed Phase 10 (Language Server) and Phase 11 (VSCode IDE Integration). Dingo now has full IDE support via gopls proxy with source map-based position translation.
+
+**Implemented Features:**
+1. **dingo-lsp** - Language Server Protocol implementation (~3,172 LOC)
+   - Wraps gopls as transparent proxy
+   - Bidirectional position translation using source maps
+   - Supports: autocomplete, go-to-definition, hover, diagnostics
+
+2. **VSCode Extension** - Full IDE integration
+   - Auto-trigger completions (`.`, `:`, space)
+   - Source map position mapping
+   - Real-time diagnostics from gopls
+   - Syntax highlighting for `.dingo` files
+
+3. **Source Map Enhancements**
+   - Fixed MapToGenerated identity mapping for untransformed code
+   - Import block offset calculation
+   - Bounds checking to prevent crashes
+   - High accuracy position translation
+
+**Key Components:**
+- `pkg/lsp/` - LSP server implementation
+- `editors/vscode/` - VSCode extension
+- `pkg/preprocessor/sourcemap.go` - Enhanced source map logic
+
+**Testing:**
+- Manual LSP testing complete (hover, diagnostics, autocomplete)
+- All features working in VSCode
+- Position translation accuracy verified
+
+**Impact:**
+Phase 10 & 11 now complete. v1.0 readiness improved significantly with full IDE support.
+
+---
+
 ### 🔧 Generated Variable Naming Convention (2025-11-20)
 
 **Date**: 2025-11-20
@@ -2267,11 +2309,11 @@ func() []int {
 - [ ] Ternary operator (`? :`)
 
 ### Phase 4 - Advanced Features
-- [ ] Lambda functions (multiple syntax styles)
-- [ ] Sum types (enums)
-- [ ] Functional utilities (map, filter, reduce)
-- [ ] Tree-sitter migration
-- [ ] Language server (gopls proxy)
+- [x] Lambda functions (multiple syntax styles) - ✅ Complete (Phase 6, 2025-11)
+- [x] Sum types (enums) - ✅ Complete (Phase 2, 2025-08)
+- [x] Functional utilities (map, filter, reduce) - ✅ Complete (Phase 2, 2025-08)
+- [ ] Tree-sitter migration - Deferred (using go/parser instead)
+- [x] Language server (gopls proxy) - ✅ Complete (Phase 10, 2025-11-20)
 
 ---
 

@@ -211,7 +211,42 @@ func (sm *SourceMap) MapToGenerated(line, col int) (int, int) {
 		}
 	}
 
-	// No mapping found, return as-is
+	// CRITICAL FIX: No exact mapping found, calculate line offset from existing mappings
+	// This handles cases where untransformed code needs to account for added imports, etc.
+
+	// Strategy: Find the earliest mapping to determine the line offset
+	// Example: If .dingo line 4 maps to .go line 8, then lines 1-3 have +4 offset
+	var lineOffset int = 0
+	var foundOffset bool = false
+
+	// Find any mapping on the same line to get the offset
+	for _, m := range sm.Mappings {
+		if m.OriginalLine == line {
+			lineOffset = m.GeneratedLine - m.OriginalLine
+			foundOffset = true
+			break
+		}
+	}
+
+	// If no mapping on this line, find the closest earlier mapping
+	if !foundOffset {
+		for _, m := range sm.Mappings {
+			if m.OriginalLine < line {
+				candidateOffset := m.GeneratedLine - m.OriginalLine
+				if !foundOffset || m.OriginalLine > line-lineOffset {
+					lineOffset = candidateOffset
+					foundOffset = true
+				}
+			}
+		}
+	}
+
+	// Apply offset to line, keep column as-is
+	if foundOffset {
+		return line + lineOffset, col
+	}
+
+	// Final fallback: return as-is (identity mapping)
 	return line, col
 }
 

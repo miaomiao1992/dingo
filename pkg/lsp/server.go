@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 
 	"go.lsp.dev/jsonrpc2"
 	"go.lsp.dev/protocol"
+	lspuri "go.lsp.dev/uri"
 )
 
 // ServerConfig holds configuration for the LSP server
@@ -313,10 +315,15 @@ func (s *Server) handleDidClose(ctx context.Context, reply jsonrpc2.Replier, req
 		return reply(ctx, nil, err)
 	}
 
-	// IMPORTANT: Don't forward .dingo file closes to gopls
-	// We never told gopls about .dingo files opening, so don't tell it about closes
+	// CRITICAL FIX D1: When .dingo file closes, close corresponding .go file with gopls
 	if isDingoFile(params.TextDocument.URI) {
-		s.config.Logger.Debugf("Closed .dingo file (not forwarding to gopls): %s", params.TextDocument.URI)
+		s.config.Logger.Debugf("Closed .dingo file: %s", params.TextDocument.URI)
+
+		// Close corresponding .go file with gopls
+		if err := s.closeGoFileWithGopls(ctx, params.TextDocument.URI.Filename()); err != nil {
+			s.config.Logger.Warnf("Failed to close .go file with gopls: %v", err)
+		}
+
 		return reply(ctx, nil, nil)
 	}
 
@@ -350,6 +357,63 @@ func (s *Server) handleHover(ctx context.Context, reply jsonrpc2.Replier, req js
 func (s *Server) handleDingoFileChange(dingoPath string) {
 	// IMPORTANT FIX I3: Use server context instead of background
 	s.transpiler.OnFileChange(s.ctx, dingoPath)
+}
+
+// openGoFileWithGopls opens the corresponding .go file with gopls
+// CRITICAL FIX D1: This enables gopls to analyze the file and send diagnostics
+func (s *Server) openGoFileWithGopls(ctx context.Context, dingoPath string) error {
+	// Convert .dingo path to .go path
+	goPath := dingoToGoPath(dingoPath)
+
+	s.config.Logger.Debugf("[Diagnostic Fix] Opening .go file with gopls: %s", goPath)
+
+	// Read .go file contents
+	contents, err := os.ReadFile(goPath)
+	if err != nil {
+		return fmt.Errorf("failed to read .go file: %w", err)
+	}
+
+	// Create didOpen params for gopls
+	params := protocol.DidOpenTextDocumentParams{
+		TextDocument: protocol.TextDocumentItem{
+			URI:        protocol.DocumentURI(lspuri.File(goPath)),
+			LanguageID: "go",
+			Version:    1,
+			Text:       string(contents),
+		},
+	}
+
+	// Open with gopls
+	if err := s.gopls.DidOpen(ctx, params); err != nil {
+		return fmt.Errorf("gopls didOpen failed: %w", err)
+	}
+
+	s.config.Logger.Debugf("[Diagnostic Fix] Successfully opened .go file with gopls: %s", goPath)
+	return nil
+}
+
+// closeGoFileWithGopls closes the corresponding .go file with gopls
+// CRITICAL FIX D1: Clean up when .dingo file is closed
+func (s *Server) closeGoFileWithGopls(ctx context.Context, dingoPath string) error {
+	// Convert .dingo path to .go path
+	goPath := dingoToGoPath(dingoPath)
+
+	s.config.Logger.Debugf("[Diagnostic Fix] Closing .go file with gopls: %s", goPath)
+
+	// Create didClose params for gopls
+	params := protocol.DidCloseTextDocumentParams{
+		TextDocument: protocol.TextDocumentIdentifier{
+			URI: protocol.DocumentURI(lspuri.File(goPath)),
+		},
+	}
+
+	// Close with gopls
+	if err := s.gopls.DidClose(ctx, params); err != nil {
+		return fmt.Errorf("gopls didClose failed: %w", err)
+	}
+
+	s.config.Logger.Debugf("[Diagnostic Fix] Successfully closed .go file with gopls: %s", goPath)
+	return nil
 }
 
 // forwardToGopls forwards unknown requests directly to gopls

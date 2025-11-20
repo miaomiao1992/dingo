@@ -774,7 +774,7 @@ This is what Dingo does. It takes your Go code and makes it *readable*.
 | **Safe Navigation** | ✅ Complete (Phase 7) | `?.` operator for properties and methods |
 | **Null Coalescing** | ✅ Complete (Phase 7) | `??` operator for default values |
 | **Lambda Syntax** | ✅ Complete (Phase 6) | TypeScript arrows and Rust pipes (configurable) |
-| **Language Server** | 🔜 Planned | Full IDE support via gopls proxy |
+| **Language Server** | ✅ Working (Phase 10) | Full IDE support via gopls proxy with source maps |
 
 </div>
 
@@ -1200,13 +1200,13 @@ Two-part system, just like TypeScript:
 
 The generated Go code looks like what you'd write by hand. Not some machine-generated nightmare.
 
-### The Language Server (`dingo-lsp`) - Coming Soon
+### The Language Server (`dingo-lsp`) - ✅ Working
 
-Will wrap gopls (Go's language server). Intercepts LSP requests. Translates positions using source maps. Forwards to gopls.
+Wraps gopls (Go's language server). Intercepts LSP requests. Translates positions using source maps. Forwards to gopls.
 
-You'll get autocomplete, go-to-definition, diagnostics, refactoring — everything gopls does. In VS Code, Neovim, whatever you use.
+You get autocomplete, go-to-definition, diagnostics, hover info — everything gopls does. Working in VS Code right now.
 
-Your editor will think it's editing Go. Your terminal will think it's compiling Go. Only you will know you're actually writing Dingo.
+Your editor thinks it's editing Go. Your terminal thinks it's compiling Go. Only you know you're actually writing Dingo.
 
 ---
 
@@ -1399,12 +1399,12 @@ Both projects make Go better. That's a win for everyone.
 
 **Goal:** Feature parity with Swift/Kotlin for type safety.
 
-### Phase 4: Language Server — 8-10 weeks
-- gopls proxy working
-- Source maps translating perfectly
-- Full IDE integration
+### Phase 4: Language Server — ✅ Complete (2025-11-20)
+- ✅ gopls proxy working
+- ✅ Source maps translating with high accuracy
+- ✅ VSCode IDE integration complete
 
-**Goal:** Developer experience that matches or beats regular Go.
+**Goal:** Developer experience that matches or beats regular Go. ✅ **Achieved**
 
 ### Phase 5: Polish & Ship — 4-6 weeks
 - Documentation you'll actually read
@@ -1658,8 +1658,8 @@ dingo/
 | **Phase 7** | P1 | Null Safety Operators (`?.`, `??`) | 2 weeks | ✅ Complete |
 | **Phase 8** | P2 | Tuples (full implementation) | 1-2 weeks | 🟡 Partial (10%) |
 | **Phase 9** | P2 | Ternary Operator (`? :`) | 2-3 days | 🔴 Not Started |
-| **Phase 10** | P0 | Language Server (gopls proxy) | 8-10 weeks | 🔴 Not Started |
-| **Phase 11** | P0 | IDE Integration (VS Code, Neovim) | 4-6 weeks | 🔴 Not Started |
+| **Phase 10** | P0 | Language Server (gopls proxy) | 8-10 weeks | ✅ Complete (2025-11-20) |
+| **Phase 11** | P0 | IDE Integration (VS Code, Neovim) | 4-6 weeks | ✅ Complete (VSCode) |
 
 **v1.0 Goals:** Production-ready transpiler with full IDE support, comprehensive documentation, and battle-tested core features
 

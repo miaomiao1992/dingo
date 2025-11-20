@@ -49,6 +49,15 @@
     "configurationDefaults": {
       "files.associations": {
         "*.go.golden": "go"
+      },
+      "[dingo]": {
+        "editor.quickSuggestions": {
+          "other": true,
+          "comments": false,
+          "strings": false
+        },
+        "editor.suggest.snippetsPreventQuickSuggestions": false,
+        "editor.wordBasedSuggestions": false
       }
     },
     "grammars": [
