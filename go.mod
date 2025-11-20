@@ -1,6 +1,6 @@
 module github.com/MadAppGang/dingo
 
-go 1.24.0
+go 1.25.4
 
 require (
 	github.com/BurntSushi/toml v1.3.2
