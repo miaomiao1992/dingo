@@ -48,11 +48,6 @@ linters:
         - performance
         - style
 
-  exclusions:
-    paths:
-      - "tests/**/*.go"
-      - "scripts/**/*.go"
-      - "**/*_test.go"
 
 formatters:
   enable:
@@ -66,6 +61,9 @@ formatters:
 
 run:
   timeout: 5m
-  tests: true
+  tests: false
+  skip-dirs:
+    - tests
+    - scripts
   build-tags:
     - integration
