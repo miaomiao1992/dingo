@@ -61,9 +61,5 @@ formatters:
 
 run:
   timeout: 5m
-  tests: false
-  skip-dirs:
-    - tests
-    - scripts
   build-tags:
     - integration
