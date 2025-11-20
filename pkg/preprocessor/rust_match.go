@@ -846,7 +846,7 @@ func (r *RustMatchProcessor) generateCaseWithGuards(scrutineeVar string, group a
 	if hasNestedPatterns {
 		// NESTED PATTERN CASE: Generate nested switch
 		// Extract outer value and switch on inner patterns
-		fieldName := r.getFieldName(group.pattern)
+		fieldName := r.getFieldName(group.pattern, 0)
 		intermediateVar := fmt.Sprintf("nested%s", group.pattern)
 		buf.WriteString(fmt.Sprintf("\t%s := *%s.%s\n", intermediateVar, scrutineeVar, fieldName))
 		buf.WriteString(fmt.Sprintf("\tswitch %s.tag {\n", intermediateVar))
@@ -1177,12 +1177,28 @@ func (r *RustMatchProcessor) generateBinding(scrutinee string, pattern string, b
 		// For Option<T>, Some value is stored in some field (pointer to T)
 		return fmt.Sprintf("%s := *%s.some", binding, scrutinee)
 	default:
-		// Custom enum variant: extract variant name and lowercase it
-		// Pattern may be "Value_Int" or just "Int"
-		// Field name should be "int" (lowercase, no suffix)
+		// Custom enum variant: check if this is a multi-field tuple binding
+		// Multi-field tuple bindings contain commas, e.g., "path, body"
+		if strings.Contains(binding, ",") {
+			// Multi-field tuple: split binding and generate extraction for each field
+			bindings := strings.Split(binding, ",")
+			var extractions []string
+			for i, b := range bindings {
+				b = strings.TrimSpace(b)
+				if b == "_" {
+					continue // Skip wildcard bindings
+				}
+				fieldName := fmt.Sprintf("_%d", i)
+				extractions = append(extractions, fmt.Sprintf("%s := *%s.%s", b, scrutinee, fieldName))
+			}
+			return strings.Join(extractions, "\n\t")
+		}
+
+		// Single-field tuple: extract variant name and lowercase it
+		// Pattern may be "Request_Get" → field name is "get"
 		variantName := pattern
 		if idx := strings.LastIndex(pattern, "_"); idx != -1 {
-			// Extract variant after last underscore: "Value_Int" -> "Int"
+			// Extract variant after last underscore: "Request_Get" -> "Get"
 			variantName = pattern[idx+1:]
 		}
 		fieldName := strings.ToLower(variantName)
@@ -1884,7 +1900,7 @@ func (r *RustMatchProcessor) parseNestedPattern(binding string) (pattern string,
 }
 
 // getFieldName returns the field name for a pattern (CamelCase, e.g., "Ok" -> "ok", "Err" -> "err")
-func (r *RustMatchProcessor) getFieldName(pattern string) string {
+func (r *RustMatchProcessor) getFieldName(pattern string, fieldIndex int) string {
 	switch pattern {
 	case "Ok":
 		return "ok"
@@ -1893,7 +1909,8 @@ func (r *RustMatchProcessor) getFieldName(pattern string) string {
 	case "Some":
 		return "some"
 	default:
-		// Custom enum variant: extract variant name after underscore
+		// Custom enum variant: use lowercase variant name for single-field tuples
+		// For multi-field tuples, the caller should use _0, _1, etc. directly
 		if idx := strings.LastIndex(pattern, "_"); idx != -1 {
 			variantName := pattern[idx+1:]
 			return strings.ToLower(variantName)

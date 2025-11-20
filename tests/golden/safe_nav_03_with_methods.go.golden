@@ -11,26 +11,36 @@ func (c *Config) validate() bool {
 	return c.timeout != nil && *c.timeout > 0
 }
 func main() {
-	var config = &Config{timeout: nil}
-	// Safe navigation with method calls
-	var timeout *int
-	if config != nil {
-		timeout = config.getTimeout()
+	config := &Config{timeout: nil}
+
+	__tmp0, __err0 := __SAFE_NAV_INFER__(config, "getTimeout()")
+
+	if __err0 != nil {
+		return nil, __err0
 	}
-	var isValid bool
-	if config != nil {
-		isValid = config.validate()
+	// dingo:e:1
+	var timeout = __tmp0
+	__tmp1, __err1 := __SAFE_NAV_INFER__(config, "validate()")
+
+	if __err1 != nil {
+		return nil, __err1
 	}
-	// Chained with null coalescing
-	var actualTimeout int
-	var __safenav0 *int
-	if config != nil {
-		__safenav0 = config.getTimeout()
+	// dingo:e:1
+	var isValid = __tmp1
+
+	__tmp2, __err2 := func() __INFER__ {
+		__coalesce0 := __SAFE_NAV_INFER__(config, "getTimeout()")
+		if __IS_SOME__(__coalesce0) {
+			return __UNWRAP__(__coalesce0)
+		}
+		return 30
+	}()
+
+	if __err2 != nil {
+		return nil, __err2
 	}
-	if __safenav0 != nil {
-		actualTimeout = *__safenav0
-	} else {
-		actualTimeout = 30
-	}
+	// dingo:e:1
+	var actualTimeout = __tmp2
+
 	println("Timeout:", timeout, "Valid:", isValid, "Actual:", actualTimeout)
 }

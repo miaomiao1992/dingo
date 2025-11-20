@@ -18,16 +18,16 @@ enum Value {
 
 func processResult(r Result) string {
 	return match r {
-		Result_Ok(Value_Int(n)) => "Got integer: " + string(n),
-		Result_Ok(Value_String(s)) => "Got string: " + s,
-		Result_Err(e) => "Error: " + e.Error(),
+		ResultOk(Value_Int(n)) => "Got integer: " + string(n),
+		ResultOk(Value_String(s)) => "Got string: " + s,
+		ResultErr(e) => "Error: " + e.Error(),
 	}
 }
 
 func main() {
-	result1 := Result_Ok(Value_Int(42))
-	result2 := Result_Ok(Value_String("hello"))
-	result3 := Result_Err(errors.New("failed"))
+	result1 := ResultOk(Value_Int(42))
+	result2 := ResultOk(Value_String("hello"))
+	result3 := ResultErr(errors.New("failed"))
 
 	println(processResult(result1))
 	println(processResult(result2))

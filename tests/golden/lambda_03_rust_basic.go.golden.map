@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 6,
+      "generated_column": 0,
+      "original_line": 6,
+      "original_column": 0,
+      "length": 74
+    },
+    {
+      "generated_line": 11,
+      "generated_column": 0,
+      "original_line": 11,
+      "original_column": 0,
+      "length": 43
+    },
+    {
+      "generated_line": 16,
+      "generated_column": 0,
+      "original_line": 16,
+      "original_column": 0,
+      "length": 47
+    },
+    {
+      "generated_line": 21,
+      "generated_column": 0,
+      "original_line": 21,
+      "original_column": 0,
+      "length": 43
+    },
+    {
+      "generated_line": 26,
+      "generated_column": 0,
+      "original_line": 26,
+      "original_column": 0,
+      "length": 52
+    },
+    {
+      "generated_line": 31,
+      "generated_column": 0,
+      "original_line": 31,
+      "original_column": 0,
+      "length": 48
+    },
+    {
+      "generated_line": 41,
+      "generated_column": 0,
+      "original_line": 41,
+      "original_column": 0,
+      "length": 57
+    }
+  ]
+}

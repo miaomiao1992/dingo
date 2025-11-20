@@ -1,19 +1,13 @@
 package main
 
-// Test: Safe navigation with raw Go pointers
-// Feature: Safe Navigation (?.) - Pointer Support
-// Complexity: intermediate
-
 type User struct {
 	name    string
 	address *Address
 }
-
 type Address struct {
 	street string
 	city   *City
 }
-
 type City struct {
 	name    string
 	zipcode int
@@ -27,55 +21,18 @@ func getUser(id int) *User {
 	}
 	return nil
 }
-
 func main() {
-	// Test 1: Full pointer chain
+
 	user := getUser(1)
-	cityName := func() string {
-		if user == nil {
-			return ""
-		}
-
-		if user.address == nil {
-			return ""
-		}
-
-		if user.address.city == nil {
-			return ""
-		}
-
-		return user.address.city.name
-	}()
+	cityName := __SAFE_NAV_INFER__(user, "address", "city", "name")
 	println("City:", cityName)
 
-	// Test 2: Nil pointer chain
 	nilUser := getUser(0)
-	nilCity := func() string {
-		if nilUser == nil {
-			return ""
-		}
-
-		if nilUser.address == nil {
-			return ""
-		}
-
-		if nilUser.address.city == nil {
-			return ""
-		}
-
-		return nilUser.address.city.name
-	}()
+	nilCity := __SAFE_NAV_INFER__(nilUser, "address", "city", "name")
 	println("Nil City:", nilCity)
 
-	// Test 3: Single level access
 	if user != nil {
-		name := func() string {
-			if user == nil {
-				return ""
-			}
-
-			return user.name
-		}()
+		name := __SAFE_NAV_INFER__(user, "name")
 		println("Name:", name)
 	}
 }

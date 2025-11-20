@@ -12,10 +12,10 @@ enum Option {
 func find(arr []int, target int) Option {
 	for i, val := range arr {
 		if val == target {
-			return Option_Some(i)
+			return OptionSome(i)
 		}
 	}
-	return Option_None()
+	return OptionNone()
 }
 
 func main() {

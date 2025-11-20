@@ -12,9 +12,9 @@ enum Option {
 func findInMap(m map[string]string, key string) Option {
 	val, exists := m[key]
 	if exists {
-		return Option_Some(val)
+		return OptionSome(val)
 	}
-	return Option_None()
+	return OptionNone()
 }
 
 func getOrDefault(opt Option, defaultVal string) string {

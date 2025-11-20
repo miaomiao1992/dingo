@@ -18,10 +18,10 @@ type Result struct {
 	err *error
 }
 
-func Result_Ok(arg0 int) Result {
+func ResultOk(arg0 int) Result {
 	return Result{tag: ResultTagOk, ok: &arg0}
 }
-func Result_Err(arg0 error) Result {
+func ResultErr(arg0 error) Result {
 	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
@@ -34,9 +34,9 @@ func convertToInt(s string) Result {
 
 	val, err := strconv.Atoi(s)
 	if err != nil {
-		return Result_Err(err)
+		return ResultErr(err)
 	}
-	return Result_Ok(val)
+	return ResultOk(val)
 }
 func doubleIfValid(s string) (int, error) {
 	result := convertToInt(s)

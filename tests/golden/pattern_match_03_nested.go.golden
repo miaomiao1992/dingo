@@ -10,15 +10,15 @@ const (
 )
 
 type patterns struct {
-	tag   patternsTag
+	tag patternsTag
 	ok  *Value
 	err *error
 }
 
-func patterns_Ok(arg0 Value) patterns {
+func patternsOk(arg0 Value) patterns {
 	return patterns{tag: patternsTagOk, ok: &arg0}
 }
-func patterns_Err(arg0 error) patterns {
+func patternsErr(arg0 error) patterns {
 	return patterns{tag: patternsTagErr, err: &arg0}
 }
 func (e patterns) IsOk() bool {
@@ -36,14 +36,14 @@ const (
 )
 
 type Value struct {
-	tag      ValueTag
+	tag    ValueTag
 	int    *int
 	string *string
 }
-func Value_Int(arg0 int) Value {
+func ValueInt(arg0 int) Value {
 	return Value{tag: ValueTagInt, int: &arg0}
 }
-func Value_String(arg0 string) Value {
+func ValueString(arg0 string) Value {
 	return Value{tag: ValueTagString, string: &arg0}
 }
 func (e Value) IsInt() bool {
@@ -57,18 +57,18 @@ func processResult(r Result) string {
 
 	scrutinee := r
 	switch scrutinee.tag {
-	case ResultTagOk:
-		nestedResult_Ok := *scrutinee.ok
-		switch nestedResult_Ok.tag {
+	case ResultOkTag:
+		nestedResultOk := *scrutinee.resultok
+		switch nestedResultOk.tag {
 		case ValueTagInt:
-			n := *nestedResult_Ok.int
+			n := *nestedResultOk.int
 			result = "Got integer: " + string(n)
 		case ValueTagString:
-			s := *nestedResult_Ok.string
+			s := *nestedResultOk.string
 			result = "Got string: " + s
 		}
-	case ResultTagErr:
-		e := *scrutinee.err
+	case ResultErrTag:
+		e := *scrutinee.resulterr
 
 		result = "Error: " + e.Error()
 	}
@@ -77,9 +77,9 @@ func processResult(r Result) string {
 
 }
 func main() {
-	result1 := Result_Ok(Value_Int(42))
-	result2 := Result_Ok(Value_String("hello"))
-	result3 := Result_Err(errors.New("failed"))
+	result1 := ResultOk(Value_Int(42))
+	result2 := ResultOk(Value_String("hello"))
+	result3 := ResultErr(errors.New("failed"))
 
 	println(processResult(result1))
 	println(processResult(result2))

@@ -118,10 +118,10 @@ func (p *ResultTypePlugin) handleGenericResult(expr *ast.IndexExpr) {
 			p.ctx.Logger.Warn("ResultTypePlugin: Could not infer type for Result<T> element. Falling back to heuristic.")
 			// Fallback to old heuristic if type inference fails
 			typeName = p.getTypeName(expr.Index)
-			resultType = fmt.Sprintf("Result_%s_error", p.sanitizeTypeName(typeName))
+			resultType = fmt.Sprintf("Result%s", SanitizeTypeName(typeName, "error"))
 		} else {
 			typeName = p.typeInference.TypeToString(telemType)
-			resultType = fmt.Sprintf("Result_%s_error", p.sanitizeTypeName(typeName))
+			resultType = fmt.Sprintf("Result%s", SanitizeTypeName(typeName, "error"))
 		}
 
 		if !p.emittedTypes[resultType] {
@@ -154,9 +154,8 @@ func (p *ResultTypePlugin) handleGenericResultList(expr *ast.IndexListExpr) {
 				errType = p.typeInference.TypeToString(errElemType)
 			}
 
-			resultType := fmt.Sprintf("Result_%s_%s",
-				p.sanitizeTypeName(okType),
-				p.sanitizeTypeName(errType))
+			resultType := fmt.Sprintf("Result%s",
+				SanitizeTypeName(okType, errType))
 
 			if !p.emittedTypes[resultType] {
 				p.emitResultDeclaration(okType, errType, resultType)
@@ -172,7 +171,7 @@ func (p *ResultTypePlugin) handleGenericResultList(expr *ast.IndexListExpr) {
 			} else {
 				okType = p.typeInference.TypeToString(okElemType)
 			}
-			resultType := fmt.Sprintf("Result%sError", p.sanitizeTypeName(okType))
+			resultType := fmt.Sprintf("Result%s", SanitizeTypeName(okType, "error"))
 
 			if !p.emittedTypes[resultType] {
 				p.emitResultDeclaration(okType, "error", resultType)
@@ -237,9 +236,8 @@ func (p *ResultTypePlugin) transformOkConstructor(call *ast.CallExpr) ast.Expr {
 	errType := "error" // Default error type
 
 	// Generate unique Result type name
-	resultTypeName := fmt.Sprintf("Result_%s_%s",
-		p.sanitizeTypeName(okType),
-		p.sanitizeTypeName(errType))
+	resultTypeName := fmt.Sprintf("Result%s",
+		SanitizeTypeName(okType, errType))
 
 	// Ensure the Result type is declared
 	if !p.emittedTypes[resultTypeName] {
@@ -319,9 +317,8 @@ func (p *ResultTypePlugin) transformErrConstructor(call *ast.CallExpr) ast.Expr 
 	okType := "interface{}" // Will be refined with type inference
 
 	// Generate unique Result type name
-	resultTypeName := fmt.Sprintf("Result_%s_%s",
-		p.sanitizeTypeName(okType),
-		p.sanitizeTypeName(errType))
+	resultTypeName := fmt.Sprintf("Result%s",
+		SanitizeTypeName(okType, errType))
 
 	// Ensure the Result type is declared
 	if !p.emittedTypes[resultTypeName] {
@@ -676,7 +673,7 @@ func (p *ResultTypePlugin) emitConstructorFunction(resultTypeName, argType strin
 		fieldName = "err"
 	}
 
-	funcName := fmt.Sprintf("%s_%s", resultTypeName, funcSuffix)
+	funcName := fmt.Sprintf("%s%s", resultTypeName, funcSuffix)
 	argTypeAST := p.typeToAST(argType, false) // Non-pointer parameter
 
 	// func Result_T_E_Ok(arg0 T) Result_T_E {
@@ -1829,31 +1826,12 @@ func (p *ResultTypePlugin) getTypeName(expr ast.Expr) string {
 	}
 }
 
-// sanitizeTypeName converts type names to valid Go identifiers
-// Examples:
-//
-//	*User → ptr_User
-//	[]byte → slice_byte
-//	map[string]int → map_string_int
-//	interface{} → any
+// sanitizeTypeName is deprecated - use shared SanitizeTypeName instead
+// This function is kept for backward compatibility during migration
 func (p *ResultTypePlugin) sanitizeTypeName(typeName string) string {
-	s := typeName
-
-	// Special cases
-	if s == "interface{}" {
-		return "any"
-	}
-
-	s = strings.ReplaceAll(s, "*", "ptr_")
-	s = strings.ReplaceAll(s, "[]", "slice_")
-	s = strings.ReplaceAll(s, "[", "_")
-	s = strings.ReplaceAll(s, "]", "_")
-	s = strings.ReplaceAll(s, ".", "_")
-	s = strings.ReplaceAll(s, "{", "")
-	s = strings.ReplaceAll(s, "}", "")
-	s = strings.ReplaceAll(s, " ", "")
-	s = strings.Trim(s, "_")
-	return s
+	// Delegate to shared utility
+	// Note: SanitizeTypeName takes variadic args, so pass single type
+	return SanitizeTypeName(typeName)
 }
 
 // typeToAST converts a type string to an AST type expression

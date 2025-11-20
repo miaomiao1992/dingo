@@ -53,19 +53,19 @@ func main() {
 
 func getUser(id int) UserOption {
 	if id == 1 {
-		addr := AddressOption_Some(Address{
-			city: StringOption_Some("New York"),
+		addr := AddressOptionSome(Address{
+			city: StringOptionSome("New York"),
 			zip:  "10001",
 		})
-		return UserOption_Some(User{name: "Alice", address: addr})
+		return UserOptionSome(User{name: "Alice", address: addr})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func fetchProfile() UserOption {
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func (u User) getEmail() StringOption {
-	return StringOption_Some(u.name + "@example.com")
+	return StringOptionSome(u.name + "@example.com")
 }

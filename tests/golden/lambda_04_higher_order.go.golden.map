@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 12,
+      "generated_column": 0,
+      "original_line": 12,
+      "original_column": 0,
+      "length": 35
+    },
+    {
+      "generated_line": 17,
+      "generated_column": 0,
+      "original_line": 17,
+      "original_column": 0,
+      "length": 47
+    },
+    {
+      "generated_line": 21,
+      "generated_column": 0,
+      "original_line": 21,
+      "original_column": 0,
+      "length": 36
+    },
+    {
+      "generated_line": 22,
+      "generated_column": 0,
+      "original_line": 22,
+      "original_column": 0,
+      "length": 36
+    }
+  ]
+}

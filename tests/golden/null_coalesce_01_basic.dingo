@@ -20,7 +20,7 @@ func main() {
 	let displayName = name ?? "Guest"
 
 	// Test 2: Simple identifier ?? identifier
-	let fallback: StringOption = StringOption_Some("Default")
+	let fallback: StringOption = StringOptionSome("Default")
 	let result = name ?? fallback
 
 	// Test 3: Option<int> ?? literal
@@ -28,17 +28,17 @@ func main() {
 	let finalCount = count ?? 0
 
 	// Test 4: Multiple separate ?? operations
-	let firstName: StringOption = StringOption_None()
+	let firstName: StringOption = StringOptionNone()
 	let firstDisplay = firstName ?? "Anonymous"
 
-	let age: IntOption = IntOption_None()
+	let age: IntOption = IntOptionNone()
 	let ageDisplay = age ?? 18
 }
 
 func getUserName() StringOption {
-	return StringOption_None()
+	return StringOptionNone()
 }
 
 func getCount() IntOption {
-	return IntOption_Some(42)
+	return IntOptionSome(42)
 }

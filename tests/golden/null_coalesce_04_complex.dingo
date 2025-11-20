@@ -26,11 +26,11 @@ type Config struct {
 
 func main() {
 	// Test 1: Function call on right side
-	let name: StringOption = StringOption_None()
+	let name: StringOption = StringOptionNone()
 	let display = name ?? getDefaultName()
 
 	// Test 2: Nested ?? in expressions
-	let port: IntOption = IntOption_None()
+	let port: IntOption = IntOptionNone()
 	let finalPort = (port ?? 8080) + 1000
 
 	// Test 3: ?? with expressions on both sides
@@ -42,11 +42,11 @@ func main() {
 	let username = user?.toUpper() ?? getGuestName() ?? "GUEST"
 
 	// Test 5: Nested function calls
-	let timeout: IntOption = IntOption_None()
+	let timeout: IntOption = IntOptionNone()
 	let finalTimeout = timeout ?? parseEnv("TIMEOUT") ?? getDefaultTimeout()
 
 	// Test 6: Mixed with arithmetic
-	let count: IntOption = IntOption_None()
+	let count: IntOption = IntOptionNone()
 	let total = (count ?? 10) * 2
 
 	println("Display:", display)
@@ -63,33 +63,33 @@ func getDefaultName() string {
 
 func getEnv(key string) StringOption {
 	if key == "HOST" {
-		return StringOption_Some("example.com")
+		return StringOptionSome("example.com")
 	}
-	return StringOption_None()
+	return StringOptionNone()
 }
 
 func getConfig() ConfigOption {
-	return ConfigOption_None()
+	return ConfigOptionNone()
 }
 
 func findUser(id int) StringOption {
-	return StringOption_None()
+	return StringOptionNone()
 }
 
 func (s StringOption) toUpper() StringOption {
 	if s.IsNone() {
-		return StringOption_None()
+		return StringOptionNone()
 	}
 	// Simplified - just return the same for demo
 	return s
 }
 
 func getGuestName() StringOption {
-	return StringOption_None()
+	return StringOptionNone()
 }
 
 func parseEnv(key string) IntOption {
-	return IntOption_None()
+	return IntOptionNone()
 }
 
 func getDefaultTimeout() int {

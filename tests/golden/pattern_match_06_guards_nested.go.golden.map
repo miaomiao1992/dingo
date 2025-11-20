@@ -1,0 +1,363 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 25,
+      "generated_column": 0,
+      "original_line": 25,
+      "original_column": 0,
+      "length": 37
+    },
+    {
+      "generated_line": 46,
+      "generated_column": 0,
+      "original_line": 46,
+      "original_column": 0,
+      "length": 38
+    },
+    {
+      "generated_line": 59,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 60,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 61,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 62,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 63,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 10,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 64,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match_binding"
+    },
+    {
+      "generated_line": 65,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 66,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 67,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 68,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 78,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 79,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match_panic"
+    },
+    {
+      "generated_line": 80,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 6,
+      "name": "rust_match_return"
+    },
+    {
+      "generated_line": 81,
+      "generated_column": 1,
+      "original_line": 59,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 87,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 88,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 89,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 90,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 91,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 8,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 92,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 3,
+      "name": "rust_match_binding"
+    },
+    {
+      "generated_line": 93,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 94,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 95,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 11,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 103,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 9,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 104,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 12,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 106,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 107,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match_panic"
+    },
+    {
+      "generated_line": 108,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 6,
+      "name": "rust_match_return"
+    },
+    {
+      "generated_line": 109,
+      "generated_column": 1,
+      "original_line": 70,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 115,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 116,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 117,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 118,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 119,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 10,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 120,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match_binding"
+    },
+    {
+      "generated_line": 121,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 122,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 123,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 124,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 13,
+      "name": "rust_match_arm"
+    },
+    {
+      "generated_line": 134,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 135,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match_panic"
+    },
+    {
+      "generated_line": 136,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 6,
+      "name": "rust_match_return"
+    },
+    {
+      "generated_line": 137,
+      "generated_column": 1,
+      "original_line": 80,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    }
+  ]
+}

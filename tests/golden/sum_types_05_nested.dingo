@@ -19,12 +19,12 @@ enum Value {
 
 func parseInt(s string) Result {
 	if s == "" {
-		return Result_Err(errors.New("empty string"))
+		return ResultErr(errors.New("empty string"))
 	}
 	if s == "null" {
-		return Result_Ok(Value_None())
+		return ResultOk(Value_None())
 	}
-	return Result_Ok(Value_String(s))
+	return ResultOk(Value_String(s))
 }
 
 func main() {

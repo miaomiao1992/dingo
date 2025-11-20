@@ -30,8 +30,8 @@
       "generated_column": 1,
       "original_line": 38,
       "original_column": 1,
-      "length": 14,
-      "name": "rust_match_arm"
+      "length": 5,
+      "name": "rust_match"
     },
     {
       "generated_line": 42,
@@ -46,15 +46,7 @@
       "generated_column": 1,
       "original_line": 38,
       "original_column": 1,
-      "length": 18,
-      "name": "rust_match_expr"
-    },
-    {
-      "generated_line": 44,
-      "generated_column": 1,
-      "original_line": 38,
-      "original_column": 1,
-      "length": 13,
+      "length": 14,
       "name": "rust_match_arm"
     },
     {
@@ -70,15 +62,7 @@
       "generated_column": 1,
       "original_line": 38,
       "original_column": 1,
-      "length": 19,
-      "name": "rust_match_expr"
-    },
-    {
-      "generated_line": 47,
-      "generated_column": 1,
-      "original_line": 38,
-      "original_column": 1,
-      "length": 15,
+      "length": 13,
       "name": "rust_match_arm"
     },
     {
@@ -94,11 +78,11 @@
       "generated_column": 1,
       "original_line": 38,
       "original_column": 1,
-      "length": 10,
-      "name": "rust_match_expr"
+      "length": 15,
+      "name": "rust_match_arm"
     },
     {
-      "generated_line": 50,
+      "generated_line": 51,
       "generated_column": 1,
       "original_line": 38,
       "original_column": 1,
@@ -106,7 +90,23 @@
       "name": "rust_match"
     },
     {
-      "generated_line": 51,
+      "generated_line": 52,
+      "generated_column": 1,
+      "original_line": 38,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match_panic"
+    },
+    {
+      "generated_line": 53,
+      "generated_column": 1,
+      "original_line": 38,
+      "original_column": 1,
+      "length": 6,
+      "name": "rust_match_return"
+    },
+    {
+      "generated_line": 54,
       "generated_column": 1,
       "original_line": 38,
       "original_column": 1,

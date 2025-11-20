@@ -11,13 +11,13 @@ type User struct {
 
 func main() {
 
-	double := func(x) { return x * 2 }
+	double := func(x int) int { return x * 2 }
 	result1 := double(5)
 
-	triple := func(x) { return x * 3 }
+	triple := func(x int) int { return x * 3 }
 	result2 := triple(5)
 
-	add := func(x, y) { return x + y }
+	add := func(x int, y int) int { return x + y }
 	result3 := add(10, 20)
 
 	multiply := func(x int, y int) { return x * y }
@@ -26,14 +26,14 @@ func main() {
 	numbers := []int{1, 2, 3, 4, 5}
 	var doubled []int
 	for _, n := range numbers {
-		transform := func(x) { return x * 2 }
+		transform := func(x int) int { return x * 2 }
 		doubled = append(doubled, transform(n))
 	}
 
 	apply := func(f func(int) int, val int) int {
 		return f(val)
 	}
-	result5 := apply(func(x) { return x + 10 }, 5)
+	result5 := apply(func(x int) int { return x + 10 }, 5)
 
 	fmt.Println(result1, result2, result3, result4, doubled, result5)
 }

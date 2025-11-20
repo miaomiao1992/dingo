@@ -9,16 +9,16 @@ enum Result {
 
 func fetchUser(id int) Result {
 	if id <= 0 {
-		return Result_Err(errors.New("invalid user ID"))
+		return ResultErr(errors.New("invalid user ID"))
 	}
-	return Result_Ok("User" + string(rune(id)))
+	return ResultOk("User" + string(rune(id)))
 }
 
 func validateUser(name string) Result {
 	if name == "" {
-		return Result_Err(errors.New("empty user name"))
+		return ResultErr(errors.New("empty user name"))
 	}
-	return Result_Ok(name)
+	return ResultOk(name)
 }
 
 func processUser(id int) Result {
@@ -27,11 +27,11 @@ func processUser(id int) Result {
 		Ok(u) => {
 			validated := validateUser(u)
 			match validated {
-				Ok(v) => return Result_Ok(v),
-				Err(e) => return Result_Err(e)
+				Ok(v) => return ResultOk(v),
+				Err(e) => return ResultErr(e)
 			}
 		},
-		Err(e) => return Result_Err(e)
+		Err(e) => return ResultErr(e)
 	}
 }
 

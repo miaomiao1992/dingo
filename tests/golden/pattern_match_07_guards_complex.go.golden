@@ -13,21 +13,21 @@ const (
 )
 
 type Request struct {
-	tag      RequestTag
-	get_0    *string
-	post_0   *string
-	post_1   *string
-	delete_0 *string
+	tag    RequestTag
+	get    *string
+	_0     *string
+	_1     *string
+	delete *string
 }
 
-func Request_Get(arg0 string) Request {
-	return Request{tag: RequestTagGet, get_0: &arg0}
+func RequestGet(arg0 string) Request {
+	return Request{tag: RequestTagGet, get: &arg0}
 }
-func Request_Post(arg0 string, arg1 string) Request {
-	return Request{tag: RequestTagPost, post_0: &arg0, post_1: &arg1}
+func RequestPost(arg0 string, arg1 string) Request {
+	return Request{tag: RequestTagPost, _0: &arg0, _1: &arg1}
 }
-func Request_Delete(arg0 string) Request {
-	return Request{tag: RequestTagDelete, delete_0: &arg0}
+func RequestDelete(arg0 string) Request {
+	return Request{tag: RequestTagDelete, delete: &arg0}
 }
 func (e Request) IsGet() bool {
 	return e.tag == RequestTagGet
@@ -48,17 +48,17 @@ const (
 )
 
 type Status struct {
-	tag      StatusTag
-	active_0 *int
-	paused_0 *int
+	tag    StatusTag
+	active *int
+	paused *int
 }
-func Status_Active(arg0 int) Status {
-	return Status{tag: StatusTagActive, active_0: &arg0}
+func StatusActive(arg0 int) Status {
+	return Status{tag: StatusTagActive, active: &arg0}
 }
-func Status_Paused(arg0 int) Status {
-	return Status{tag: StatusTagPaused, paused_0: &arg0}
+func StatusPaused(arg0 int) Status {
+	return Status{tag: StatusTagPaused, paused: &arg0}
 }
-func Status_Stopped() Status {
+func StatusStopped() Status {
 	return Status{tag: StatusTagStopped}
 }
 func (e Status) IsActive() bool {
@@ -87,7 +87,8 @@ func routeRequest(req Request) string {
 			result = "static resource"
 		}
 	case RequestTagPost:
-		path, body := *scrutinee.post
+		path := *scrutinee._0
+		body := *scrutinee._1
 
 		if len(body) > 100 && strings.Contains(path, "upload") {
 			result = "large upload"
@@ -104,9 +105,6 @@ func routeRequest(req Request) string {
 		} else {
 			result = "delete request"
 		}
-	default:
-
-		result = "unknown"
 	}
 	panic("unreachable: match is exhaustive")
 	return result
@@ -136,50 +134,10 @@ func classifyStatus(status Status) string {
 
 		if duration > 3600 {
 			result2 = "long pause"
-
-		} else if true {
-			result2 = "short pause"
 		}
-	case StatusTagStopped:
-
-		result2 = "stopped"
 	}
 	panic("unreachable: match is exhaustive")
 	return result2
-
-}
-
-// Guards on different pattern types
-func processValue(val interface{}) string {
-	var result3 interface{}
-
-	scrutinee3 := val.(type)
-	switch scrutinee3.tag {
-	case intTag:
-
-		if val.(int) > 0 {
-			result3 = "positive integer"
-
-		} else if val.(int) < 0 {
-			result3 = "negative integer"
-
-		} else {
-			result3 = "zero"
-		}
-	case stringTag:
-
-		if len(val.(string)) > 0 {
-			result3 = "non-empty string"
-
-		} else {
-			result3 = "empty string"
-		}
-	default:
-
-		result3 = "other type"
-	}
-	panic("unreachable: match is exhaustive")
-	return result3
 
 }
 func isProtected(path string) bool {
@@ -188,5 +146,5 @@ func isProtected(path string) bool {
 func main() {
 	println(routeRequest(Request_Get("/api/users")))
 	println(classifyStatus(Status_Active(500)))
-	println(processValue(42))
+
 }

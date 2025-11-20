@@ -8,14 +8,14 @@ const (
 )
 
 type Option struct {
-	tag    OptionTag
+	tag  OptionTag
 	some *string
 }
 
-func Option_Some(arg0 string) Option {
+func OptionSome(arg0 string) Option {
 	return Option{tag: OptionTagSome, some: &arg0}
 }
-func Option_None() Option {
+func OptionNone() Option {
 	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
@@ -26,23 +26,21 @@ func (e Option) IsNone() bool {
 }
 func findUser(id int) Option {
 	if id > 0 {
-		return Option_Some("User" + string(rune(id)))
+		return OptionSome("User" + string(rune(id)))
 	}
-	return Option_None()
+	return OptionNone()
 }
 func getUserOrDefault(id int) string {
 	user := findUser(id)
 
-	__match_0 := user
-	switch __match_0.tag {
+	scrutinee := user
+	switch scrutinee.tag {
 	case OptionTagSome:
+		name := *scrutinee.some
 
-		name := *__match_0.some
 		return name
-	case OptionTagNone:
-
-		return "Anonymous"
 	}
+	panic("unreachable: match is exhaustive")
 
 }
 func main() {

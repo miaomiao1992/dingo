@@ -12,15 +12,15 @@ const (
 )
 
 type Result struct {
-	tag   ResultTag
+	tag ResultTag
 	ok  *int
 	err *error
 }
 
-func Result_Ok(arg0 int) Result {
+func ResultOk(arg0 int) Result {
 	return Result{tag: ResultTagOk, ok: &arg0}
 }
-func Result_Err(arg0 error) Result {
+func ResultErr(arg0 error) Result {
 	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
@@ -188,12 +188,12 @@ func processFourResults(r1, r2, r3, r4 Result) string {
 
 }
 func main() {
-	r1 := Result_Ok(1)
-	r2 := Result_Ok(2)
-	r3 := Result_Err(errors.New("step 3 error"))
-	r4 := Result_Ok(4)
-	r5 := Result_Ok(5)
-	r6 := Result_Ok(6)
+	r1 := ResultOk(1)
+	r2 := ResultOk(2)
+	r3 := ResultErr(errors.New("step 3 error"))
+	r4 := ResultOk(4)
+	r5 := ResultOk(5)
+	r6 := ResultOk(6)
 
 	result := validateSixSteps(r1, r2, r3, r4, r5, r6)
 	println(result)

@@ -9,20 +9,20 @@ const (
 )
 
 type Value struct {
-	tag      ValueTag
-	small_0  *int
-	medium_0 *int
-	large_0  *int
+	tag    ValueTag
+	small  *int
+	medium *int
+	large  *int
 }
 
-func Value_Small(arg0 int) Value {
-	return Value{tag: ValueTagSmall, small_0: &arg0}
+func ValueSmall(arg0 int) Value {
+	return Value{tag: ValueTagSmall, small: &arg0}
 }
-func Value_Medium(arg0 int) Value {
-	return Value{tag: ValueTagMedium, medium_0: &arg0}
+func ValueMedium(arg0 int) Value {
+	return Value{tag: ValueTagMedium, medium: &arg0}
 }
-func Value_Large(arg0 int) Value {
-	return Value{tag: ValueTagLarge, large_0: &arg0}
+func ValueLarge(arg0 int) Value {
+	return Value{tag: ValueTagLarge, large: &arg0}
 }
 func (e Value) IsSmall() bool {
 	return e.tag == ValueTagSmall

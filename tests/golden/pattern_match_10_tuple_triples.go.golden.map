@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 35,
+      "generated_column": 1,
+      "original_line": 35,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 36,
+      "generated_column": 1,
+      "original_line": 35,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 37,
+      "generated_column": 1,
+      "original_line": 35,
+      "original_column": 1,
+      "length": 5,
+      "name": "rust_match"
+    },
+    {
+      "generated_line": 77,
+      "generated_column": 1,
+      "original_line": 35,
+      "original_column": 1,
+      "length": 1,
+      "name": "rust_match"
+    }
+  ]
+}

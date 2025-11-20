@@ -9,9 +9,9 @@ enum Result {
 
 func divide(a: float64, b: float64) Result {
 	if b == 0.0 {
-		return Result_Err(errors.New("division by zero"))
+		return ResultErr(errors.New("division by zero"))
 	}
-	return Result_Ok(a / b)
+	return ResultOk(a / b)
 }
 
 func main() {

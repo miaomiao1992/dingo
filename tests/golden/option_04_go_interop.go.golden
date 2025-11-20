@@ -8,14 +8,14 @@ const (
 )
 
 type Option struct {
-	tag    OptionTag
+	tag  OptionTag
 	some *string
 }
 
-func Option_Some(arg0 string) Option {
+func OptionSome(arg0 string) Option {
 	return Option{tag: OptionTagSome, some: &arg0}
 }
-func Option_None() Option {
+func OptionNone() Option {
 	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
@@ -27,9 +27,9 @@ func (e Option) IsNone() bool {
 func findInMap(m map[string]string, key string) Option {
 	val, exists := m[key]
 	if exists {
-		return Option_Some(val)
+		return OptionSome(val)
 	}
-	return Option_None()
+	return OptionNone()
 }
 func getOrDefault(opt Option, defaultVal string) string {
 	if opt.IsSome() {

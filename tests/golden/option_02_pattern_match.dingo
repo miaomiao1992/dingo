@@ -7,9 +7,9 @@ enum Option {
 
 func findUser(id int) Option {
 	if id > 0 {
-		return Option_Some("User" + string(rune(id)))
+		return OptionSome("User" + string(rune(id)))
 	}
-	return Option_None()
+	return OptionNone()
 }
 
 func getUserOrDefault(id int) string {

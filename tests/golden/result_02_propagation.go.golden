@@ -12,15 +12,15 @@ const (
 )
 
 type Result struct {
-	tag   ResultTag
+	tag ResultTag
 	ok  *string
 	err *error
 }
 
-func Result_Ok(arg0 string) Result {
+func ResultOk(arg0 string) Result {
 	return Result{tag: ResultTagOk, ok: &arg0}
 }
-func Result_Err(arg0 error) Result {
+func ResultErr(arg0 error) Result {
 	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
@@ -31,58 +31,63 @@ func (e Result) IsErr() bool {
 }
 func fetchUser(id int) Result {
 	if id <= 0 {
-		return Result_Err(errors.New("invalid user ID"))
+		return ResultErr(errors.New("invalid user ID"))
 	}
-	return Result_Ok("User" + string(rune(id)))
+	return ResultOk("User" + string(rune(id)))
 }
 func validateUser(name string) Result {
 	if name == "" {
-		return Result_Err(errors.New("empty user name"))
+		return ResultErr(errors.New("empty user name"))
 	}
-	return Result_Ok(name)
+	return ResultOk(name)
 }
 func processUser(id int) Result {
 	user := fetchUser(id)
 
-	__match_0 := user
-	switch __match_0.tag {
+	scrutinee := user
+	switch scrutinee.tag {
 	case ResultTagOk:
+		u := *scrutinee.ok
 
-		u := *__match_0.ok
-		validated := validateUser(u)
+		{
+			validated := validateUser(u)
 
-		__match_0 := validated
-		switch __match_0.tag {
-		case ResultTagOk:
+			scrutinee := validated
+			switch scrutinee.tag {
+			case ResultTagOk:
+				v := *scrutinee.ok
 
-			v := *__match_0.ok
-			return Result_Ok(v)
-		case ResultTagErr:
+				return ResultOk(v)
+			case ResultTagErr:
+				e := scrutinee.err
 
-			e := __match_0.err
-			return Result_Err(e)
+				return ResultErr(e)
+			}
+			panic("unreachable: match is exhaustive")
+
 		}
-
 	case ResultTagErr:
+		e := scrutinee.err
 
-		e := __match_0.err
-		return Result_Err(e)
+		return ResultErr(e)
 	}
+	panic("unreachable: match is exhaustive")
 
 }
 func main() {
 	result := processUser(42)
 
-	__match_1 := result
-	switch __match_1.tag {
+	scrutinee2 := result
+	switch scrutinee2.tag {
 	case ResultTagOk:
+		user := *scrutinee2.ok
 
-		user := *__match_1.ok
 		println("Success:", user)
 	case ResultTagErr:
+		error := scrutinee2.err
 
-		error := __match_1.err
 		println("Error:", error)
 	}
+	panic("unreachable: match is exhaustive")
 
 }

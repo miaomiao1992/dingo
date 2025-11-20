@@ -22,9 +22,9 @@ func analyzeResults(r1 Result, r2 Result, r3 Result) string {
 }
 
 func main() {
-	r1 := Result_Ok(10)
-	r2 := Result_Err(errors.New("database error"))
-	r3 := Result_Ok(30)
+	r1 := ResultOk(10)
+	r2 := ResultErr(errors.New("database error"))
+	r3 := ResultOk(30)
 	result := analyzeResults(r1, r2, r3)
 	println(result)
 }

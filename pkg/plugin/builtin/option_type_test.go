@@ -133,7 +133,7 @@ func TestHandleSomeConstructor_Addressability(t *testing.T) {
 				// Type inference failed - handleSomeConstructor defaults to interface{}
 				expectedType = "interface{}"
 			}
-			optionType := "Option_" + p.sanitizeTypeName(expectedType)
+			optionType := "Option_" + SanitizeTypeName(expectedType)
 			if !p.emittedTypes[optionType] {
 				t.Errorf("Expected Option type %s to be emitted", optionType)
 			}
@@ -193,87 +193,6 @@ func TestInferNoneTypeFromContext(t *testing.T) {
 	}
 }
 
-// TestDesanitizeTypeName tests type name reverse conversion
-func TestDesanitizeTypeName(t *testing.T) {
-	p := NewOptionTypePlugin()
-
-	tests := []struct {
-		name      string
-		sanitized string
-		expected  string
-	}{
-		{
-			name:      "simple type",
-			sanitized: "int",
-			expected:  "int",
-		},
-		{
-			name:      "pointer type",
-			sanitized: "ptr_int",
-			expected:  "*int",
-		},
-		{
-			name:      "slice type",
-			sanitized: "slice_int",
-			expected:  "[]int",
-		},
-		{
-			name:      "nested pointer",
-			sanitized: "ptr_ptr_int",
-			expected:  "**int",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := p.desanitizeTypeName(tt.sanitized)
-			if result != tt.expected {
-				t.Errorf("desanitizeTypeName(%q) = %q, want %q", tt.sanitized, result, tt.expected)
-			}
-		})
-	}
-}
-
-// TestSanitizeTypeName tests type name sanitization
-func TestSanitizeTypeName(t *testing.T) {
-	p := NewOptionTypePlugin()
-
-	tests := []struct {
-		name     string
-		typeName string
-		expected string
-	}{
-		{
-			name:     "simple type",
-			typeName: "int",
-			expected: "int",
-		},
-		{
-			name:     "pointer type",
-			typeName: "*int",
-			expected: "ptr_int",
-		},
-		{
-			name:     "slice type",
-			typeName: "[]int",
-			expected: "slice_int",
-		},
-		{
-			name:     "map type",
-			typeName: "map[string]int",
-			expected: "map_string_int",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := p.sanitizeTypeName(tt.typeName)
-			if result != tt.expected {
-				t.Errorf("sanitizeTypeName(%q) = %q, want %q", tt.typeName, result, tt.expected)
-			}
-		})
-	}
-}
 
 // TestHandleNoneExpression_ErrorReporting tests error reporting when inference fails
 func TestHandleNoneExpression_ErrorReporting(t *testing.T) {

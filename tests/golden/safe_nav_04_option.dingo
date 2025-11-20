@@ -31,11 +31,11 @@ type Profile struct {
 
 func fetchUser(id int) UserOption {
 	if id == 1 {
-		bio := StringOption_Some("Software Engineer")
-		prof := ProfileOption_Some(Profile{bio: bio, email: "alice@example.com"})
-		return UserOption_Some(User{id: 1, profile: prof})
+		bio := StringOptionSome("Software Engineer")
+		prof := ProfileOptionSome(Profile{bio: bio, email: "alice@example.com"})
+		return UserOptionSome(User{id: 1, profile: prof})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func main() {
@@ -50,7 +50,7 @@ func main() {
 	println("No Bio:", noBio)
 
 	// Test 3: Intermediate None
-	partialUser := UserOption_Some(User{id: 2, profile: ProfileOption_None()})
+	partialUser := UserOptionSome(User{id: 2, profile: ProfileOptionNone()})
 	partialBio := partialUser?.profile?.bio
 	println("Partial Bio:", partialBio)
 }

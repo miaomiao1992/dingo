@@ -153,8 +153,6 @@ func TestTypeDeclaration_ComplexSliceTypes(t *testing.T) {
 }
 
 func TestTypeDeclaration_TypeNameSanitization(t *testing.T) {
-	p := NewResultTypePlugin()
-
 	tests := []struct {
 		name     string
 		input    string
@@ -172,9 +170,9 @@ func TestTypeDeclaration_TypeNameSanitization(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := p.sanitizeTypeName(tt.input)
+			got := SanitizeTypeName(tt.input)
 			if got != tt.expected {
-				t.Errorf("sanitizeTypeName(%q) = %q, want %q", tt.input, got, tt.expected)
+				t.Errorf("SanitizeTypeName(%q) = %q, want %q", tt.input, got, tt.expected)
 			}
 		})
 	}

@@ -25,10 +25,10 @@ type Address struct {
 
 func getUser(id int) UserOption {
 	if id > 0 {
-		addr := AddressOption_Some(Address{city: "Boston"})
-		return UserOption_Some(User{name: "Alice", address: addr})
+		addr := AddressOptionSome(Address{city: "Boston"})
+		return UserOptionSome(User{name: "Alice", address: addr})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func main() {

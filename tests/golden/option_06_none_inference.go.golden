@@ -9,14 +9,14 @@ const (
 )
 
 type Option struct {
-	tag    OptionTag
+	tag  OptionTag
 	some *int
 }
 
-func Option_Some(arg0 int) Option {
+func OptionSome(arg0 int) Option {
 	return Option{tag: OptionTagSome, some: &arg0}
 }
-func Option_None() Option {
+func OptionNone() Option {
 	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
@@ -26,7 +26,7 @@ func (e Option) IsNone() bool {
 	return e.tag == OptionTagNone
 }
 func getAge() Option {
-	return Option_None()
+	return OptionNone()
 }
 
 // Test 2: Function call parameter context
@@ -34,7 +34,7 @@ func processAge(age Option) {
 	println("Processing age")
 }
 func main() {
-	processAge(Option_None())
+	processAge(OptionNone())
 	explicitType()
 	assignmentContext()
 	user := createUser()
@@ -43,14 +43,14 @@ func main() {
 
 // Test 3: Explicit type annotation (always valid)
 func explicitType() {
-	var x Option = Option_None() // Explicit type annotation
+	var x Option = OptionNone() // Explicit type annotation
 	println("x is None")
 }
 
 // Test 4: Assignment to typed variable
 func assignmentContext() {
 	var age Option
-	age = Option_None()
+	age = OptionNone()
 	println("age is None")
 }
 
@@ -62,6 +62,6 @@ type User struct {
 func createUser() User {
 	return User{
 		name: "Alice",
-		age:  Option_None(),
+		age:  OptionNone(),
 	}
 }

@@ -344,22 +344,24 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 	var buf bytes.Buffer
 
 	// 1. Generate tag type
-	buf.WriteString(fmt.Sprintf("type %sTag uint8\n\n", enumName))
+	tagTypeName := fmt.Sprintf("%sTag", enumName)
+	buf.WriteString(fmt.Sprintf("type %s uint8\n\n", tagTypeName))
 
 	// 2. Generate tag constants
 	buf.WriteString("const (\n")
 	for i, variant := range variants {
+		tagConstName := fmt.Sprintf("%s%s", tagTypeName, variant.Name)
 		if i == 0 {
-			buf.WriteString(fmt.Sprintf("\t%sTag%s %sTag = iota\n", enumName, variant.Name, enumName))
+			buf.WriteString(fmt.Sprintf("\t%s %s = iota\n", tagConstName, tagTypeName))
 		} else {
-			buf.WriteString(fmt.Sprintf("\t%sTag%s\n", enumName, variant.Name))
+			buf.WriteString(fmt.Sprintf("\t%s\n", tagConstName))
 		}
 	}
 	buf.WriteString(")\n\n")
 
 	// 3. Generate struct with tag and fields
 	buf.WriteString(fmt.Sprintf("type %s struct {\n", enumName))
-	buf.WriteString("\ttag " + enumName + "Tag\n")
+	buf.WriteString("\ttag " + tagTypeName + "\n")
 
 	// Add fields for each variant
 	// Add fields for each variant
@@ -393,10 +395,13 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 
 	// 4. Generate constructor functions
 	for _, variant := range variants {
+		constructorName := fmt.Sprintf("%s%s", enumName, variant.Name)
+		tagConstName := fmt.Sprintf("%s%s", tagTypeName, variant.Name)
+
 		if len(variant.Fields) == 0 {
 			// Unit variant constructor
-			buf.WriteString(fmt.Sprintf("func %s_%s() %s {\n", enumName, variant.Name, enumName))
-			buf.WriteString(fmt.Sprintf("\treturn %s{tag: %sTag%s}\n", enumName, enumName, variant.Name))
+			buf.WriteString(fmt.Sprintf("func %s() %s {\n", constructorName, enumName))
+			buf.WriteString(fmt.Sprintf("\treturn %s{tag: %s}\n", enumName, tagConstName))
 			buf.WriteString("}\n")
 		} else {
 			// Struct variant constructor
@@ -429,18 +434,19 @@ func (e *EnumProcessor) generateSumType(enumName string, variants []Variant) str
 				assignments = append(assignments, fmt.Sprintf("%s: &%s", fieldName, paramName))
 			}
 
-			buf.WriteString(fmt.Sprintf("func %s_%s(%s) %s {\n",
-				enumName, variant.Name, strings.Join(params, ", "), enumName))
-			buf.WriteString(fmt.Sprintf("\treturn %s{tag: %sTag%s, %s}\n",
-				enumName, enumName, variant.Name, strings.Join(assignments, ", ")))
+			buf.WriteString(fmt.Sprintf("func %s(%s) %s {\n",
+				constructorName, strings.Join(params, ", "), enumName))
+			buf.WriteString(fmt.Sprintf("\treturn %s{tag: %s, %s}\n",
+				enumName, tagConstName, strings.Join(assignments, ", ")))
 			buf.WriteString("}\n")
 		}
 	}
 
 	// 5. Generate Is* methods
 	for i, variant := range variants {
+		tagConstName := fmt.Sprintf("%s%s", tagTypeName, variant.Name)
 		buf.WriteString(fmt.Sprintf("func (e %s) Is%s() bool {\n", enumName, variant.Name))
-		buf.WriteString(fmt.Sprintf("\treturn e.tag == %sTag%s\n", enumName, variant.Name))
+		buf.WriteString(fmt.Sprintf("\treturn e.tag == %s\n", tagConstName))
 		buf.WriteString("}")
 		// Add newline after each method except the last
 		if i < len(variants)-1 {

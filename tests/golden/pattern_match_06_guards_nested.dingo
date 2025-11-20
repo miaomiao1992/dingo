@@ -18,37 +18,37 @@ enum Result {
 // Using 'where' keyword (Swift-style)
 func analyzeValue(opt Option) string {
 	return match opt {
-		Option_Some(x) where x > 100 => "large",
-		Option_Some(x) where x > 10 => "medium",
-		Option_Some(x) where x > 0 => "small",
-		Option_Some(_) => "non-positive",
-		Option_None => "none",
+		OptionSome(x) where x > 100 => "large",
+		OptionSome(x) where x > 10 => "medium",
+		OptionSome(x) where x > 0 => "small",
+		OptionSome(_) => "non-positive",
+		OptionNone => "none",
 	}
 }
 
 // Simple pattern with where guards (NOT nested)
 func processResult(result Result) string {
 	return match result {
-		Result_Ok(val) where val > 100 => "large value",
-		Result_Ok(val) where val > 0 => "positive value",
-		Result_Ok(_) => "non-positive value",
-		Result_Err(_) => "error",
+		ResultOk(val) where val > 100 => "large value",
+		ResultOk(val) where val > 0 => "positive value",
+		ResultOk(_) => "non-positive value",
+		ResultErr(_) => "error",
 	}
 }
 
 // Guard fallthrough demonstration
 func categorize(opt Option) string {
 	return match opt {
-		Option_Some(x) where x%3 == 0 && x%5 == 0 => "fizzbuzz",
-		Option_Some(x) where x%3 == 0 => "fizz",
-		Option_Some(x) where x%5 == 0 => "buzz",
-		Option_Some(x) => "number",
-		Option_None => "empty",
+		OptionSome(x) where x%3 == 0 && x%5 == 0 => "fizzbuzz",
+		OptionSome(x) where x%3 == 0 => "fizz",
+		OptionSome(x) where x%5 == 0 => "buzz",
+		OptionSome(x) => "number",
+		OptionNone => "empty",
 	}
 }
 
 func main() {
-	println(analyzeValue(Option_Some(150)))
-	println(processResult(Result_Ok(42)))
-	println(categorize(Option_Some(15)))
+	println(analyzeValue(OptionSome(150)))
+	println(processResult(ResultOk(42)))
+	println(categorize(OptionSome(15)))
 }

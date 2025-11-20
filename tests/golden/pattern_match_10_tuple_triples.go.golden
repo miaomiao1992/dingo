@@ -12,15 +12,15 @@ const (
 )
 
 type Result struct {
-	tag   ResultTag
+	tag ResultTag
 	ok  *string
 	err *error
 }
 
-func Result_Ok(arg0 string) Result {
+func ResultOk(arg0 string) Result {
 	return Result{tag: ResultTagOk, ok: &arg0}
 }
-func Result_Err(arg0 error) Result {
+func ResultErr(arg0 error) Result {
 	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
@@ -75,9 +75,9 @@ func parseConfig(host Result, port Result, timeout Result) string {
 
 }
 func main() {
-	h := Result_Ok("localhost")
-	p := Result_Ok("8080")
-	t := Result_Err(errors.New("timeout not specified"))
+	h := ResultOk("localhost")
+	p := ResultOk("8080")
+	t := ResultErr(errors.New("timeout not specified"))
 	config := parseConfig(h, p, t)
 	println(config)
 }

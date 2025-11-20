@@ -11,9 +11,9 @@ enum StringOption {
 
 func main() {
 	// Test 1: Chain of Option values (a ?? b ?? c)
-	let firstName: StringOption = StringOption_None()
-	let middleName: StringOption = StringOption_None()
-	let lastName: StringOption = StringOption_Some("Smith")
+	let firstName: StringOption = StringOptionNone()
+	let middleName: StringOption = StringOptionNone()
+	let lastName: StringOption = StringOptionSome("Smith")
 
 	// Chained null coalescing - try each in order
 	let name = firstName ?? middleName ?? lastName ?? "Unknown"
@@ -24,10 +24,10 @@ func main() {
 	let config = primary ?? fallback ?? "default"
 
 	// Test 3: Long chain
-	let opt1: StringOption = StringOption_None()
-	let opt2: StringOption = StringOption_None()
-	let opt3: StringOption = StringOption_None()
-	let opt4: StringOption = StringOption_Some("Found")
+	let opt1: StringOption = StringOptionNone()
+	let opt2: StringOption = StringOptionNone()
+	let opt3: StringOption = StringOptionNone()
+	let opt4: StringOption = StringOptionSome("Found")
 	let result = opt1 ?? opt2 ?? opt3 ?? opt4 ?? "Not Found"
 
 	println("Name:", name)
@@ -37,7 +37,7 @@ func main() {
 
 func getConfig(key string) StringOption {
 	if key == "fallback" {
-		return StringOption_Some("backup-value")
+		return StringOptionSome("backup-value")
 	}
-	return StringOption_None()
+	return StringOptionNone()
 }

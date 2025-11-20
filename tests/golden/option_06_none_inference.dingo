@@ -11,7 +11,7 @@ enum Option {
 }
 
 func getAge() Option {
-	return Option_None()  // Inferred as Option<int> from return type
+	return OptionNone()  // Inferred as Option<int> from return type
 }
 
 // Test 2: Function call parameter context
@@ -20,7 +20,7 @@ func processAge(age Option) {
 }
 
 func main() {
-	processAge(Option_None())  // Inferred as Option<int> from parameter type
+	processAge(OptionNone())  // Inferred as Option<int> from parameter type
 	explicitType()
 	assignmentContext()
 	user := createUser()
@@ -29,14 +29,14 @@ func main() {
 
 // Test 3: Explicit type annotation (always valid)
 func explicitType() {
-	var x Option = Option_None()  // Explicit type annotation
+	var x Option = OptionNone()  // Explicit type annotation
 	println("x is None")
 }
 
 // Test 4: Assignment to typed variable
 func assignmentContext() {
 	var age Option
-	age = Option_None()  // Inferred from variable type
+	age = OptionNone()  // Inferred from variable type
 	println("age is None")
 }
 
@@ -49,7 +49,7 @@ type User struct {
 func createUser() User {
 	return User{
 		name: "Alice",
-		age: Option_None(),  // Inferred as Option<int> from field type
+		age: OptionNone(),  // Inferred as Option<int> from field type
 	}
 }
 

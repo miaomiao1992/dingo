@@ -15,13 +15,13 @@ type Shape struct {
 	rectangle_height *float64
 }
 
-func Shape_Point() Shape {
+func ShapePoint() Shape {
 	return Shape{tag: ShapeTagPoint}
 }
-func Shape_Circle(radius float64) Shape {
+func ShapeCircle(radius float64) Shape {
 	return Shape{tag: ShapeTagCircle, circle_radius: &radius}
 }
-func Shape_Rectangle(width float64, height float64) Shape {
+func ShapeRectangle(width float64, height float64) Shape {
 	return Shape{tag: ShapeTagRectangle, rectangle_width: &width, rectangle_height: &height}
 }
 func (e Shape) IsPoint() bool {

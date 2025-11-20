@@ -21,8 +21,8 @@ func processResults(r1 Result, r2 Result) string {
 }
 
 func main() {
-	r1 := Result_Ok(42)
-	r2 := Result_Err(errors.New("network error"))
+	r1 := ResultOk(42)
+	r2 := ResultErr(errors.New("network error"))
 	result := processResults(r1, r2)
 	println(result)
 }

@@ -33,7 +33,7 @@ func main() {
 	let name = userPtr?.name ?? "Anonymous"
 
 	// Test 3: Mixed chain with multiple types
-	let user2: UserOption = UserOption_Some(User{
+	let user2: UserOption = UserOptionSome(User{
 		name:    "Bob",
 		profile: &Profile{bio: "Engineer"},
 	})
@@ -50,7 +50,7 @@ func main() {
 }
 
 func getUser() UserOption {
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func getUserPtr() *User {

@@ -13,16 +13,16 @@ enum Result {
 
 func parse(s string) Result {
 	if s == "" {
-		return Result_Err(errors.New("empty string"))
+		return ResultErr(errors.New("empty string"))
 	}
-	return Result_Ok(len(s))
+	return ResultOk(len(s))
 }
 
 func validate(n int) Result {
 	if n < 5 {
-		return Result_Err(errors.New("too short"))
+		return ResultErr(errors.New("too short"))
 	}
-	return Result_Ok(n)
+	return ResultOk(n)
 }
 
 func processInput(input string) Result {

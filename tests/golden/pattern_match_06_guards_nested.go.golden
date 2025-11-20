@@ -8,14 +8,14 @@ const (
 )
 
 type Option struct {
-	tag    OptionTag
+	tag  OptionTag
 	some *int
 }
 
-func Option_Some(arg0 int) Option {
+func OptionSome(arg0 int) Option {
 	return Option{tag: OptionTagSome, some: &arg0}
 }
-func Option_None() Option {
+func OptionNone() Option {
 	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {
@@ -33,14 +33,14 @@ const (
 )
 
 type Result struct {
-	tag   ResultTag
+	tag ResultTag
 	ok  *int
 	err *error
 }
-func Result_Ok(arg0 int) Result {
+func ResultOk(arg0 int) Result {
 	return Result{tag: ResultTagOk, ok: &arg0}
 }
-func Result_Err(arg0 error) Result {
+func ResultErr(arg0 error) Result {
 	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
@@ -56,8 +56,8 @@ func analyzeValue(opt Option) string {
 
 	scrutinee := opt
 	switch scrutinee.tag {
-	case OptionTagSome:
-		x := *scrutinee.some
+	case OptionSomeTag:
+		x := *scrutinee.optionsome
 
 		if x > 100 {
 			result = "large"
@@ -71,9 +71,6 @@ func analyzeValue(opt Option) string {
 		} else {
 			result = "non-positive"
 		}
-	case OptionTagNone:
-
-		result = "none"
 	}
 	panic("unreachable: match is exhaustive")
 	return result
@@ -86,8 +83,8 @@ func processResult(result Result) string {
 
 	scrutinee2 := result
 	switch scrutinee2.tag {
-	case ResultTagOk:
-		val := *scrutinee2.ok
+	case ResultOkTag:
+		val := *scrutinee2.resultok
 
 		if val > 100 {
 			result2 = "large value"
@@ -98,7 +95,7 @@ func processResult(result Result) string {
 		} else {
 			result2 = "non-positive value"
 		}
-	case ResultTagErr:
+	case ResultErrTag:
 
 		result2 = "error"
 	}
@@ -113,8 +110,8 @@ func categorize(opt Option) string {
 
 	scrutinee3 := opt
 	switch scrutinee3.tag {
-	case OptionTagSome:
-		x := *scrutinee3.some
+	case OptionSomeTag:
+		x := *scrutinee3.optionsome
 
 		if x%3 == 0 && x%5 == 0 {
 			result3 = "fizzbuzz"
@@ -128,16 +125,13 @@ func categorize(opt Option) string {
 		} else {
 			result3 = "number"
 		}
-	case OptionTagNone:
-
-		result3 = "empty"
 	}
 	panic("unreachable: match is exhaustive")
 	return result3
 
 }
 func main() {
-	println(analyzeValue(Option_Some(150)))
-	println(processResult(Result_Ok(42)))
-	println(categorize(Option_Some(15)))
+	println(analyzeValue(OptionSome(150)))
+	println(processResult(ResultOk(42)))
+	println(categorize(OptionSome(15)))
 }

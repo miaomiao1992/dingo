@@ -11,9 +11,9 @@ enum Option {
 
 func getValue(id int) Option {
 	if id > 0 {
-		return Option_Some(id)
+		return OptionSome(id)
 	}
-	return Option_None()
+	return OptionNone()
 }
 
 func processValue(opt Option) Option {
@@ -21,9 +21,9 @@ func processValue(opt Option) Option {
 		.map(|x| x * 2)
 		.and_then(|x| {
 			if x > 10 {
-				return Option_Some(x)
+				return OptionSome(x)
 			}
-			return Option_None()
+			return OptionNone()
 		})
 }
 

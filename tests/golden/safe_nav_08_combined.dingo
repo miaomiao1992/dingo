@@ -188,24 +188,24 @@ func main() {
 func fetchUserFromAPI(id int) UserOption {
 	// Simulate API call that may return None
 	if id == 123 {
-		profile := ProfileOption_Some(Profile{
-			bio:        StringOption_Some("Software engineer"),
-			website:    StringOption_Some("https://github.com/user"),
-			reputation: IntOption_Some(1500),
+		profile := ProfileOptionSome(Profile{
+			bio:        StringOptionSome("Software engineer"),
+			website:    StringOptionSome("https://github.com/user"),
+			reputation: IntOptionSome(1500),
 		})
-		address := AddressOption_Some(Address{
+		address := AddressOptionSome(Address{
 			street:  "123 Main St",
 			city:    "San Francisco",
-			country: StringOption_Some("USA"),
+			country: StringOptionSome("USA"),
 		})
-		return UserOption_Some(User{
+		return UserOptionSome(User{
 			id:      123,
 			name:    "Alice",
 			profile: profile,
 			address: address,
 		})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func loadConfig() *Config {
@@ -229,15 +229,15 @@ func loadConfig() *Config {
 }
 
 func getActiveUser() UserOption {
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func findUser(username string) UserOption {
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func getUser(id int) UserOption {
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func getDefaultCity() string {
@@ -251,13 +251,13 @@ func detectCountryFromIP() string {
 // User methods
 func (u User) getDisplayName() StringOption {
 	if u.name != "" {
-		return StringOption_Some(u.name)
+		return StringOptionSome(u.name)
 	}
-	return StringOption_None()
+	return StringOptionNone()
 }
 
 func (u User) getBackupEmail() StringOption {
-	return StringOption_Some("backup@example.com")
+	return StringOptionSome("backup@example.com")
 }
 
 func (u User) formatAddress(format string) AddressOption {
@@ -266,9 +266,9 @@ func (u User) formatAddress(format string) AddressOption {
 
 // Profile methods
 func (p Profile) formatURL() StringOption {
-	return StringOption_Some("/profile/123")
+	return StringOptionSome("/profile/123")
 }
 
 func (p Profile) getEmail() StringOption {
-	return StringOption_None()
+	return StringOptionNone()
 }

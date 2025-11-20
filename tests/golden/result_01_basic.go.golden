@@ -12,15 +12,15 @@ const (
 )
 
 type Result struct {
-	tag   ResultTag
+	tag ResultTag
 	ok  *float64
 	err *error
 }
 
-func Result_Ok(arg0 float64) Result {
+func ResultOk(arg0 float64) Result {
 	return Result{tag: ResultTagOk, ok: &arg0}
 }
-func Result_Err(arg0 error) Result {
+func ResultErr(arg0 error) Result {
 	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
@@ -31,13 +31,14 @@ func (e Result) IsErr() bool {
 }
 func divide(a float64, b float64) Result {
 	if b == 0.0 {
-		return Result_Err(errors.New("division by zero"))
+		return ResultErr(errors.New("division by zero"))
 	}
-	return Result_Ok(a / b)
+	return ResultOk(a / b)
 }
 func main() {
 	result := divide(10.0, 2.0)
 	if result.IsOk() {
 		v := *result.ok
+		_ = v
 	}
 }

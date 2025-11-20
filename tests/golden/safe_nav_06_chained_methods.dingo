@@ -29,36 +29,36 @@ type Profile struct {
 
 func (u User) getName() StringOption {
 	if u.name != "" {
-		return StringOption_Some(u.name)
+		return StringOptionSome(u.name)
 	}
-	return StringOption_None()
+	return StringOptionNone()
 }
 
 func (s StringOption) toUpper() StringOption {
 	if s.IsNone() {
-		return StringOption_None()
+		return StringOptionNone()
 	}
 	str := s.Unwrap()
 	// Simplified uppercase conversion
-	return StringOption_Some(str)
+	return StringOptionSome(str)
 }
 
 func (u User) getProfile() ProfileOption {
-	return ProfileOption_Some(Profile{bio: "Engineer"})
+	return ProfileOptionSome(Profile{bio: "Engineer"})
 }
 
 func (p Profile) getBio() StringOption {
 	if p.bio != "" {
-		return StringOption_Some(p.bio)
+		return StringOptionSome(p.bio)
 	}
-	return StringOption_None()
+	return StringOptionNone()
 }
 
 func getUser(id int) UserOption {
 	if id > 0 {
-		return UserOption_Some(User{name: "Alice"})
+		return UserOptionSome(User{name: "Alice"})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func main() {

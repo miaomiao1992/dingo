@@ -1,77 +1,52 @@
 package main
 
-// Test: Mixed Option and pointer chains
-// Feature: Safe Navigation (?.) - Mixed Type Support
-// Complexity: advanced
-
-type UserOption_Tag int
+type UserOptionTag uint8
 
 const (
-	UserOption_Tag_Some UserOption_Tag = iota
-	UserOption_Tag_None
+	UserOptionTagSome UserOptionTag = iota
+	UserOptionTagNone
 )
 
 type UserOption struct {
-	tag  UserOption_Tag
+	tag  UserOptionTag
 	some *User
 }
 
-func UserOption_Some(value User) UserOption {
-	return UserOption{tag: UserOption_Tag_Some, some: &value}
+func UserOptionSome(arg0 User) UserOption {
+	return UserOption{tag: UserOptionTagSome, some: &arg0}
+}
+func UserOptionNone() UserOption {
+	return UserOption{tag: UserOptionTagNone}
+}
+func (e UserOption) IsSome() bool {
+	return e.tag == UserOptionTagSome
+}
+func (e UserOption) IsNone() bool {
+	return e.tag == UserOptionTagNone
 }
 
-func UserOption_None() UserOption {
-	return UserOption{tag: UserOption_Tag_None, some: nil}
-}
-
-func (o UserOption) IsSome() bool {
-	return o.tag == UserOption_Tag_Some
-}
-
-func (o UserOption) IsNone() bool {
-	return o.tag == UserOption_Tag_None
-}
-
-func (o UserOption) Unwrap() User {
-	if o.IsNone() {
-		panic("called Unwrap on None")
-	}
-	return *o.some
-}
-
-type SettingsOption_Tag int
+type SettingsOptionTag uint8
 
 const (
-	SettingsOption_Tag_Some SettingsOption_Tag = iota
-	SettingsOption_Tag_None
+	SettingsOptionTagSome SettingsOptionTag = iota
+	SettingsOptionTagNone
 )
 
 type SettingsOption struct {
-	tag  SettingsOption_Tag
+	tag  SettingsOptionTag
 	some *Settings
 }
-
-func SettingsOption_Some(value Settings) SettingsOption {
-	return SettingsOption{tag: SettingsOption_Tag_Some, some: &value}
+func SettingsOptionSome(arg0 Settings) SettingsOption {
+	return SettingsOption{tag: SettingsOptionTagSome, some: &arg0}
 }
-
-func SettingsOption_None() SettingsOption {
-	return SettingsOption{tag: SettingsOption_Tag_None, some: nil}
+func SettingsOptionNone() SettingsOption {
+	return SettingsOption{tag: SettingsOptionTagNone}
 }
-
-func (o SettingsOption) IsSome() bool {
-	return o.tag == SettingsOption_Tag_Some
+func (e SettingsOption) IsSome() bool {
+	return e.tag == SettingsOptionTagSome
 }
-
-func (o SettingsOption) IsNone() bool {
-	return o.tag == SettingsOption_Tag_None
-}
-
-func (o SettingsOption) Unwrap() Settings {
-	if o.IsNone() {
-		panic("called Unwrap on None")
-	}
-	return *o.some
+func (e SettingsOption) IsNone() bool {
+	return e.tag == SettingsOptionTagNone
 }
 
 type User struct {
@@ -79,93 +54,39 @@ type User struct {
 	config   *Config
 	settings SettingsOption
 }
-
 type Config struct {
 	theme *Theme
 }
-
 type Theme struct {
 	color string
 }
-
 type Settings struct {
 	lang     string
 	timezone *Timezone
 }
-
 type Timezone struct {
 	offset int
 }
-
 func getUser(id int) UserOption {
 	if id == 1 {
 		tz := &Timezone{offset: -5}
-		settings := SettingsOption_Some(Settings{lang: "en", timezone: tz})
+		settings := SettingsOptionSome(Settings{lang: "en", timezone: tz})
 		theme := &Theme{color: "dark"}
 		config := &Config{theme: theme}
-		return UserOption_Some(User{name: "Charlie", config: config, settings: settings})
+		return UserOptionSome(User{name: "Charlie", config: config, settings: settings})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
-
 func main() {
-	// Test 1: Option -> Pointer chain
+
 	user := getUser(1)
-	color := func() string {
-		if user.IsNone() {
-			return ""
-		}
-		_user := user.Unwrap()
-
-		if _user.config == nil {
-			return ""
-		}
-
-		if _user.config.theme == nil {
-			return ""
-		}
-
-		return _user.config.theme.color
-	}()
+	color := __SAFE_NAV_INFER__(user, "config", "theme", "color")
 	println("Theme:", color)
 
-	// Test 2: Option -> Option -> Pointer chain
-	offset := func() int {
-		if user.IsNone() {
-			return 0
-		}
-		_user := user.Unwrap()
-
-		if _user.settings.IsNone() {
-			return 0
-		}
-		_settings := _user.settings.Unwrap()
-
-		if _settings.timezone == nil {
-			return 0
-		}
-
-		return _settings.timezone.offset
-	}()
+	offset := __SAFE_NAV_INFER__(user, "settings", "timezone", "offset")
 	println("Timezone:", offset)
 
-	// Test 3: None in mixed chain
 	noUser := getUser(0)
-	noColor := func() string {
-		if noUser.IsNone() {
-			return ""
-		}
-		_user := noUser.Unwrap()
-
-		if _user.config == nil {
-			return ""
-		}
-
-		if _user.config.theme == nil {
-			return ""
-		}
-
-		return _user.config.theme.color
-	}()
+	noColor := __SAFE_NAV_INFER__(noUser, "config", "theme", "color")
 	println("No Theme:", noColor)
 }

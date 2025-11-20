@@ -25,25 +25,25 @@ type User struct {
 
 func (u User) format(prefix string, suffix string) StringOption {
 	result := prefix + u.name + suffix
-	return StringOption_Some(result)
+	return StringOptionSome(result)
 }
 
 func (u User) process(count int, flag bool, msg string) IntOption {
 	if flag {
-		return IntOption_Some(count * 2)
+		return IntOptionSome(count * 2)
 	}
-	return IntOption_None()
+	return IntOptionNone()
 }
 
 func (u User) transform(data string) StringOption {
-	return StringOption_Some(data + ":" + u.name)
+	return StringOptionSome(data + ":" + u.name)
 }
 
 func getUser(id int) UserOption {
 	if id > 0 {
-		return UserOption_Some(User{name: "Alice"})
+		return UserOptionSome(User{name: "Alice"})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func getData() string {
@@ -71,5 +71,5 @@ func main() {
 }
 
 func (u User) getName() StringOption {
-	return StringOption_Some(u.name)
+	return StringOptionSome(u.name)
 }

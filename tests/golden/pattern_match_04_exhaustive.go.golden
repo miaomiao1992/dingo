@@ -16,16 +16,16 @@ type Color struct {
 	rgb_b *int
 }
 
-func Color_Red() Color {
+func ColorRed() Color {
 	return Color{tag: ColorTagRed}
 }
-func Color_Green() Color {
+func ColorGreen() Color {
 	return Color{tag: ColorTagGreen}
 }
-func Color_Blue() Color {
+func ColorBlue() Color {
 	return Color{tag: ColorTagBlue}
 }
-func Color_RGB(r int, g int, b int) Color {
+func ColorRGB(r int, g int, b int) Color {
 	return Color{tag: ColorTagRGB, rgb_r: &r, rgb_g: &g, rgb_b: &b}
 }
 func (e Color) IsRed() bool {

@@ -21,9 +21,9 @@ func parseConfig(host Result, port Result, timeout Result) string {
 }
 
 func main() {
-	h := Result_Ok("localhost")
-	p := Result_Ok("8080")
-	t := Result_Err(errors.New("timeout not specified"))
+	h := ResultOk("localhost")
+	p := ResultOk("8080")
+	t := ResultErr(errors.New("timeout not specified"))
 	config := parseConfig(h, p, t)
 	println(config)
 }

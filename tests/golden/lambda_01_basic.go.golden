@@ -1,14 +1,8 @@
 package main
 
 func main() {
-	// Rust-style lambda syntax
-	var add = func(a, b interface{}) interface{} {
-		return a + b
-	}
-	var double = func(x interface{}) interface{} {
-		return x * 2
-	}
-	var greet = func(name interface{}) interface{} {
-		return "Hello, " + name
-	}
+
+	add := func(a int, b int) int { a + b }
+	double := func(x int) int { x * 2 }
+	greet := func(name string) string { "Hello, " + name }
 }

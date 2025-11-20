@@ -16,9 +16,9 @@ enum Result {
 
 func divide(a int, b int) Result {
 	if b == 0 {
-		return Result_Err(errors.New("division by zero"))
+		return ResultErr(errors.New("division by zero"))
 	}
-	return Result_Ok(a / b)
+	return ResultOk(a / b)
 }
 
 func main() {

@@ -1,192 +1,119 @@
 package main
 
-// Test: Chained method calls with safe navigation operator
-// Feature: Safe Navigation (?.) - Chained Methods
-// Complexity: intermediate
-
-type UserOption_Tag int
+type UserOptionTag uint8
 
 const (
-	UserOption_Tag_Some UserOption_Tag = iota
-	UserOption_Tag_None
+	UserOptionTagSome UserOptionTag = iota
+	UserOptionTagNone
 )
 
 type UserOption struct {
-	tag  UserOption_Tag
+	tag  UserOptionTag
 	some *User
 }
 
-func UserOption_Some(value User) UserOption {
-	return UserOption{tag: UserOption_Tag_Some, some: &value}
+func UserOptionSome(arg0 User) UserOption {
+	return UserOption{tag: UserOptionTagSome, some: &arg0}
+}
+func UserOptionNone() UserOption {
+	return UserOption{tag: UserOptionTagNone}
+}
+func (e UserOption) IsSome() bool {
+	return e.tag == UserOptionTagSome
+}
+func (e UserOption) IsNone() bool {
+	return e.tag == UserOptionTagNone
 }
 
-func UserOption_None() UserOption {
-	return UserOption{tag: UserOption_Tag_None, some: nil}
-}
-
-func (o UserOption) IsSome() bool {
-	return o.tag == UserOption_Tag_Some
-}
-
-func (o UserOption) IsNone() bool {
-	return o.tag == UserOption_Tag_None
-}
-
-func (o UserOption) Unwrap() User {
-	if o.IsNone() {
-		panic("called Unwrap on None")
-	}
-	return *o.some
-}
-
-type StringOption_Tag int
+type StringOptionTag uint8
 
 const (
-	StringOption_Tag_Some StringOption_Tag = iota
-	StringOption_Tag_None
+	StringOptionTagSome StringOptionTag = iota
+	StringOptionTagNone
 )
 
 type StringOption struct {
-	tag  StringOption_Tag
+	tag  StringOptionTag
 	some *string
 }
-
-func StringOption_Some(value string) StringOption {
-	return StringOption{tag: StringOption_Tag_Some, some: &value}
+func StringOptionSome(arg0 string) StringOption {
+	return StringOption{tag: StringOptionTagSome, some: &arg0}
+}
+func StringOptionNone() StringOption {
+	return StringOption{tag: StringOptionTagNone}
+}
+func (e StringOption) IsSome() bool {
+	return e.tag == StringOptionTagSome
+}
+func (e StringOption) IsNone() bool {
+	return e.tag == StringOptionTagNone
 }
 
-func StringOption_None() StringOption {
-	return StringOption{tag: StringOption_Tag_None, some: nil}
-}
-
-func (o StringOption) IsSome() bool {
-	return o.tag == StringOption_Tag_Some
-}
-
-func (o StringOption) IsNone() bool {
-	return o.tag == StringOption_Tag_None
-}
-
-func (o StringOption) Unwrap() string {
-	if o.IsNone() {
-		panic("called Unwrap on None")
-	}
-	return *o.some
-}
-
-func (s StringOption) toUpper() StringOption {
-	if s.IsNone() {
-		return StringOption_None()
-	}
-	str := s.Unwrap()
-	// Simplified uppercase conversion
-	return StringOption_Some(str)
-}
-
-type ProfileOption_Tag int
+type ProfileOptionTag uint8
 
 const (
-	ProfileOption_Tag_Some ProfileOption_Tag = iota
-	ProfileOption_Tag_None
+	ProfileOptionTagSome ProfileOptionTag = iota
+	ProfileOptionTagNone
 )
 
 type ProfileOption struct {
-	tag  ProfileOption_Tag
+	tag  ProfileOptionTag
 	some *Profile
 }
-
-func ProfileOption_Some(value Profile) ProfileOption {
-	return ProfileOption{tag: ProfileOption_Tag_Some, some: &value}
+func ProfileOptionSome(arg0 Profile) ProfileOption {
+	return ProfileOption{tag: ProfileOptionTagSome, some: &arg0}
 }
-
-func ProfileOption_None() ProfileOption {
-	return ProfileOption{tag: ProfileOption_Tag_None, some: nil}
+func ProfileOptionNone() ProfileOption {
+	return ProfileOption{tag: ProfileOptionTagNone}
 }
-
-func (o ProfileOption) IsSome() bool {
-	return o.tag == ProfileOption_Tag_Some
+func (e ProfileOption) IsSome() bool {
+	return e.tag == ProfileOptionTagSome
 }
-
-func (o ProfileOption) IsNone() bool {
-	return o.tag == ProfileOption_Tag_None
-}
-
-func (o ProfileOption) Unwrap() Profile {
-	if o.IsNone() {
-		panic("called Unwrap on None")
-	}
-	return *o.some
+func (e ProfileOption) IsNone() bool {
+	return e.tag == ProfileOptionTagNone
 }
 
 type User struct {
 	name string
 }
-
 type Profile struct {
 	bio string
 }
-
 func (u User) getName() StringOption {
 	if u.name != "" {
-		return StringOption_Some(u.name)
+		return StringOptionSome(u.name)
 	}
-	return StringOption_None()
+	return StringOptionNone()
 }
+func (s StringOption) toUpper() StringOption {
+	if s.IsNone() {
+		return StringOptionNone()
+	}
+	str := s.Unwrap()
 
+	return StringOptionSome(str)
+}
+func (u User) getProfile() ProfileOption {
+	return ProfileOptionSome(Profile{bio: "Engineer"})
+}
 func (p Profile) getBio() StringOption {
 	if p.bio != "" {
-		return StringOption_Some(p.bio)
+		return StringOptionSome(p.bio)
 	}
-	return StringOption_None()
+	return StringOptionNone()
 }
-
-func (u User) getProfile() ProfileOption {
-	return ProfileOption_Some(Profile{bio: "Engineer"})
-}
-
 func getUser(id int) UserOption {
 	if id > 0 {
-		return UserOption_Some(User{name: "Alice"})
+		return UserOptionSome(User{name: "Alice"})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
-
 func main() {
 	user := getUser(1)
 
-	// Chained methods on same type: user?.getName()?.toUpper()
-	upperName := func() StringOption {
-		if user.IsNone() {
-			return StringOption_None()
-		}
-		_user := user.Unwrap()
-
-		_tmp0 := _user.getName()
-
-		if _tmp0.IsNone() {
-			return StringOption_None()
-		}
-		_tmp1 := _tmp0.Unwrap()
-
-		return _tmp1.toUpper()
-	}()
+	upperName := __SAFE_NAV_INFER__(user, "getName()", "toUpper()")
 	println(upperName)
 
-	// Chained methods across types: user?.getProfile()?.getBio()
-	bio := func() StringOption {
-		if user.IsNone() {
-			return StringOption_None()
-		}
-		_user := user.Unwrap()
-
-		_tmp2 := _user.getProfile()
-
-		if _tmp2.IsNone() {
-			return StringOption_None()
-		}
-		_tmp3 := _tmp2.Unwrap()
-
-		return _tmp3.getBio()
-	}()
+	bio := __SAFE_NAV_INFER__(user, "getProfile()", "getBio()")
 	println(bio)
 }

@@ -8,15 +8,15 @@ const (
 )
 
 type Value struct {
-	tag      ValueTag
+	tag    ValueTag
 	int    *int
 	string *string
 }
 
-func Value_Int(arg0 int) Value {
+func ValueInt(arg0 int) Value {
 	return Value{tag: ValueTagInt, int: &arg0}
 }
-func Value_String(arg0 string) Value {
+func ValueString(arg0 string) Value {
 	return Value{tag: ValueTagString, string: &arg0}
 }
 func (e Value) IsInt() bool {

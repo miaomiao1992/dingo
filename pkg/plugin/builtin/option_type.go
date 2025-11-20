@@ -128,7 +128,7 @@ func (p *OptionTypePlugin) handleGenericOption(expr *ast.IndexExpr) {
 		} else {
 			typeName = p.typeInference.TypeToString(telemType)
 		}
-		optionType := fmt.Sprintf("Option_%s", p.sanitizeTypeName(typeName))
+		optionType := fmt.Sprintf("Option%s", SanitizeTypeName(typeName))
 
 		if !p.emittedTypes[optionType] {
 			p.emitOptionDeclaration(typeName, optionType)
@@ -183,7 +183,7 @@ func (p *OptionTypePlugin) handleNoneExpression(ident *ast.Ident) {
 	p.ctx.Logger.Debug("None constant: inferred Option type %s from context", targetType)
 
 	// Ensure the Option type is declared
-	optionTypeName := fmt.Sprintf("Option_%s", p.sanitizeTypeName(targetType))
+	optionTypeName := fmt.Sprintf("Option%s", SanitizeTypeName(targetType))
 	if !p.emittedTypes[optionTypeName] {
 		p.emitOptionDeclaration(targetType, optionTypeName)
 		p.emittedTypes[optionTypeName] = true
@@ -233,7 +233,7 @@ func (p *OptionTypePlugin) handleSomeConstructor(call *ast.CallExpr) {
 	}
 
 	// Generate unique Option type name
-	optionTypeName := fmt.Sprintf("Option_%s", p.sanitizeTypeName(valueType))
+	optionTypeName := fmt.Sprintf("Option%s", SanitizeTypeName(valueType))
 
 	// Ensure the Option type is declared
 	if !p.emittedTypes[optionTypeName] {
@@ -412,7 +412,7 @@ func (p *OptionTypePlugin) emitOptionTagEnum() {
 
 // emitSomeConstructor generates Some constructor
 func (p *OptionTypePlugin) emitSomeConstructor(optionTypeName, valueType string) {
-	funcName := fmt.Sprintf("%s_Some", optionTypeName)
+	funcName := fmt.Sprintf("%sSome", optionTypeName)
 	valueTypeAST := p.typeToAST(valueType, false)
 
 	// func Option_T_Some(arg0 T) Option_T {
@@ -507,7 +507,7 @@ func (p *OptionTypePlugin) emitSomeConstructor(optionTypeName, valueType string)
 
 // emitNoneConstructor generates None constructor
 func (p *OptionTypePlugin) emitNoneConstructor(optionTypeName, valueType string) {
-	funcName := fmt.Sprintf("%s_None", optionTypeName)
+	funcName := fmt.Sprintf("%sNone", optionTypeName)
 
 	// func Option_T_None() Option_T {
 	//     return Option_T{tag: OptionTagNone}
@@ -1163,23 +1163,6 @@ func (p *OptionTypePlugin) getTypeName(expr ast.Expr) string {
 	}
 }
 
-func (p *OptionTypePlugin) sanitizeTypeName(typeName string) string {
-	s := typeName
-	// Convert interface{} to any (Go 1.18+)
-	if s == "interface{}" {
-		return "any"
-	}
-	s = strings.ReplaceAll(s, "*", "ptr_")
-	s = strings.ReplaceAll(s, "[]", "slice_")
-	s = strings.ReplaceAll(s, "[", "_")
-	s = strings.ReplaceAll(s, "]", "_")
-	s = strings.ReplaceAll(s, ".", "_")
-	s = strings.ReplaceAll(s, "{", "")
-	s = strings.ReplaceAll(s, "}", "")
-	s = strings.ReplaceAll(s, " ", "")
-	s = strings.Trim(s, "_")
-	return s
-}
 
 func (p *OptionTypePlugin) typeToAST(typeName string, asPointer bool) ast.Expr {
 	var baseType ast.Expr

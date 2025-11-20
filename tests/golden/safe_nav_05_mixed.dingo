@@ -40,12 +40,12 @@ type Timezone struct {
 func getUser(id int) UserOption {
 	if id == 1 {
 		tz := &Timezone{offset: -5}
-		settings := SettingsOption_Some(Settings{lang: "en", timezone: tz})
+		settings := SettingsOptionSome(Settings{lang: "en", timezone: tz})
 		theme := &Theme{color: "dark"}
 		config := &Config{theme: theme}
-		return UserOption_Some(User{name: "Charlie", config: config, settings: settings})
+		return UserOptionSome(User{name: "Charlie", config: config, settings: settings})
 	}
-	return UserOption_None()
+	return UserOptionNone()
 }
 
 func main() {

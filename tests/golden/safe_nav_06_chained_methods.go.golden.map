@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 124,
+      "generated_column": 1,
+      "original_line": 124,
+      "original_column": 35,
+      "length": 8,
+      "name": "safe_nav_infer"
+    },
+    {
+      "generated_line": 125,
+      "generated_column": 1,
+      "original_line": 125,
+      "original_column": 15,
+      "length": 8,
+      "name": "safe_nav_infer"
+    },
+    {
+      "generated_line": 128,
+      "generated_column": 1,
+      "original_line": 128,
+      "original_column": 35,
+      "length": 8,
+      "name": "safe_nav_infer"
+    },
+    {
+      "generated_line": 129,
+      "generated_column": 1,
+      "original_line": 129,
+      "original_column": 9,
+      "length": 8,
+      "name": "safe_nav_infer"
+    }
+  ]
+}

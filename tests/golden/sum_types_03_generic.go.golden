@@ -12,10 +12,10 @@ type Option struct {
 	some_value *T
 }
 
-func Option_Some(value T) Option {
+func OptionSome(value T) Option {
 	return Option{tag: OptionTagSome, some_value: &value}
 }
-func Option_None() Option {
+func OptionNone() Option {
 	return Option{tag: OptionTagNone}
 }
 func (e Option) IsSome() bool {

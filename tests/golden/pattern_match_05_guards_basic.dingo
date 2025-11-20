@@ -12,29 +12,29 @@ enum Result {
 // Simple guard on Result type
 func classifyNumber(result Result) string {
 	return match result {
-		Result_Ok(x) if x > 0 => "positive",
-		Result_Ok(x) if x < 0 => "negative",
-		Result_Ok(_) => "zero",
-		Result_Err(e) => "error",
+		ResultOk(x) if x > 0 => "positive",
+		ResultOk(x) if x < 0 => "negative",
+		ResultOk(_) => "zero",
+		ResultErr(e) => "error",
 	}
 }
 
 // Guard with multiple conditions
 func validateAge(result Result) string {
 	return match result {
-		Result_Ok(age) if age >= 18 && age < 65 => "adult",
-		Result_Ok(age) if age >= 65 => "senior",
-		Result_Ok(_) => "minor",
-		Result_Err(_) => "invalid",
+		ResultOk(age) if age >= 18 && age < 65 => "adult",
+		ResultOk(age) if age >= 65 => "senior",
+		ResultOk(_) => "minor",
+		ResultErr(_) => "invalid",
 	}
 }
 
 // Guard with function call
 func checkLength(result Result) string {
 	return match result {
-		Result_Ok(n) if isEven(n) => "even",
-		Result_Ok(_) => "odd",
-		Result_Err(_) => "error",
+		ResultOk(n) if isEven(n) => "even",
+		ResultOk(_) => "odd",
+		ResultErr(_) => "error",
 	}
 }
 
@@ -43,7 +43,7 @@ func isEven(n int) bool {
 }
 
 func main() {
-	println(classifyNumber(Result_Ok(42)))
-	println(validateAge(Result_Ok(25)))
-	println(checkLength(Result_Ok(10)))
+	println(classifyNumber(ResultOk(42)))
+	println(validateAge(ResultOk(25)))
+	println(checkLength(ResultOk(10)))
 }

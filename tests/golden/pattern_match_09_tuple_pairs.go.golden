@@ -12,15 +12,15 @@ const (
 )
 
 type Result struct {
-	tag   ResultTag
+	tag ResultTag
 	ok  *int
 	err *error
 }
 
-func Result_Ok(arg0 int) Result {
+func ResultOk(arg0 int) Result {
 	return Result{tag: ResultTagOk, ok: &arg0}
 }
-func Result_Err(arg0 error) Result {
+func ResultErr(arg0 error) Result {
 	return Result{tag: ResultTagErr, err: &arg0}
 }
 func (e Result) IsOk() bool {
@@ -65,8 +65,8 @@ func processResults(r1 Result, r2 Result) string {
 
 }
 func main() {
-	r1 := Result_Ok(42)
-	r2 := Result_Err(errors.New("network error"))
+	r1 := ResultOk(42)
+	r2 := ResultErr(errors.New("network error"))
 	result := processResults(r1, r2)
 	println(result)
 }

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "mappings": [
+    {
+      "generated_line": 74,
+      "generated_column": 1,
+      "original_line": 74,
+      "original_column": 27,
+      "length": 8,
+      "name": "safe_nav_infer"
+    },
+    {
+      "generated_line": 75,
+      "generated_column": 1,
+      "original_line": 75,
+      "original_column": 10,
+      "length": 8,
+      "name": "safe_nav_infer"
+    }
+  ]
+}

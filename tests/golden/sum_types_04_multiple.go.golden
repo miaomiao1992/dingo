@@ -11,10 +11,10 @@ type Status struct {
 	tag StatusTag
 }
 
-func Status_Pending() Status {
+func StatusPending() Status {
 	return Status{tag: StatusTagPending}
 }
-func Status_Active() Status {
+func StatusActive() Status {
 	return Status{tag: StatusTagActive}
 }
 func (e Status) IsPending() bool {
@@ -34,10 +34,10 @@ const (
 type Priority struct {
 	tag PriorityTag
 }
-func Priority_Low() Priority {
+func PriorityLow() Priority {
 	return Priority{tag: PriorityTagLow}
 }
-func Priority_High() Priority {
+func PriorityHigh() Priority {
 	return Priority{tag: PriorityTagHigh}
 }
 func (e Priority) IsLow() bool {
