@@ -82,30 +82,30 @@ import "errors"
 type ResultTag uint8
 
 const (
-	ResultTag_Ok ResultTag = iota
-	ResultTag_Err
+	ResultTagOk ResultTag = iota
+	ResultTagErr
 )
 
 type Result struct {
-	tag   ResultTag
-	ok_0  *float64
-	err_0 *error
+	tag ResultTag
+	ok  *float64
+	err *error
 }
 
 func Result_Ok(arg0 float64) Result {
-	return Result{tag: ResultTag_Ok, ok_0: &arg0}
+	return Result{tag: ResultTagOk, ok: &arg0}
 }
 
 func Result_Err(arg0 error) Result {
-	return Result{tag: ResultTag_Err, err_0: &arg0}
+	return Result{tag: ResultTagErr, err: &arg0}
 }
 
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 
 func (e Result) IsErr() bool {
-	return e.tag == ResultTag_Err
+	return e.tag == ResultTagErr
 }
 
 func divide(a float64, b float64) Result {
@@ -188,16 +188,16 @@ Ok{ value: float64 }  // Alternative
 - Matches Rust's familiar syntax
 - Named fields available for multi-value variants
 
-### Generated Field Names: `ok_0`, `err_0`
+### Generated Field Names: `ok`, `err`
 
-Pattern: `{variant}_{index}`
+Pattern: `{variant}` (CamelCase, no suffix)
 
 These are the pointer fields in the generated struct:
 ```go
 type Result struct {
-	tag   ResultTag
-	ok_0  *float64   // Ok variant's value
-	err_0 *error     // Err variant's value
+	tag ResultTag
+	ok  *float64   // Ok variant's value
+	err *error     // Err variant's value
 }
 ```
 
@@ -205,7 +205,7 @@ type Result struct {
 
 ```go
 func (e Result) IsOk() bool {
-	return e.tag == ResultTag_Ok
+	return e.tag == ResultTagOk
 }
 ```
 
@@ -214,7 +214,7 @@ func (e Result) IsOk() bool {
 **Usage**:
 ```go
 if result.IsOk() {
-	value := *result.ok_0  // Safe to unwrap
+	value := *result.ok  // Safe to unwrap
 }
 ```
 

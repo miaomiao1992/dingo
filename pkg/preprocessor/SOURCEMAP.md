@@ -183,13 +183,13 @@ match result {
 
 **Generated Go** (`example.go:50-60`):
 ```go
-__match_0 := result
-switch __match_0.tag {
+scrutinee := result
+switch scrutinee.tag {
 case ResultTagOk:
-    val := *__match_0.ok_0
+    val := *scrutinee.ok
     val
 case ResultTagErr:
-    e := __match_0.err_0
+    e := scrutinee.err
     0
 }
 ```
@@ -299,7 +299,7 @@ data := _tmp0 + _tmp1
 | `error_prop` | Error propagation operator | `expr?` | `if err != nil { return }` |
 | `expr_mapping` | Expression within error propagation | `fetchData()` | `_tmp, _err := fetchData()` |
 | `type_annotation` | Type annotation syntax | `x: Type` | `var x Type` |
-| `pattern_match` | Match expression | `match x {}` | `switch __match.tag {}` |
+| `pattern_match` | Match expression | `match x {}` | `switch scrutinee.tag {}` |
 | `ok_pattern` | Ok pattern arm | `Ok(val) =>` | `case ResultTagOk:` |
 | `err_pattern` | Err pattern arm | `Err(e) =>` | `case ResultTagErr:` |
 | `some_pattern` | Some pattern arm | `Some(val) =>` | `case OptionTagSome:` |

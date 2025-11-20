@@ -423,8 +423,8 @@ x := Ok(val)  // Works
 
 **Fix (Phase 3)**: Generate temporary variables
 ```go
-__tmp_0 := 42
-x := Result{tag: ResultTag_Ok, ok_0: &__tmp_0}
+tmp := 42
+x := Result{tag: ResultTagOk, ok: &tmp}
 ```
 
 ### Fix A5: Type Inference Limitations

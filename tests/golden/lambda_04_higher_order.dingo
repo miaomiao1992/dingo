@@ -9,17 +9,17 @@ func apply(x int, f func(int) int) int {
 }
 
 func compose(f func(int) int, g func(int) int) func(int) int {
-	return |x| f(g(x))
+	return |x: int| -> int { f(g(x)) }
 }
 
 func main() {
 	// Pass lambda to function
-	result := apply(10, |x| x * 2)
+	result := apply(10, |x: int| -> int { x * 2 })
 	println("Applied:", result)
 
 	// Compose functions
-	double := |x| x * 2
-	addOne := |x| x + 1
+	double := |x: int| -> int { x * 2 }
+	addOne := |x: int| -> int { x + 1 }
 	doubleAndAdd := compose(addOne, double)
 
 	println("Composed:", doubleAndAdd(5))

@@ -69,9 +69,9 @@ package main
 type StatusTag uint8
 
 const (
-    StatusTag_Pending StatusTag = iota
-    StatusTag_Active
-    StatusTag_Complete
+    StatusTagPending StatusTag = iota
+    StatusTagActive
+    StatusTagComplete
 )
 
 type Status struct {
@@ -79,27 +79,27 @@ type Status struct {
 }
 
 func Status_Pending() Status {
-    return Status{tag: StatusTag_Pending}
+    return Status{tag: StatusTagPending}
 }
 
 func Status_Active() Status {
-    return Status{tag: StatusTag_Active}
+    return Status{tag: StatusTagActive}
 }
 
 func Status_Complete() Status {
-    return Status{tag: StatusTag_Complete}
+    return Status{tag: StatusTagComplete}
 }
 
 func (e Status) IsPending() bool {
-    return e.tag == StatusTag_Pending
+    return e.tag == StatusTagPending
 }
 
 func (e Status) IsActive() bool {
-    return e.tag == StatusTag_Active
+    return e.tag == StatusTagActive
 }
 
 func (e Status) IsComplete() bool {
-    return e.tag == StatusTag_Complete
+    return e.tag == StatusTagComplete
 }
 ```
 

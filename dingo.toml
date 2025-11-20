@@ -5,11 +5,10 @@
 # Default: "question" (expr?)
 error_propagation_syntax = "question"
 
-# Lambda function syntax: "rust" | "arrow" | "both"
+# Lambda function syntax: "rust" | "typescript"
 # - rust: Only |x| expr syntax
-# - arrow: Only (x) => expr syntax
-# - both: Accept both styles (default)
-lambda_syntax = "rust"
+# - typescript: Only (x) => expr syntax (default)
+lambda_style = "rust"
 
 # Safe navigation unwrap mode: "always_option" | "smart"
 # - always_option: Always returns Option<T>

@@ -773,7 +773,7 @@ This is what Dingo does. It takes your Go code and makes it *readable*.
 | **Result & Option** | ✅ Infrastructure Ready | Type-safe error and null handling (integration pending) |
 | **Safe Navigation** | ✅ Complete (Phase 7) | `?.` operator for properties and methods |
 | **Null Coalescing** | ✅ Complete (Phase 7) | `??` operator for default values |
-| **Lambda Syntax** | 🔜 Planned (Phase 6) | TypeScript arrows and Rust pipes (configurable) |
+| **Lambda Syntax** | ✅ Complete (Phase 6) | TypeScript arrows and Rust pipes (configurable) |
 | **Language Server** | 🔜 Planned | Full IDE support via gopls proxy |
 
 </div>
@@ -1645,15 +1645,16 @@ dingo/
 | **Phase 3** | ✅ Complete | Fix A4/A5 + Option<T> | 261/267 tests (97.8%) |
 | **Phase 4** | ✅ Complete | Pattern Matching Enhancements | 57/57 tests passing |
 | **Phase V** | ✅ Complete | Infrastructure & Developer Experience | **3/4 external approval** |
+| **Phase 6** | ✅ Complete | Lambda Functions (TypeScript/Rust styles) | 105/105 tests, 9/9 golden tests |
 | **Phase 7** | ✅ Complete | Null Safety Operators (`?.`, `??`) | 37/37 tests passing |
 
-**Current Capabilities:** Result<T,E>, Option<T>, sum types (enum), pattern matching (Rust/Swift syntax), error propagation (?), functional utilities (map/filter/reduce), **safe navigation (?.)**, **null coalescing (??)**, exhaustiveness checking, workspace builds, source maps (98.7% accuracy)
+**Current Capabilities:** Result<T,E>, Option<T>, sum types (enum), pattern matching (Rust/Swift syntax), error propagation (?), functional utilities (map/filter/reduce), **lambda functions (TypeScript/Rust styles)**, **safe navigation (?.)**, **null coalescing (??)**, exhaustiveness checking, workspace builds, source maps (98.7% accuracy)
 
 #### 🚧 Planned for v1.0 (Q1 2026)
 
 | Phase | Priority | Features | Timeline | Status |
 |-------|----------|----------|----------|--------|
-| **Phase 6** | P1 | Lambda Functions (4 syntax styles) | 2-3 weeks | 🔴 Not Started |
+| **Phase 6** | P1 | Lambda Functions (2 syntax styles) | 2-3 weeks | ✅ Complete |
 | **Phase 7** | P1 | Null Safety Operators (`?.`, `??`) | 2 weeks | ✅ Complete |
 | **Phase 8** | P2 | Tuples (full implementation) | 1-2 weeks | 🟡 Partial (10%) |
 | **Phase 9** | P2 | Ternary Operator (`? :`) | 2-3 days | 🔴 Not Started |

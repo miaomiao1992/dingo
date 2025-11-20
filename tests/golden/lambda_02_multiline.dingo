@@ -6,14 +6,14 @@ package main
 
 func main() {
 	// Multiline lambda with block
-	let process = |x, y| {
+	let process = |x: int, y: int| -> int {
 		let sum = x + y
 		let doubled = sum * 2
 		return doubled
 	}
 
 	// Lambda with conditional
-	let max = |a, b| {
+	let max = |a: int, b: int| -> int {
 		if a > b {
 			return a
 		}

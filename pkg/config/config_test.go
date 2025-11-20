@@ -26,6 +26,11 @@ func TestDefaultConfig(t *testing.T) {
 		t.Errorf("Expected default match syntax to be 'rust', got %q", cfg.Match.Syntax)
 	}
 
+	// Test Lambda style defaults
+	if cfg.Features.LambdaStyle != "typescript" {
+		t.Errorf("Expected default lambda_style to be 'typescript', got %q", cfg.Features.LambdaStyle)
+	}
+
 	// Test Result type defaults
 	if !cfg.Features.ResultType.Enabled {
 		t.Error("Expected Result type to be enabled by default")
@@ -671,6 +676,168 @@ syntax = "scala"
 	}
 	if !contains(err.Error(), "invalid match.syntax") {
 		t.Errorf("Expected 'invalid match.syntax' error, got %v", err)
+	}
+}
+
+func TestLambdaStyleValidation(t *testing.T) {
+	tests := []struct {
+		name      string
+		style     string
+		wantError bool
+		errorMsg  string
+	}{
+		{
+			name:      "valid typescript style",
+			style:     "typescript",
+			wantError: false,
+		},
+		{
+			name:      "valid rust style",
+			style:     "rust",
+			wantError: false,
+		},
+		{
+			name:      "invalid arrow style (old syntax)",
+			style:     "arrow",
+			wantError: true,
+			errorMsg:  "invalid lambda_style",
+		},
+		{
+			name:      "invalid both style (old syntax)",
+			style:     "both",
+			wantError: true,
+			errorMsg:  "invalid lambda_style",
+		},
+		{
+			name:      "invalid kotlin style",
+			style:     "kotlin",
+			wantError: true,
+			errorMsg:  "invalid lambda_style",
+		},
+		{
+			name:      "empty string uses default",
+			style:     "",
+			wantError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &Config{
+				Features: FeatureConfig{
+					ErrorPropagationSyntax: SyntaxQuestion,
+					LambdaStyle:            tt.style,
+				},
+				SourceMap: SourceMapConfig{
+					Enabled: true,
+					Format:  FormatInline,
+				},
+			}
+
+			err := cfg.Validate()
+			if tt.wantError {
+				if err == nil {
+					t.Errorf("Expected error containing %q, got nil", tt.errorMsg)
+				} else if tt.errorMsg != "" && !contains(err.Error(), tt.errorMsg) {
+					t.Errorf("Expected error containing %q, got %q", tt.errorMsg, err.Error())
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error, got %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestLoadLambdaStyleConfig(t *testing.T) {
+	tests := []struct {
+		name      string
+		toml      string
+		wantStyle string
+		wantError bool
+	}{
+		{
+			name: "typescript style",
+			toml: `[features]
+lambda_style = "typescript"
+`,
+			wantStyle: "typescript",
+			wantError: false,
+		},
+		{
+			name: "rust style",
+			toml: `[features]
+lambda_style = "rust"
+`,
+			wantStyle: "rust",
+			wantError: false,
+		},
+		{
+			name: "invalid style",
+			toml: `[features]
+lambda_style = "kotlin"
+`,
+			wantError: true,
+		},
+		{
+			name:      "no config uses default",
+			toml:      "",
+			wantStyle: "typescript",
+			wantError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create temp directory
+			tmpDir, err := os.MkdirTemp("", "dingo-test-lambda-*")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.RemoveAll(tmpDir)
+
+			// Write config if provided
+			if tt.toml != "" {
+				configPath := filepath.Join(tmpDir, "dingo.toml")
+				if err := os.WriteFile(configPath, []byte(tt.toml), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			// Change to temp directory
+			oldWd, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.Chdir(oldWd)
+
+			if err := os.Chdir(tmpDir); err != nil {
+				t.Fatal(err)
+			}
+
+			// Override HOME
+			oldHome := os.Getenv("HOME")
+			os.Setenv("HOME", tmpDir)
+			defer os.Setenv("HOME", oldHome)
+
+			// Load config
+			cfg, err := Load(nil)
+			if tt.wantError {
+				if err == nil {
+					t.Error("Expected error, got nil")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("Load() error = %v", err)
+			}
+
+			if cfg.Features.LambdaStyle != tt.wantStyle {
+				t.Errorf("Expected lambda_style %q, got %q", tt.wantStyle, cfg.Features.LambdaStyle)
+			}
+		})
 	}
 }
 

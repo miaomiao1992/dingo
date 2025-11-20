@@ -140,9 +140,9 @@ func findUser(id string) OptionUser {
 }
 
 func processUser(id string) {
-    __opt := findUser(id)
-    if __opt.isSet {
-        user := *__opt.value
+    opt := findUser(id)
+    if opt.isSet {
+        user := *opt.value
         fmt.Printf("Found: %s\n", user.name)
     } else {
         fmt.Println("User not found")

@@ -29,8 +29,8 @@ let port = env.get("PORT")?.parseInt() ?? 8080
 ```go
 // Transpiles to unwrapOr
 var name string
-if __opt.isSet {
-    name = *__opt.value
+if opt.isSet {
+    name = *opt.value
 } else {
     name = "Anonymous"
 }

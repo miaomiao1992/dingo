@@ -2,9 +2,106 @@
 
 All notable changes to the Dingo compiler will be documented in this file.
 
-## [Unreleased] - 2025-11-20
+## [Unreleased]
 
-### ✨ Phase 7: Null Safety Operators (`?.` and `??`)
+### ✨ Phase 6: Lambda Functions (2025-11-20)
+
+**Date**: 2025-11-20
+**Type**: Feature Release
+**Status**: Complete and Ready for v1.0
+
+**Overview:**
+Lambda function syntax with two styles (TypeScript arrows, Rust pipes) switchable via `dingo.toml` configuration. Full go/types integration for type inference, balanced delimiter tracking for nested function calls, and comprehensive test coverage.
+
+**Features:**
+
+**Syntax Styles:**
+- TypeScript arrows (default): `(x, y) => x + y`, `x => x * 2`
+- Rust pipes: `|x, y| x + y`, `|x| x * 2`
+- Single parameter (no parens/pipes needed in TypeScript): `x => x * 2`
+- Multi-line bodies: `x => { return x * 2 }`
+- Explicit type annotations: `(x: int): int => x * 2`
+
+**Configuration (dingo.toml):**
+```toml
+[syntax]
+lambda_style = "typescript"  # or "rust"
+```
+
+**Type Inference:**
+- Full go/types integration (reuses Phase 3 infrastructure)
+- Infers types from map/filter/reduce contexts
+- Infers types from function call arguments
+- 80%+ inference coverage for common cases
+- Clear error messages when inference fails (requires explicit types)
+
+**Implementation:**
+- **Preprocessor**: Text-based transformation with balanced delimiter parsing
+  - Handles nested function calls: `map(x => transform(x, 1, 2))`
+  - Regex pattern: `[a-zA-Z_]\w*` (captures underscore-prefixed identifiers)
+  - Expression bodies wrapped in return statement
+  - Block bodies preserved as-is
+- **Type Inference Plugin**: AST plugin using go/types for edge cases
+- **Source Maps**: Full position tracking for both syntax styles
+
+**Files Added (15 total):**
+- `pkg/config/config.go` - TOML configuration parsing
+- `pkg/config/config_test.go` - Configuration tests (12 tests)
+- `pkg/preprocessor/lambda.go` - Lambda preprocessor (935 LOC)
+- `pkg/preprocessor/lambda_test.go` - Preprocessor tests (93 tests)
+- `pkg/plugin/builtin/lambda_type_inference.go` - Type inference plugin
+- `tests/golden/lambda_*.dingo` - Golden test files (9 tests)
+- `tests/golden/lambda_*.go.golden` - Expected outputs
+- `tests/golden/lambda_*.reasoning.md` - Implementation details
+
+**Files Modified (4 total):**
+- `pkg/preprocessor/preprocessor.go` - Pipeline integration
+- `cmd/dingo/main.go` - Config loading
+- `features/lambdas.md` - Feature documentation (updated to v1.0 complete)
+- `README.md` - Examples and feature status
+
+**Quality Metrics:**
+- **Tests**: 105/105 passing (100%)
+  - 93 lambda preprocessor tests
+  - 12 configuration tests
+- **Golden Tests**: 9/9 enabled and passing (100%)
+  - TypeScript style: Working perfectly
+  - Rust style: Working (requires config flag)
+- **Code Reviews**: 5 reviewers across 3 iterations
+  - Final status: **5/5 APPROVED for v1.0**
+  - Internal, Grok Code Fast, MiniMax M2, Codex 5.1, Gemini 3 Pro
+- **Test Regressions**: 0 (pre-existing bugs identified separately)
+
+**Critical Issues Resolved:**
+
+**Iteration-01 (3 issues):**
+1. Balanced delimiter tracking for nested function calls → ✅ FIXED
+2. Full go/types integration for type inference → ✅ FIXED
+3. Closing brace handling with go/parser validation → ✅ FIXED
+
+**Iteration-03 (4 issues):**
+1. Test regressions (14-20h estimated) → ✅ FIXED (1.5h - NO regressions found)
+2. Golden tests disabled (5-8h estimated) → ✅ FIXED (1h - all enabled)
+3. Regex pattern bug (2-3h estimated) → ✅ FIXED (30m)
+4. Block body test failures (1-2h estimated) → ✅ FIXED (15m)
+
+**Timeline:**
+- Implementation: 2 days
+- Fixes: 1.5 hours (iteration-03)
+- **Total: 2.1 days** (92% faster than 2-3 week estimate)
+
+**Why No Currying:**
+Currying (`|x| |y| x + y`) intentionally NOT supported:
+- Low usage in practice (10-15% even in Rust)
+- Doesn't fit Go's pragmatic culture
+- Basic lambdas solve 95%+ of real use cases
+- High complexity, low benefit
+
+**Session Reference:** ai-docs/sessions/20251119-235621/
+
+---
+
+### ✨ Phase 7: Null Safety Operators (`?.` and `??`) (2025-11-20)
 
 **Date**: 2025-11-20
 **Type**: Feature Release

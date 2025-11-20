@@ -20,12 +20,28 @@ type User struct {
 	Username string
 	Email    string
 	Status   UserStatus
+	Profile  *UserProfile  // Optional profile (Phase 7 - safe navigation)
+}
+
+type UserProfile struct {
+	Bio         *string
+	Website     *string
+	PhoneNumber *string
+	Country     *string
 }
 
 type RegisterRequest struct {
 	Username string
 	Email    string
 	Password string
+	Profile  *ProfileInput  // Optional profile data
+}
+
+type ProfileInput struct {
+	Bio     *string
+	Website *string
+	Phone   *string
+	Country *string
 }
 
 // Validation functions return Result types - explicit success/failure
@@ -68,8 +84,17 @@ func hashPassword(password string) Result<string, error> {
 	}
 }
 
-func saveUser(db *sql.DB, username string, email string, hashedPwd string, status UserStatus) Result<int64, error> {
-	let result = db.Exec("INSERT INTO users (username, email, password, status) VALUES (?, ?, ?, ?)", username, email, hashedPwd, status)?
+func saveUser(db *sql.DB, username string, email string, hashedPwd string, status UserStatus, profile *UserProfile) Result<int64, error> {
+	// Safe navigation for optional profile fields with defaults
+	let bio = profile?.Bio ?? ""
+	let website = profile?.Website ?? ""
+	let phone = profile?.PhoneNumber ?? ""
+	let country = profile?.Country ?? "US"
+
+	let result = db.Exec(
+		"INSERT INTO users (username, email, password, status, bio, website, phone, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		username, email, hashedPwd, status, bio, website, phone, country,
+	)?
 	let id = result.LastInsertId()?
 	return Ok(id)
 }
@@ -77,6 +102,7 @@ func saveUser(db *sql.DB, username string, email string, hashedPwd string, statu
 // Main business logic - showcases error propagation with ? operator
 // Notice: Zero manual error checks! The ? operator handles all error propagation.
 // Across all functions, 10 if err != nil blocks are eliminated by the ? operator.
+// NEW (Phase 7): Safe navigation (?.) and null coalescing (??) for optional fields
 func registerUser(db *sql.DB, req RegisterRequest) Result<User, error> {
 	// All validations with error context annotations
 	let email = validateEmail(req.Email)? "email validation failed"
@@ -88,9 +114,12 @@ func registerUser(db *sql.DB, req RegisterRequest) Result<User, error> {
 		return Err("user already exists")
 	}
 
+	// Build user profile from optional input (Phase 7 - safe navigation)
+	let userProfile = buildUserProfile(req.Profile)
+
 	// Hash password and save user
 	let hashedPassword = hashPassword(password)? "password hashing failed"
-	let id = saveUser(db, username, email, hashedPassword, UserStatus_Pending())? "failed to save user"
+	let id = saveUser(db, username, email, hashedPassword, UserStatus_Pending(), userProfile)? "failed to save user"
 
 	// Return created user with type-safe enum status
 	return Ok(User{
@@ -98,7 +127,20 @@ func registerUser(db *sql.DB, req RegisterRequest) Result<User, error> {
 		Username: username,
 		Email:    email,
 		Status:   UserStatus_Pending(),
+		Profile:  userProfile,
 	})
+}
+
+// NEW (Phase 7): Build user profile with safe defaults using ?. and ??
+func buildUserProfile(input *ProfileInput) *UserProfile {
+	// Safe navigation with null coalescing - extract optional fields with defaults
+	// These would be verbose null checks in plain Go!
+	return &UserProfile{
+		Bio:         input?.Bio,          // Pass through optional bio
+		Website:     input?.Website,      // Pass through optional website
+		PhoneNumber: input?.Phone,        // Map input field to domain field
+		Country:     input?.Country,      // Pass through optional country
+	}
 }
 
 // HTTP handler - clean and focused on business logic
@@ -116,5 +158,52 @@ func handleRegister(db *sql.DB) http.HandlerFunc {
 			}
 			Err(err) => http.Error(w, err.Error(), http.StatusBadRequest)
 		}
+	}
+}
+
+// NEW (Phase 7): Handler demonstrating safe navigation in response formatting
+func handleGetUser(db *sql.DB) http.HandlerFunc {
+	return (w, r) => {
+		// Extract user ID from query params
+		let userID = r.URL.Query().Get("id")
+		if userID == "" {
+			http.Error(w, "user ID required", http.StatusBadRequest)
+			return
+		}
+
+		// Fetch user (may return nil)
+		let user = getUserByID(db, userID)
+
+		// Safe navigation with defaults for JSON response
+		// Compare this compact syntax to manual nil checks!
+		let response = map[string]interface{}{
+			"id":       userID,
+			"username": user?.Username ?? "unknown",
+			"email":    user?.Email ?? "no-email@example.com",
+			"status":   getUserStatusString(user?.Status),
+			// Nested safe navigation for profile fields
+			"bio":     user?.Profile?.Bio ?? "No bio provided",
+			"website": user?.Profile?.Website ?? "",
+			"phone":   user?.Profile?.PhoneNumber ?? "",
+			"country": user?.Profile?.Country ?? "Unknown",
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}
+}
+
+// Helper functions for new handler
+func getUserByID(db *sql.DB, id string) *User {
+	// Simplified - would query database in real implementation
+	return nil
+}
+
+func getUserStatusString(status UserStatus) string {
+	match status {
+		UserStatus_Active() => "active"
+		UserStatus_Pending() => "pending"
+		UserStatus_Suspended() => "suspended"
+		_ => "unknown"
 	}
 }

@@ -56,7 +56,7 @@ func TestGoldenFiles(t *testing.T) {
 			// Skip tests that require parser/transpiler features not yet implemented
 			skipPrefixes := []string{
 				"func_util_",       // Parser doesn't support function types in parameters
-				"lambda_",          // Lambda causes nil positioner crash in type checker
+				// "lambda_",          // Lambda IMPLEMENTED in Phase 6
 				"sum_types_",       // Type checker crashes on method receivers in generated code
 				// "pattern_match_",   // Pattern matching IMPLEMENTED in Phase 4.2
 				"safe_nav_",        // Safe navigation transformation not yet implemented
@@ -71,8 +71,8 @@ func TestGoldenFiles(t *testing.T) {
 				"result_03_pattern_match",   // Uses pattern matching (match keyword)
 				"option_02_pattern_match",   // Uses pattern matching (match keyword)
 				"option_02_literals",        // Option plugin bug: AST transformations not applied (Phase 4)
-				"option_03_chaining",        // Requires lambda syntax (.map(|x| ...)) - unimplemented (Phase 4+)
-				"result_04_chaining",        // Requires lambda syntax (.and_then(|x| ...)) - unimplemented (Phase 4+)
+				// "option_03_chaining",        // Lambda syntax IMPLEMENTED in Phase 6
+				// "result_04_chaining",        // Lambda syntax IMPLEMENTED in Phase 6
 				"result_06_helpers",         // Missing golden file - deferred (Phase 4)
 			}
 			for _, prefix := range skipPrefixes {

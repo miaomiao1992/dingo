@@ -189,11 +189,11 @@ match value {
 ```go
 // Transpiled Go
 switch {
-case __opt.isSet && *__opt.value > 10:
+case opt.isSet && *opt.value > 10:
     return "large"
-case __opt.isSet:
+case opt.isSet:
     return "small"
-case !__opt.isSet:
+case !opt.isSet:
     return "none"
 }
 ```

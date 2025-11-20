@@ -6,13 +6,13 @@ package main
 
 func makeAdder(x int) func(int) int {
 	// Lambda captures x from outer scope
-	return |y| x + y
+	return |y: int| -> int { x + y }
 }
 
 func makeCounter() func() int {
 	let count = 0
 	// Lambda captures and modifies count
-	return || {
+	return || -> int {
 		count = count + 1
 		return count
 	}

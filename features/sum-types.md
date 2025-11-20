@@ -131,10 +131,10 @@ let response: HttpResponse = Ok("data")  // Infers Ok variant
 // Transpiled sum type (CamelCase naming - Go idiomatic)
 type HttpResponse struct {
     tag HttpResponseTag
-    ok0 *string                  // CamelCase: ok0 (not ok_0)
+    ok *string                   // CamelCase: ok (not ok_0)
     serverErrorCode *int         // CamelCase: serverErrorCode (not serverError_code)
     serverErrorMessage *string
-    redirect0 *string
+    redirect *string
 }
 
 type HttpResponseTag int
@@ -149,7 +149,7 @@ const (
 func HttpResponseOk(body string) HttpResponse {  // CamelCase: HttpResponseOk
     return HttpResponse{
         tag: HttpResponseTagOk,
-        ok0: &body,
+        ok: &body,
     }
 }
 
@@ -163,7 +163,7 @@ func HttpResponseNotFound() HttpResponse {
 func handleResponse(resp HttpResponse) string {
     switch resp.tag {
     case HttpResponseTagOk:
-        body := *resp.ok0
+        body := *resp.ok
         return fmt.Sprintf("Success: %s", body)
     case HttpResponseTagNotFound:
         return "404 Not Found"
@@ -172,7 +172,7 @@ func handleResponse(resp HttpResponse) string {
         message := *resp.serverErrorMessage
         return fmt.Sprintf("Error %d: %s", code, message)
     case HttpResponseTagRedirect:
-        url := *resp.redirect0
+        url := *resp.redirect
         return fmt.Sprintf("Redirecting to %s", url)
     default:
         panic("unreachable: unhandled HttpResponse variant")

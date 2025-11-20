@@ -74,9 +74,9 @@ package main
 type ShapeTag uint8
 
 const (
-    ShapeTag_Point ShapeTag = iota
-    ShapeTag_Circle
-    ShapeTag_Rectangle
+    ShapeTagPoint ShapeTag = iota
+    ShapeTagCircle
+    ShapeTagRectangle
 )
 
 type Shape struct {
@@ -87,34 +87,34 @@ type Shape struct {
 }
 
 func Shape_Point() Shape {
-    return Shape{tag: ShapeTag_Point}
+    return Shape{tag: ShapeTagPoint}
 }
 
 func Shape_Circle(radius float64) Shape {
     return Shape{
-        tag: ShapeTag_Circle,
+        tag: ShapeTagCircle,
         circle_radius: &radius,
     }
 }
 
 func Shape_Rectangle(width, height float64) Shape {
     return Shape{
-        tag: ShapeTag_Rectangle,
+        tag: ShapeTagRectangle,
         rectangle_width: &width,
         rectangle_height: &height,
     }
 }
 
 func (e Shape) IsPoint() bool {
-    return e.tag == ShapeTag_Point
+    return e.tag == ShapeTagPoint
 }
 
 func (e Shape) IsCircle() bool {
-    return e.tag == ShapeTag_Circle
+    return e.tag == ShapeTagCircle
 }
 
 func (e Shape) IsRectangle() bool {
-    return e.tag == ShapeTag_Rectangle
+    return e.tag == ShapeTagRectangle
 }
 ```
 
@@ -148,7 +148,7 @@ This is the canonical example used in:
 3. **Type Safety Example** (community request):
    ```go
    // Want to prevent this:
-   shape := Shape{tag: ShapeTag_Circle}
+   shape := Shape{tag: ShapeTagCircle}
    // No radius set! Runtime panic waiting to happen
 
    // Want to enforce this:
@@ -247,7 +247,7 @@ enum Event {
 **Unit Variant** (no data):
 ```go
 func Shape_Point() Shape {
-    return Shape{tag: ShapeTag_Point}
+    return Shape{tag: ShapeTagPoint}
 }
 ```
 
@@ -255,7 +255,7 @@ func Shape_Point() Shape {
 ```go
 func Shape_Circle(radius float64) Shape {
     return Shape{
-        tag: ShapeTag_Circle,
+        tag: ShapeTagCircle,
         circle_radius: &radius,
     }
 }
@@ -265,7 +265,7 @@ func Shape_Circle(radius float64) Shape {
 ```go
 func Shape_Rectangle(width, height float64) Shape {
     return Shape{
-        tag: ShapeTag_Rectangle,
+        tag: ShapeTagRectangle,
         rectangle_width: &width,
         rectangle_height: &height,
     }
@@ -294,12 +294,12 @@ match shape {
 Transpiles to:
 ```go
 switch shape.tag {
-case ShapeTag_Point:
+case ShapeTagPoint:
     return "origin"
-case ShapeTag_Circle:
+case ShapeTagCircle:
     radius := *shape.circle_radius  // Safe unwrap
     return fmt.Sprintf("circle with r=%f", radius)
-case ShapeTag_Rectangle:
+case ShapeTagRectangle:
     width := *shape.rectangle_width
     height := *shape.rectangle_height
     return fmt.Sprintf("rect %fx%f", width, height)
@@ -398,7 +398,7 @@ generate_setters = false  # Enums are immutable
 **Example with `generate_getters = true`**:
 ```go
 func (s Shape) Radius() Option_float64 {
-    if s.tag == ShapeTag_Circle {
+    if s.tag == ShapeTagCircle {
         return Option_float64{value: s.circle_radius, isSet: true}
     }
     return Option_float64{isSet: false}  // None
@@ -530,7 +530,7 @@ All follow the same pattern as `Shape` test.
 **Type Safety Gained**:
 ```go
 // ❌ Go: Can construct invalid states
-shape := Shape{tag: ShapeTag_Circle}  // Forgot radius!
+shape := Shape{tag: ShapeTagCircle}  // Forgot radius!
 r := *shape.circle_radius  // PANIC: nil pointer
 
 // ✅ Dingo: Forced to provide all fields
@@ -582,7 +582,7 @@ type Shape struct {
 }
 
 func (s Shape) CircleRadius() float64 {
-    if s.tag != ShapeTag_Circle {
+    if s.tag != ShapeTagCircle {
         panic("called CircleRadius on non-Circle")
     }
     return *(*float64)(unsafe.Pointer(&s.data[0]))

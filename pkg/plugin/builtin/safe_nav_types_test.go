@@ -10,6 +10,27 @@ import (
 	"github.com/MadAppGang/dingo/pkg/plugin"
 )
 
+// testLogger implements plugin.Logger for test output
+type testLogger struct {
+	t *testing.T
+}
+
+func (l *testLogger) Debug(format string, args ...interface{}) {
+	l.t.Logf("[DEBUG] "+format, args...)
+}
+
+func (l *testLogger) Info(msg string) {
+	l.t.Logf("[INFO] %s", msg)
+}
+
+func (l *testLogger) Warn(format string, args ...interface{}) {
+	l.t.Logf("[WARN] "+format, args...)
+}
+
+func (l *testLogger) Error(msg string) {
+	l.t.Logf("[ERROR] %s", msg)
+}
+
 // TestSafeNavTypePlugin_Discovery tests the discovery phase of finding __INFER__ placeholders
 func TestSafeNavTypePlugin_Discovery(t *testing.T) {
 	tests := []struct {
@@ -493,6 +514,357 @@ func main() {
 
 	if foundInfer {
 		t.Error("Transform should have replaced __INFER__ but it still exists")
+	}
+}
+
+// TestIsOptionType_Comprehensive tests the enhanced isOptionType function
+func TestIsOptionType_Comprehensive(t *testing.T) {
+	tests := []struct {
+		name       string
+		source     string
+		typeName   string
+		shouldPass bool
+		description string
+	}{
+		{
+			name: "Valid Option type with OptionTag",
+			source: `package main
+type OptionTag uint8
+type Option_User struct {
+	tag OptionTag
+	value *User
+}
+func (o Option_User) Unwrap() User {
+	return *o.value
+}
+type User struct{}`,
+			typeName:   "Option_User",
+			shouldPass: true,
+			description: "Should detect valid Option<T> type",
+		},
+		{
+			name: "Result type with ResultTag should fail",
+			source: `package main
+type ResultTag uint8
+type Result_User_Error struct {
+	tag ResultTag
+	value *User
+	err *Error
+}
+func (r Result_User_Error) Unwrap() User {
+	return *r.value
+}
+type User struct{}
+type Error struct{}`,
+			typeName:   "Result_User_Error",
+			shouldPass: false,
+			description: "Should NOT detect Result<T,E> as Option<T>",
+		},
+		{
+			name: "Struct with tag but no Unwrap",
+			source: `package main
+type OptionTag uint8
+type Option_User struct {
+	tag OptionTag
+	value *User
+}
+type User struct{}`,
+			typeName:   "Option_User",
+			shouldPass: false,
+			description: "Should require Unwrap() method",
+		},
+		{
+			name: "Struct with Unwrap but no tag",
+			source: `package main
+type Option_User struct {
+	value *User
+}
+func (o Option_User) Unwrap() User {
+	return *o.value
+}
+type User struct{}`,
+			typeName:   "Option_User",
+			shouldPass: false,
+			description: "Should require tag field",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Parse and type-check source
+			fset := token.NewFileSet()
+			file, err := parser.ParseFile(fset, "test.go", tt.source, parser.ParseComments)
+			if err != nil {
+				t.Fatalf("Failed to parse: %v", err)
+			}
+
+			conf := types.Config{}
+			info := &types.Info{
+				Types: make(map[ast.Expr]types.TypeAndValue),
+				Defs:  make(map[*ast.Ident]types.Object),
+				Uses:  make(map[*ast.Ident]types.Object),
+			}
+			pkg, err := conf.Check("test", fset, []*ast.File{file}, info)
+			if err != nil {
+				t.Logf("Type check warnings: %v", err)
+			}
+
+			// Find the type in the package
+			obj := pkg.Scope().Lookup(tt.typeName)
+			if obj == nil {
+				t.Fatalf("Type %s not found in package", tt.typeName)
+			}
+
+			named, ok := obj.Type().(*types.Named)
+			if !ok {
+				t.Fatalf("Type %s is not a named type", tt.typeName)
+			}
+
+			// Create plugin and test isOptionType
+			p := NewSafeNavTypePlugin()
+			result := p.isOptionType(named)
+
+			if result != tt.shouldPass {
+				t.Errorf("%s: expected %v, got %v", tt.description, tt.shouldPass, result)
+			}
+		})
+	}
+}
+
+// TestSafeNavTypePlugin_PlaceholderReplacement tests complete placeholder replacement
+func TestSafeNavTypePlugin_PlaceholderReplacement(t *testing.T) {
+	source := `package main
+type OptionTag uint8
+const (
+	OptionTagSome OptionTag = iota
+	OptionTagNone
+)
+type Option_User struct {
+	tag OptionTag
+	value *User
+}
+func (o Option_User) IsSome() bool { return o.tag == OptionTagSome }
+func (o Option_User) IsNone() bool { return o.tag == OptionTagNone }
+func (o Option_User) Unwrap() User { return *o.value }
+func Option_User_None() Option_User { return Option_User{tag: OptionTagNone} }
+func Option_User_Some(v User) Option_User { return Option_User{tag: OptionTagSome, value: &v} }
+
+type User struct { name string }
+
+func main() {
+	var user Option_User
+	result := func() __INFER__ {
+		if user.IsNone() {
+			return __INFER___None()
+		}
+		return __INFER___Some(user.Unwrap())
+	}()
+	_ = result
+}`
+
+	// Parse source
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
+	if err != nil {
+		t.Fatalf("Failed to parse: %v", err)
+	}
+
+	// Type check
+	conf := types.Config{}
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+		Defs:  make(map[*ast.Ident]types.Object),
+		Uses:  make(map[*ast.Ident]types.Object),
+	}
+	_, err = conf.Check("test", fset, []*ast.File{file}, info)
+	if err != nil {
+		t.Logf("Type check warnings: %v", err)
+	}
+
+	// Create plugin with test logger that prints to test output
+	testLogger := &testLogger{t: t}
+	ctx := &plugin.Context{
+		FileSet:  fset,
+		TypeInfo: info,
+		Logger:   testLogger,
+	}
+	// Build parent map for context traversal
+	ctx.BuildParentMap(file)
+
+	p := NewSafeNavTypePlugin()
+	p.SetContext(ctx)
+
+	// Process and transform
+	err = p.Process(file)
+	if err != nil {
+		t.Fatalf("Process failed: %v", err)
+	}
+
+	transformed, err := p.Transform(file)
+	if err != nil {
+		t.Fatalf("Transform failed: %v", err)
+	}
+
+	// Verify no __INFER__ placeholders remain
+	foundInfer := false
+	foundInferNone := false
+	foundInferSome := false
+	foundOptionType := false
+
+	ast.Inspect(transformed, func(n ast.Node) bool {
+		if ident, ok := n.(*ast.Ident); ok {
+			if ident.Name == "__INFER__" {
+				foundInfer = true
+			}
+			if ident.Name == "Option_User" {
+				foundOptionType = true
+			}
+		}
+		if call, ok := n.(*ast.CallExpr); ok {
+			if fun, ok := call.Fun.(*ast.Ident); ok {
+				if fun.Name == "__INFER___None" {
+					foundInferNone = true
+				}
+				if fun.Name == "__INFER___Some" {
+					foundInferSome = true
+				}
+			}
+		}
+		return true
+	})
+
+	if foundInfer {
+		t.Error("Found unreplaced __INFER__ identifier")
+	}
+	if foundInferNone {
+		t.Error("Found unreplaced __INFER___None() call")
+	}
+	if foundInferSome {
+		t.Error("Found unreplaced __INFER___Some() call")
+	}
+	if !foundOptionType {
+		t.Error("Expected to find Option_User type in transformed AST")
+	}
+}
+
+// TestSafeNavTypePlugin_OptionVsResult tests differentiation between Option and Result types
+func TestSafeNavTypePlugin_OptionVsResult(t *testing.T) {
+	tests := []struct {
+		name       string
+		source     string
+		expectOption bool
+	}{
+		{
+			name: "Option type with OptionTag",
+			source: `package main
+type OptionTag uint8
+type Option_User struct {
+	tag OptionTag
+	value *User
+}
+func (o Option_User) Unwrap() User { return *o.value }
+type User struct{}`,
+			expectOption: true,
+		},
+		{
+			name: "Result type with ResultTag",
+			source: `package main
+type ResultTag uint8
+type Result_User_Error struct {
+	tag ResultTag
+	value *User
+	err *Error
+}
+func (r Result_User_Error) Unwrap() User { return *r.value }
+type User struct{}
+type Error struct{}`,
+			expectOption: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fset := token.NewFileSet()
+			file, err := parser.ParseFile(fset, "test.go", tt.source, parser.ParseComments)
+			if err != nil {
+				t.Fatalf("Parse failed: %v", err)
+			}
+
+			conf := types.Config{}
+			info := &types.Info{
+				Types: make(map[ast.Expr]types.TypeAndValue),
+				Defs:  make(map[*ast.Ident]types.Object),
+			}
+			pkg, err := conf.Check("test", fset, []*ast.File{file}, info)
+			if err != nil {
+				t.Logf("Type check warnings: %v", err)
+			}
+
+			// Find the struct type
+			var typeName string
+			if tt.expectOption {
+				typeName = "Option_User"
+			} else {
+				typeName = "Result_User_Error"
+			}
+
+			obj := pkg.Scope().Lookup(typeName)
+			if obj == nil {
+				t.Fatalf("Type %s not found", typeName)
+			}
+
+			named, ok := obj.Type().(*types.Named)
+			if !ok {
+				t.Fatalf("Not a named type")
+			}
+
+			p := NewSafeNavTypePlugin()
+			result := p.isOptionType(named)
+
+			if result != tt.expectOption {
+				t.Errorf("Expected isOptionType=%v, got %v for %s", tt.expectOption, result, typeName)
+			}
+		})
+	}
+}
+
+// TestSafeNavTypePlugin_TypeInfoFallback tests behavior when TypeInfo is not available
+func TestSafeNavTypePlugin_TypeInfoFallback(t *testing.T) {
+	source := `package main
+func main() {
+	x := __INFER__.field
+}`
+
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+
+	// Create context WITHOUT TypeInfo
+	ctx := &plugin.Context{
+		FileSet:  fset,
+		TypeInfo: nil, // No type info
+		Logger:   plugin.NewNoOpLogger(),
+	}
+
+	p := NewSafeNavTypePlugin()
+	p.SetContext(ctx)
+
+	// Should create type inference service even without TypeInfo
+	if p.typeInference == nil {
+		t.Error("Expected type inference service to be created even without TypeInfo")
+	}
+
+	// Process should still work
+	err = p.Process(file)
+	if err != nil {
+		t.Fatalf("Process failed: %v", err)
+	}
+
+	// Should find __INFER__ placeholder
+	if len(p.inferNodes) != 1 {
+		t.Errorf("Expected 1 __INFER__ node, got %d", len(p.inferNodes))
 	}
 }
 

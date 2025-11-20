@@ -111,12 +111,12 @@ type FeatureConfig struct {
 	// - "debug": Check only when DINGO_DEBUG env var is set
 	NilSafetyChecks string `toml:"nil_safety_checks"`
 
-	// LambdaSyntax controls which lambda function syntax styles are accepted
-	// Valid values: "rust", "arrow", "both"
-	// - "rust": Only Rust-style |x| expr syntax
-	// - "arrow": Only JavaScript/TypeScript-style (x) => expr syntax
-	// - "both": Accept both styles in the same file (default)
-	LambdaSyntax string `toml:"lambda_syntax"`
+	// LambdaStyle controls which lambda function syntax style is used
+	// Valid values: "typescript", "rust"
+	// - "typescript": Only TypeScript/JavaScript arrow syntax: x => expr (default)
+	// - "rust": Only Rust-style pipe syntax: |x| expr
+	// Note: Only ONE style is active per project to avoid ambiguity
+	LambdaStyle string `toml:"lambda_style"`
 
 	// SafeNavigationUnwrap controls how the ?. operator handles return types
 	// Valid values: "always_option", "smart"
@@ -168,7 +168,7 @@ func DefaultConfig() *Config {
 			ErrorPropagationSyntax: SyntaxQuestion, // Default to ? operator
 			ReuseErrVariable:       true,           // Default to reusing "err" for cleaner code
 			NilSafetyChecks:        "on",           // Default to safe mode
-			LambdaSyntax:           "rust",         // Default to Rust-style |x| expr
+			LambdaStyle:            "typescript",   // Default to TypeScript arrow syntax
 			SafeNavigationUnwrap:   "smart",        // Default to smart unwrapping
 			NullCoalescingPointers: true,           // Default to supporting Go pointers
 			OperatorPrecedence:     "standard",     // Default to standard precedence
@@ -278,14 +278,14 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	// Validate lambda syntax
-	if c.Features.LambdaSyntax != "" {
-		switch c.Features.LambdaSyntax {
-		case "rust", "arrow", "both":
+	// Validate lambda style
+	if c.Features.LambdaStyle != "" {
+		switch c.Features.LambdaStyle {
+		case "rust", "typescript":
 			// Valid
 		default:
-			return fmt.Errorf("invalid lambda_syntax: %q (must be 'rust', 'arrow', or 'both')",
-				c.Features.LambdaSyntax)
+			return fmt.Errorf("invalid lambda_style: %q (must be 'rust' or 'typescript')",
+				c.Features.LambdaStyle)
 		}
 	}
 
