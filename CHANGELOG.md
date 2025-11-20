@@ -4,6 +4,69 @@ All notable changes to the Dingo compiler will be documented in this file.
 
 ## [Unreleased]
 
+### 🔧 Naming Convention Standardization (2025-11-20)
+
+**Date**: 2025-11-20
+**Type**: Code Quality Improvement
+**Status**: Complete and Approved by 4 Reviewers
+
+**Overview:**
+Converted all generated code from underscore_naming to Go's standard camelCase convention. Previous commit f797cc5 had standardized TO underscores, but this was inconsistent with Go's naming conventions for exported types.
+
+**Changes:**
+
+**Naming Transformations:**
+- Type names: `Result_int_error` → `ResultIntError`
+- Constructor names: `Result_Ok` → `ResultOk`
+- Enum tags: `StringOption_Tag` → `StringOptionTag`
+- Field names: `ok_0`, `err_0` → `ok`, `err`
+- Tag constants: `ResultTag_Ok` → `ResultTagOk`
+
+**Implementation:**
+1. **Created shared naming utilities** (`pkg/plugin/builtin/util.go`):
+   - `SanitizeTypeName()`: Converts type parts to camelCase with acronym support (HTTP, URL, JSON, etc.)
+   - `GenerateTempVarName()`: Smart numbering (ok, ok1, ok2 instead of ok_0, ok_1)
+   - 61/61 unit tests passing (100%)
+
+2. **Updated code generators**:
+   - `pkg/plugin/builtin/result_type.go`: Use shared utilities
+   - `pkg/plugin/builtin/option_type.go`: Use shared utilities
+   - `pkg/preprocessor/enum.go`: Update enum tag generation
+   - `pkg/preprocessor/rust_match.go`: Update match code generation
+
+3. **Regenerated test files**:
+   - 62/84 golden test files regenerated with new naming
+   - All source maps updated
+
+**Files Changed:**
+- **New files**: 2 (util.go, util_test.go)
+- **Modified files**: 6 (result_type.go, option_type.go, enum.go, rust_match.go, test files)
+- **Regenerated files**: 62 golden tests + source maps
+- **Total impact**: 125 files, +3820 insertions, -2998 deletions
+
+**Code Review Results (2 iterations):**
+- ✅ **Internal Reviewer**: APPROVED (0 critical, 0 important, 0 minor)
+- ✅ **Grok Code Fast**: APPROVED (0 critical, enhancement suggestions only)
+- ✅ **GPT-5 Codex**: APPROVED (0 critical, 0 important, 0 minor)
+- ✅ **Gemini 3 Pro**: APPROVED (0 critical, 0 important, 1 minor suggestion)
+
+**Quality Metrics:**
+- Build Status: ✅ Success
+- Utility Tests: 61/61 passing (100%)
+- Code Reviews: 4/4 approved (100%)
+- Regression Analysis: No new failures introduced
+- Go Conventions: Full compliance verified
+
+**Iteration Summary:**
+1. **Iteration 1**: 3/4 reviewers found critical issues (constructor/enum naming still used underscores)
+2. **Fixes Applied**: 4 critical issues resolved in code generators
+3. **Iteration 2**: 4/4 reviewers APPROVED ✅
+
+**Session Reference:** ai-docs/sessions/20251120-120544/
+**Commit**: 1b80a32
+
+---
+
 ### ✨ Phase 6: Lambda Functions (2025-11-20)
 
 **Date**: 2025-11-20
