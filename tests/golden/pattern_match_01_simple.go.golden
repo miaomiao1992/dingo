@@ -515,10 +515,10 @@ func processNested(result Result[Option[int], error]) int {
 
 		{
 
-			scrutinee := inner
-			switch scrutinee.tag {
+			scrutinee6 := inner
+			switch scrutinee6.tag {
 			case OptionTagSome:
-				val := *scrutinee.some
+				val := *scrutinee6.some
 
 				return val
 			case OptionTagNone:

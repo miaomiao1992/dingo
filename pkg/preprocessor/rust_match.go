@@ -56,32 +56,166 @@ func (r *RustMatchProcessor) Name() string {
 }
 
 // Process transforms Rust-like match expressions
+// Runs multiple passes to handle nested match blocks
 func (r *RustMatchProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 	r.mappings = []Mapping{}
 	r.matchCounter = 0
 
+	// Run multiple passes until no more match keywords remain
+	// This handles nested match blocks recursively
+	const maxPasses = 10
+	result := source
+
+	for pass := 0; pass < maxPasses; pass++ {
+		// Check if there are any match keywords left
+		if !containsMatchKeyword(result) {
+			break
+		}
+
+		// Process one level of match expressions
+		newResult, newMappings, err := r.processSinglePass(result)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		// If nothing changed, we're done
+		if bytes.Equal(result, newResult) {
+			break
+		}
+
+		result = newResult
+		r.mappings = append(r.mappings, newMappings...)
+	}
+
+	// Clean up invalid block expressions that contain switch statements
+	// Pattern: `result = { switch ... }` is invalid Go, should be just the switch
+	result = r.cleanupBlockExpressions(result)
+
+	return result, r.mappings, nil
+}
+
+// cleanupBlockExpressions removes invalid block wrappers around switch statements
+// Transforms: `result = {\n// DINGO_MATCH_START...` to just the switch statements
+func (r *RustMatchProcessor) cleanupBlockExpressions(source []byte) []byte {
+	text := string(source)
+
+	// Use regex to find and remove the pattern: `\w+ = {\n// DINGO_MATCH_START:` followed by content ending with `\n\t\t}`
+	// This pattern represents a block expression containing a transformed match
+	// We want to unwrap it so the switch statements execute directly
+
+	// Pattern: variable assignment followed by `{`, then DINGO_MATCH_START marker
+	// The content between the `{` and its matching `}` contains the switch statements
+	// We need to remove the wrapper and just keep the switch content
+
+	// Simpler approach: regex replacement
+	// Match: `result = {` followed by newline, then content, then ending with `		}`
+	// Replace with just the content (without the wrapper)
+
+	// Pattern to match:
+	//   result = {
+	//   // DINGO_MATCH_START: inner
+	//   ... (switch statements)
+	//   		}  (closing brace with tabs)
+	//
+	// This should become just:
+	//   // DINGO_MATCH_START: inner
+	//   ... (switch statements)
+
+	// Use a more targeted approach: look for the exact indentation pattern
+	// The invalid pattern has these characteristics:
+	// 1. Line with `result = {` or similar
+	// 2. Next line is `// DINGO_MATCH_START:`
+	// 3. Content (switch statements)
+	// 4. Closing line with just `		}` (tabs then closing brace)
+
+	lines := strings.Split(text, "\n")
+	var output []string
+
+	i := 0
+	for i < len(lines) {
+		line := lines[i]
+		trimmed := strings.TrimSpace(line)
+
+		// Check if this line matches the pattern: `result = {` and next is DINGO_MATCH_START
+		if strings.Contains(trimmed, " = {") &&
+			i+1 < len(lines) &&
+			strings.Contains(lines[i+1], "// DINGO_MATCH_START:") &&
+			!strings.HasPrefix(trimmed, "//") {
+
+			// Found the pattern - skip the `result = {` line
+			i++
+
+			// Now copy all lines until we find the matching closing brace
+			// The matching brace will be at the same or less indentation as the assignment
+			assignmentIndent := len(line) - len(strings.TrimLeft(line, " \t"))
+
+			// Copy lines until we find a line that's just `}` or `		}` at this indent level
+			for i < len(lines) {
+				currentLine := lines[i]
+				currentTrimmed := strings.TrimSpace(currentLine)
+
+				// Check if this is the closing brace for our block
+				// It should be a line with just `}` potentially with indentation
+				if currentTrimmed == "}" {
+					// Check the indentation - should match or be less than assignment
+					currentIndent := len(currentLine) - len(strings.TrimLeft(currentLine, " \t"))
+					if currentIndent >= assignmentIndent {
+						// This is the closing brace - skip it
+						i++
+						break
+					}
+				}
+
+				// Regular line - keep it
+				output = append(output, currentLine)
+				i++
+			}
+			continue
+		}
+
+		// Normal line - keep it
+		output = append(output, line)
+		i++
+	}
+
+	return []byte(strings.Join(output, "\n"))
+}
+
+// containsMatchKeyword checks if source contains any match keywords to process
+func containsMatchKeyword(source []byte) bool {
+	text := string(source)
+
+	// Look for "match " followed by identifier (not in comments or strings)
+	// Simple heuristic: check if "match " appears at all
+	// More sophisticated check could parse comments/strings
+	return strings.Contains(text, "match ")
+}
+
+// processSinglePass performs one pass of match expression transformation
+func (r *RustMatchProcessor) processSinglePass(source []byte) ([]byte, []Mapping, error) {
 	input := string(source)
 	lines := strings.Split(input, "\n")
 
 	var output bytes.Buffer
+	var mappings []Mapping
 	inputLineNum := 0
 	outputLineNum := 1
 
 	for inputLineNum < len(lines) {
 		line := lines[inputLineNum]
 
-		// Check if this line starts a match expression (not in comments)
+		// Check if this line contains a match expression (not in comments)
 		// Must be "match " followed by identifier (not in middle of word, not in comment)
 		trimmed := strings.TrimSpace(line)
 		isMatchExpr := false
 		if !strings.HasPrefix(trimmed, "//") && !strings.HasPrefix(trimmed, "/*") {
 			// FIX: Only detect match expressions that start with match keyword
 			// This prevents reprocessing generated code like panic("unreachable: match is exhaustive")
-			// Valid patterns: "match expr", "let x = match", "var y = match", "return match"
+			// But allows nested matches (indented or in blocks)
+			// Valid patterns: "match expr", "let x = match", "var y = match", "return match", "	match expr"
 			if strings.HasPrefix(trimmed, "match ") ||
-				strings.HasPrefix(trimmed, "let ") && strings.Contains(trimmed, " match ") ||
-				strings.HasPrefix(trimmed, "var ") && strings.Contains(trimmed, " match ") ||
-				strings.HasPrefix(trimmed, "return ") && strings.Contains(trimmed, " match ") {
+				(strings.HasPrefix(trimmed, "let ") || strings.HasPrefix(trimmed, "var ") ||
+				 strings.HasPrefix(trimmed, "return ")) && strings.Contains(trimmed, " match ") {
 				isMatchExpr = true
 			}
 		}
@@ -97,7 +231,7 @@ func (r *RustMatchProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 				}
 
 				output.WriteString(transformed)
-				r.mappings = append(r.mappings, newMappings...)
+				mappings = append(mappings, newMappings...)
 
 				// Update line counters
 				inputLineNum += linesConsumed
@@ -121,7 +255,7 @@ func (r *RustMatchProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 		outputLineNum++
 	}
 
-	return output.Bytes(), r.mappings, nil
+	return output.Bytes(), mappings, nil
 }
 
 // isAlphanumeric checks if a rune is alphanumeric or underscore

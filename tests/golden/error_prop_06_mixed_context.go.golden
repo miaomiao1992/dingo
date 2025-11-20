@@ -6,18 +6,18 @@ import (
 )
 
 func processData(path string) (int, error) {
-	__tmp0, __err0 := os.ReadFile(path)
+	tmp1, err1 := os.ReadFile(path)
 
-	if __err0 != nil {
-		return 0, __err0
+	if err1 != nil {
+		return 0, err1
 	}
 	// dingo:e:1
-	var data = __tmp0
-	__tmp1, __err1 := strconv.Atoi(string(data))
+	var data = tmp1
+	tmp2, err2 := strconv.Atoi(string(data))
 
-	if __err1 != nil {
-		return 0, __err1
+	if err2 != nil {
+		return 0, err2
 	}
 
-	return __tmp1, nil
+	return tmp2, nil
 }

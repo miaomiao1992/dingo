@@ -1,0 +1,39 @@
+package main
+
+import "errors"
+
+// Test: Nested match blocks
+// Feature: Match expression containing nested match expressions in arms
+// Complexity: advanced
+
+enum Result {
+	Ok(Option),
+	Err(error),
+}
+
+enum Option {
+	Some(int),
+	None,
+}
+
+func processNestedMatch(result Result) int {
+	return match result {
+		Ok(inner) => {
+			match inner {
+				Some(val) => val,
+				None => 0,
+			}
+		},
+		Err(e) => -1,
+	}
+}
+
+func main() {
+	r1 := Ok(Some(42))
+	r2 := Ok(Option_int_None())
+	r3 := Err(errors.New("failed"))
+
+	println(processNestedMatch(r1))  // 42
+	println(processNestedMatch(r2))  // 0
+	println(processNestedMatch(r3))  // -1
+}
