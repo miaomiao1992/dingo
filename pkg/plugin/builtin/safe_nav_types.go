@@ -78,16 +78,23 @@ func (p *SafeNavTypePlugin) SetContext(ctx *plugin.Context) {
 		service, err := NewTypeInferenceService(ctx.FileSet, nil, ctx.Logger)
 		if err != nil {
 			ctx.Logger.Warn("SafeNavTypePlugin: Failed to create type inference service: %v", err)
-		} else {
-			p.typeInference = service
+			return
+		}
 
-			// Inject go/types.Info if available in context
-			if ctx.TypeInfo != nil {
-				if typesInfo, ok := ctx.TypeInfo.(*types.Info); ok {
-					service.SetTypesInfo(typesInfo)
-					ctx.Logger.Debug("SafeNavTypePlugin: go/types integration enabled")
-				}
+		p.typeInference = service
+
+		// Inject go/types.Info if available in context
+		if ctx.TypeInfo != nil {
+			if typesInfo, ok := ctx.TypeInfo.(*types.Info); ok {
+				service.SetTypesInfo(typesInfo)
+				ctx.Logger.Debug("SafeNavTypePlugin: go/types integration enabled")
+			} else {
+				// TypeInfo exists but is not *types.Info - warn about limited inference
+				ctx.Logger.Warn("SafeNavTypePlugin: TypeInfo is not *types.Info (type: %T), type inference may be limited", ctx.TypeInfo)
 			}
+		} else {
+			// No TypeInfo available - will use heuristic inference
+			ctx.Logger.Debug("SafeNavTypePlugin: No TypeInfo available, using heuristic type inference")
 		}
 	}
 }
@@ -131,25 +138,94 @@ func (p *SafeNavTypePlugin) Transform(node ast.Node) (ast.Node, error) {
 		return nil, fmt.Errorf("plugin context not initialized")
 	}
 
-	if len(p.inferNodes) == 0 {
-		// No __INFER__ placeholders to resolve
-		return node, nil
-	}
+	// Build a map of FuncLit → Option type for all IIFEs with __INFER__
+	// Do this BEFORE resolving individual nodes since we need the context
+	funcLitTypes := make(map[*ast.FuncLit]string)
+	ast.Inspect(node, func(n ast.Node) bool {
+		if funcLit, ok := n.(*ast.FuncLit); ok {
+			if funcLit.Type != nil && funcLit.Type.Results != nil {
+				if len(funcLit.Type.Results.List) == 1 {
+					if ident, ok := funcLit.Type.Results.List[0].Type.(*ast.Ident); ok {
+						if ident.Name == "__INFER__" {
+							// Look for Option_T calls in the function body
+							optionType := p.resolveReturnTypeFromFunc(funcLit)
+							if optionType != "" {
+								funcLitTypes[funcLit] = optionType
+								p.ctx.Logger.Debug("SafeNavTypePlugin: Resolved IIFE return type to %s", optionType)
+							}
+						}
+					}
+				}
+			}
+		}
+		return true
+	})
 
-	// Resolve types for all discovered __INFER__ nodes
-	for _, inferNode := range p.inferNodes {
-		if err := p.resolveTypeForInferNode(inferNode); err != nil {
-			p.errors = append(p.errors, err.Error())
-			p.ctx.ReportError(err.Error(), inferNode.ident.Pos())
+	if len(p.inferNodes) > 0 {
+		// Resolve types for all discovered __INFER__ nodes
+		for _, inferNode := range p.inferNodes {
+			if err := p.resolveTypeForInferNode(inferNode); err != nil {
+				p.errors = append(p.errors, err.Error())
+				p.ctx.ReportError(err.Error(), inferNode.ident.Pos())
+			}
 		}
 	}
 
-	// Use astutil.Apply to walk and transform the AST
+	// Now transform the AST, replacing all __INFER__ patterns
+	var currentFuncLit *ast.FuncLit
 	transformed := astutil.Apply(node,
 		func(cursor *astutil.Cursor) bool {
 			n := cursor.Node()
 
-			// Check if this is an __INFER__ identifier we need to replace
+			// Track which function literal we're inside
+			if funcLit, ok := n.(*ast.FuncLit); ok {
+				currentFuncLit = funcLit
+			}
+
+			// 1. Replace func() __INFER__ return types
+			if funcLit, ok := n.(*ast.FuncLit); ok {
+				if funcLit.Type != nil && funcLit.Type.Results != nil {
+					if len(funcLit.Type.Results.List) == 1 {
+						if ident, ok := funcLit.Type.Results.List[0].Type.(*ast.Ident); ok {
+							if ident.Name == "__INFER__" {
+								if optionType, ok := funcLitTypes[funcLit]; ok {
+									funcLit.Type.Results.List[0].Type = ast.NewIdent(optionType)
+									p.ctx.Logger.Debug("SafeNavTypePlugin: Replaced func() __INFER__ with func() %s", optionType)
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// 2. Replace __INFER___None() and __INFER___Some(val) function calls
+			if call, ok := n.(*ast.CallExpr); ok {
+				if fun, ok := call.Fun.(*ast.Ident); ok {
+					if fun.Name == "__INFER___None" || fun.Name == "__INFER___Some" {
+						// Get the Option type from the enclosing function literal
+						var optionType string
+						if currentFuncLit != nil {
+							optionType = funcLitTypes[currentFuncLit]
+						}
+						if optionType == "" {
+							// Try to resolve from context
+							optionType = p.resolveOptionTypeFromContext(call)
+						}
+						if optionType != "" {
+							// Replace __INFER___None with Option_T_None, etc.
+							newFunName := strings.Replace(fun.Name, "__INFER__", optionType, 1)
+							newCall := &ast.CallExpr{
+								Fun:  ast.NewIdent(newFunName),
+								Args: call.Args,
+							}
+							cursor.Replace(newCall)
+							p.ctx.Logger.Debug("SafeNavTypePlugin: Replaced %s() with %s()", fun.Name, newFunName)
+						}
+					}
+				}
+			}
+
+			// 3. Replace standalone __INFER__ identifiers (from discovered nodes)
 			if ident, ok := n.(*ast.Ident); ok {
 				if ident.Name == "__INFER__" {
 					// Find the corresponding inferNode
@@ -158,12 +234,13 @@ func (p *SafeNavTypePlugin) Transform(node ast.Node) (ast.Node, error) {
 							// Replace __INFER__ with the resolved type
 							replacement := ast.NewIdent(inferNode.resolvedType)
 							cursor.Replace(replacement)
-							p.ctx.Logger.Debug("SafeNavTypePlugin: Replaced __INFER__ with %s", inferNode.resolvedType)
+							p.ctx.Logger.Debug("SafeNavTypePlugin: Replaced __INFER__ identifier with %s", inferNode.resolvedType)
 							break
 						}
 					}
 				}
 			}
+
 			return true
 		},
 		nil, // Post-order not needed
@@ -291,8 +368,11 @@ func (p *SafeNavTypePlugin) resolveTypeFromExpr(node *inferNode, expr ast.Expr) 
 
 // isOptionType checks if a named type is an Option type
 // An Option type is identified by:
-// 1. Having a 'tag' field of type OptionTag
-// 2. Having IsSome() and IsNone() methods
+// 1. Having an unexported 'tag' field of type OptionTag (NOT ResultTag)
+// 2. Having an Unwrap() method with signature: func() T
+//
+// This is more precise than before - we now distinguish between Option<T> and Result<T,E>
+// since both have 'tag' fields but with different tag types.
 func (p *SafeNavTypePlugin) isOptionType(named *types.Named) bool {
 	// Get the underlying struct type
 	structType, ok := named.Underlying().(*types.Struct)
@@ -300,37 +380,201 @@ func (p *SafeNavTypePlugin) isOptionType(named *types.Named) bool {
 		return false
 	}
 
-	// Check for 'tag' field
-	hasTagField := false
+	// Check for unexported 'tag' field with OptionTag type (NOT ResultTag)
+	hasOptionTag := false
 	for i := 0; i < structType.NumFields(); i++ {
 		field := structType.Field(i)
-		if field.Name() == "tag" {
-			// Check if tag type is OptionTag or ResultTag
+		if field.Name() == "tag" && !field.Exported() {
+			// Check if tag type is specifically OptionTag
 			if namedType, ok := field.Type().(*types.Named); ok {
-				tagName := namedType.Obj().Name()
-				if tagName == "OptionTag" || tagName == "ResultTag" {
-					hasTagField = true
+				if namedType.Obj().Name() == "OptionTag" {
+					hasOptionTag = true
+					break
+				}
+				// If it's ResultTag, this is Result<T,E>, not Option<T>
+				if namedType.Obj().Name() == "ResultTag" {
+					return false
+				}
+			}
+		}
+	}
+
+	if !hasOptionTag {
+		return false
+	}
+
+	// Check for Unwrap() method with correct signature: func() T
+	hasUnwrap := false
+	for i := 0; i < named.NumMethods(); i++ {
+		method := named.Method(i)
+		if method.Name() == "Unwrap" {
+			// Validate signature: should be func() T (no params, one result)
+			if sig, ok := method.Type().(*types.Signature); ok {
+				if sig.Params().Len() == 0 && sig.Results().Len() == 1 {
+					hasUnwrap = true
 					break
 				}
 			}
 		}
 	}
 
-	if !hasTagField {
-		return false
+	return hasUnwrap
+}
+
+// resolveOptionTypeFromContext attempts to determine the Option type for __INFER___None()/__INFER___Some() calls
+//
+// Strategy:
+// 1. Walk the entire function body to find OTHER Option_ calls (like Option_User_None)
+// 2. Extract the Option type from those calls
+// 3. All __INFER__ placeholders in the same function should use the same type
+func (p *SafeNavTypePlugin) resolveOptionTypeFromContext(call *ast.CallExpr) string {
+	if p.ctx == nil {
+		return ""
 	}
 
-	// Check for IsSome() method
-	hasSomeMethod := false
-	for i := 0; i < named.NumMethods(); i++ {
-		method := named.Method(i)
-		if method.Name() == "IsSome" {
-			hasSomeMethod = true
-			break
+	// Walk up to find the enclosing function literal
+	var funcLit *ast.FuncLit
+	p.ctx.WalkParents(call, func(parent ast.Node) bool {
+		if fl, ok := parent.(*ast.FuncLit); ok {
+			funcLit = fl
+			return false // Stop walking
+		}
+		return true
+	})
+
+	if funcLit == nil || funcLit.Body == nil {
+		return ""
+	}
+
+	// Now scan the function body for any Option_T_None or Option_T_Some calls
+	// to determine what T is
+	var optionType string
+	ast.Inspect(funcLit.Body, func(n ast.Node) bool {
+		if otherCall, ok := n.(*ast.CallExpr); ok {
+			if fun, ok := otherCall.Fun.(*ast.Ident); ok {
+				name := fun.Name
+				// Look for patterns like: Option_User_None, Option_string_Some
+				if strings.HasPrefix(name, "Option_") && !strings.HasPrefix(name, "__INFER__") {
+					if strings.HasSuffix(name, "_None") {
+						optionType = strings.TrimSuffix(name, "_None")
+						return false
+					} else if strings.HasSuffix(name, "_Some") {
+						optionType = strings.TrimSuffix(name, "_Some")
+						return false
+					}
+				}
+			}
+		}
+		return true
+	})
+
+	// If we couldn't find it from calls, try the return type
+	if optionType == "" && funcLit.Type != nil && funcLit.Type.Results != nil {
+		if len(funcLit.Type.Results.List) == 1 {
+			if ident, ok := funcLit.Type.Results.List[0].Type.(*ast.Ident); ok {
+				if ident.Name != "__INFER__" && strings.HasPrefix(ident.Name, "Option_") {
+					optionType = ident.Name
+				}
+			}
 		}
 	}
 
-	return hasSomeMethod
+	return optionType
+}
+
+// resolveReturnTypeFromFunc attempts to determine the return type for func() __INFER__
+//
+// Strategy:
+// 1. Scan the function body directly (funcLit is passed via cursor)
+// 2. Find calls to Option_T_None() or Option_T_Some() to determine T
+// 3. If none found, look for variables with .IsNone() or .Unwrap() calls and infer their types
+// 4. Extract Option_T from those calls or variables
+func (p *SafeNavTypePlugin) resolveReturnTypeFromFunc(funcLit *ast.FuncLit) string {
+	if funcLit == nil || funcLit.Body == nil {
+		return ""
+	}
+
+	// First, try to find Option_T_None() or Option_T_Some() calls
+	var optionType string
+	ast.Inspect(funcLit.Body, func(n ast.Node) bool {
+		if call, ok := n.(*ast.CallExpr); ok {
+			if fun, ok := call.Fun.(*ast.Ident); ok {
+				name := fun.Name
+				// Look for patterns like: Option_User_None, Option_string_Some, etc.
+				if strings.HasPrefix(name, "Option_") && !strings.HasPrefix(name, "__INFER__") {
+					if strings.HasSuffix(name, "_None") {
+						// Extract Option_T from Option_T_None
+						optionType = strings.TrimSuffix(name, "_None")
+						return false // Stop searching
+					} else if strings.HasSuffix(name, "_Some") {
+						// Extract Option_T from Option_T_Some
+						optionType = strings.TrimSuffix(name, "_Some")
+						return false // Stop searching
+					}
+				}
+			}
+		}
+		return true
+	})
+
+	// If we found it, return
+	if optionType != "" {
+		return optionType
+	}
+
+	// Otherwise, look for variables with .IsNone() or .Unwrap() method calls
+	// This handles cases like: if user.IsNone() { ... }
+	var varNames []string
+	ast.Inspect(funcLit.Body, func(n ast.Node) bool {
+		if call, ok := n.(*ast.CallExpr); ok {
+			if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+				methodName := sel.Sel.Name
+				if methodName == "IsNone" || methodName == "IsSome" || methodName == "Unwrap" {
+					// Found a method call like user.IsNone()
+					if ident, ok := sel.X.(*ast.Ident); ok {
+						varNames = append(varNames, ident.Name)
+					}
+				}
+			}
+		}
+		return true
+	})
+
+	// Now use go/types to infer the type of these variables
+	if p.typeInference != nil && len(varNames) > 0 {
+		for _, varName := range varNames {
+			// Look up the variable in the function scope
+			// We need to find it in the enclosing scope - this requires walking parents
+			// For now, try to use TypeInfo if available
+			if p.ctx != nil && p.ctx.TypeInfo != nil {
+				if typesInfo, ok := p.ctx.TypeInfo.(*types.Info); ok {
+					// Find the variable by walking the AST
+					var varIdent *ast.Ident
+					ast.Inspect(funcLit.Body, func(n ast.Node) bool {
+						if ident, ok := n.(*ast.Ident); ok && ident.Name == varName {
+							varIdent = ident
+							return false
+						}
+						return true
+					})
+
+					if varIdent != nil {
+						if typ := typesInfo.TypeOf(varIdent); typ != nil {
+							if named, ok := typ.(*types.Named); ok {
+								typeName := named.Obj().Name()
+								// Check if it's an Option type
+								if strings.HasPrefix(typeName, "Option_") {
+									return typeName
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return ""
 }
 
 // GetErrors returns all accumulated errors
