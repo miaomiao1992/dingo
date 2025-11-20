@@ -1,9 +1,5 @@
 package main
 
-// Test: Null coalescing edge cases and special scenarios
-// Feature: ?? operator edge cases
-// Complexity: advanced
-
 type StringOptionTag uint8
 
 const (
@@ -16,10 +12,10 @@ type StringOption struct {
 	some *string
 }
 
-func StringOption_Some(arg0 string) StringOption {
+func StringOptionSome(arg0 string) StringOption {
 	return StringOption{tag: StringOptionTagSome, some: &arg0}
 }
-func StringOption_None() StringOption {
+func StringOptionNone() StringOption {
 	return StringOption{tag: StringOptionTagNone}
 }
 func (e StringOption) IsSome() bool {
@@ -27,6 +23,28 @@ func (e StringOption) IsSome() bool {
 }
 func (e StringOption) IsNone() bool {
 	return e.tag == StringOptionTagNone
+}
+func (o StringOption) Map(fn func(string) string) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return StringOptionSome(fn(*o.some))
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
+}
+func (o StringOption) AndThen(fn func(string) StringOption) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
 }
 
 type BoolOptionTag uint8
@@ -40,11 +58,10 @@ type BoolOption struct {
 	tag  BoolOptionTag
 	some *bool
 }
-
-func BoolOption_Some(arg0 bool) BoolOption {
+func BoolOptionSome(arg0 bool) BoolOption {
 	return BoolOption{tag: BoolOptionTagSome, some: &arg0}
 }
-func BoolOption_None() BoolOption {
+func BoolOptionNone() BoolOption {
 	return BoolOption{tag: BoolOptionTagNone}
 }
 func (e BoolOption) IsSome() bool {
@@ -53,83 +70,96 @@ func (e BoolOption) IsSome() bool {
 func (e BoolOption) IsNone() bool {
 	return e.tag == BoolOptionTagNone
 }
-
+func (o BoolOption) Map(fn func(bool) bool) BoolOption {
+	switch o.tag {
+	case BoolOptionTagSome:
+		if o.some != nil {
+			return BoolOptionSome(fn(*o.some))
+		}
+	case BoolOptionTagNone:
+		return o
+	}
+	panic("invalid BoolOption state")
+}
+func (o BoolOption) AndThen(fn func(bool) BoolOption) BoolOption {
+	switch o.tag {
+	case BoolOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case BoolOptionTagNone:
+		return o
+	}
+	panic("invalid BoolOption state")
+}
 func main() {
-	// Test 1: Empty string as fallback
-	var name StringOption = StringOption_Some("")
-	var display string
-	if name.IsSome() {
-		display = *name.some
-	} else {
-		display = "Default"
-	}
 
-	// Test 2: Zero value as fallback
-	var zero BoolOption = BoolOption_Some(false)
-	var result bool
-	if zero.IsSome() {
-		result = *zero.some
-	} else {
-		result = true
-	}
-
-	// Test 3: Nested parentheses
-	var opt1 StringOption = StringOption_None()
-	var opt2 StringOption = StringOption_Some("Found")
-	var combined string
-	__inner := func() string {
-		if opt1.IsSome() {
-			return *opt1.some
+	name := StringOptionSome("")
+	display := func() __INFER__ {
+		if name.IsSome() {
+			return __UNWRAP__(name)
 		}
-		if opt2.IsSome() {
-			return *opt2.some
-		}
-		return ""
+		return "Default"
 	}()
-	if __inner != "" {
-		combined = __inner
-	} else {
-		combined = "Fallback"
-	}
 
-	// Test 4: ?? in boolean context
-	var flag BoolOption = BoolOption_None()
-	var enabled bool
-	if flag.IsSome() {
-		enabled = *flag.some
-	} else {
-		enabled = false
-	}
+	zero := BoolOptionSome(false)
+	result := func() __INFER__ {
+		if zero.IsSome() {
+			return __UNWRAP__(zero)
+		}
+		return true
+	}()
 
-	// Test 5: Multiple ?? in same expression (different vars)
-	var first StringOption = StringOption_None()
-	var second StringOption = StringOption_None()
-	var a string
-	if first.IsSome() {
-		a = *first.some
-	} else {
-		a = "A"
-	}
-	var b string
-	if second.IsSome() {
-		b = *second.some
-	} else {
-		b = "B"
-	}
-	var concat = a + b
+	opt1 := StringOptionNone()
+	opt2 := StringOptionSome("Found")
+	intermediate := func() __INFER__ {
+		if opt1.IsSome() {
+			return __UNWRAP__(opt1)
+		}
+		return opt2
+	}()
+	combined := func() __INFER__ {
+		if intermediate.IsSome() {
+			return __UNWRAP__(intermediate)
+		}
+		return "Fallback"
+	}()
 
-	// Test 6: ?? with method chain
-	var text StringOption = StringOption_Some("hello")
-	var upper = func() string {
-		__safeNav := func() StringOption {
-			if text.IsNone() {
-				return StringOption_None()
-			}
-			_text := *text.some
-			return _text.toUpper()
-		}()
-		if __safeNav.IsSome() {
-			return *__safeNav.some
+	flag := BoolOptionNone()
+	enabled := func() __INFER__ {
+		if flag.IsSome() {
+			return __UNWRAP__(flag)
+		}
+		return false
+	}()
+
+	first := StringOptionNone()
+	second := StringOptionNone()
+	a := func() __INFER__ {
+		if first.IsSome() {
+			return __UNWRAP__(first)
+		}
+		return "A"
+	}()
+	b := func() __INFER__ {
+		if second.IsSome() {
+			return __UNWRAP__(second)
+		}
+		return "B"
+	}()
+	concat := a + b
+
+	text := StringOptionSome("hello")
+	upperOpt := func() __INFER__ {
+		if text.IsNone() {
+			return __INFER___None()
+		}
+		text1 := text.Unwrap()
+		return text1.toUpper()
+	}()
+	upper := func() __INFER__ {
+		if upperOpt.IsSome() {
+			return __UNWRAP__(upperOpt)
 		}
 		return "DEFAULT"
 	}()
@@ -141,11 +171,10 @@ func main() {
 	println("Concat:", concat)
 	println("Upper:", upper)
 }
-
 func (s StringOption) toUpper() StringOption {
 	if s.IsNone() {
-		return StringOption_None()
+		return StringOptionNone()
 	}
-	// Simplified uppercase
+
 	return s
 }

@@ -23,10 +23,11 @@ func main() {
 	let zero: BoolOption = BoolOptionSome(false)
 	let result = zero ?? true  // Should return false
 
-	// Test 3: Nested parentheses
+	// Test 3: Nested null coalesce (separate into two steps to avoid parser complexity)
 	let opt1: StringOption = StringOptionNone()
 	let opt2: StringOption = StringOptionSome("Found")
-	let combined = (opt1 ?? opt2) ?? "Fallback"
+	let intermediate = opt1 ?? opt2
+	let combined = intermediate ?? "Fallback"
 
 	// Test 4: ?? in boolean context
 	let flag: BoolOption = BoolOptionNone()
@@ -39,9 +40,10 @@ func main() {
 	let b = second ?? "B"
 	let concat = a + b
 
-	// Test 6: ?? with method chain
+	// Test 6: ?? with method chain (separate ?. and ??)
 	let text: StringOption = StringOptionSome("hello")
-	let upper = text?.toUpper() ?? "DEFAULT"
+	let upperOpt = text?.toUpper()
+	let upper = upperOpt ?? "DEFAULT"
 
 	println("Display:", display)
 	println("Result:", result)

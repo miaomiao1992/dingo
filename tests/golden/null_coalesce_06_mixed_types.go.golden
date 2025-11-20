@@ -1,9 +1,5 @@
 package main
 
-// Test: Null coalescing with mixed Option and pointer types
-// Feature: ?? operator with type transitions
-// Complexity: advanced
-
 type UserOptionTag uint8
 
 const (
@@ -16,10 +12,10 @@ type UserOption struct {
 	some *User
 }
 
-func UserOption_Some(arg0 User) UserOption {
+func UserOptionSome(arg0 User) UserOption {
 	return UserOption{tag: UserOptionTagSome, some: &arg0}
 }
-func UserOption_None() UserOption {
+func UserOptionNone() UserOption {
 	return UserOption{tag: UserOptionTagNone}
 }
 func (e UserOption) IsSome() bool {
@@ -27,6 +23,28 @@ func (e UserOption) IsSome() bool {
 }
 func (e UserOption) IsNone() bool {
 	return e.tag == UserOptionTagNone
+}
+func (o UserOption) Map(fn func(User) User) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return UserOptionSome(fn(*o.some))
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
+func (o UserOption) AndThen(fn func(User) UserOption) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
 }
 
 type StringOptionTag uint8
@@ -40,11 +58,10 @@ type StringOption struct {
 	tag  StringOptionTag
 	some *string
 }
-
-func StringOption_Some(arg0 string) StringOption {
+func StringOptionSome(arg0 string) StringOption {
 	return StringOption{tag: StringOptionTagSome, some: &arg0}
 }
-func StringOption_None() StringOption {
+func StringOptionNone() StringOption {
 	return StringOption{tag: StringOptionTagNone}
 }
 func (e StringOption) IsSome() bool {
@@ -53,89 +70,98 @@ func (e StringOption) IsSome() bool {
 func (e StringOption) IsNone() bool {
 	return e.tag == StringOptionTagNone
 }
+func (o StringOption) Map(fn func(string) string) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return StringOptionSome(fn(*o.some))
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
+}
+func (o StringOption) AndThen(fn func(string) StringOption) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
+}
 
 type User struct {
 	name    string
 	profile *Profile
 }
-
 type Profile struct {
 	bio string
 }
-
 func main() {
-	// Test 1: Option -> pointer transition
-	var user UserOption = getUser()
-	var bio = func() string {
-		__safeNav := func() string {
-			if user.IsNone() {
-				return ""
-			}
-			_user := *user.some
 
-			if _user.profile == nil {
-				return ""
-			}
-
-			return _user.profile.bio
-		}()
-		if __safeNav != "" {
-			return __safeNav
+	user := getUser()
+	profileOpt := func() __INFER__ {
+		if user.IsNone() {
+			return __INFER___None()
+		}
+		user1 := user.Unwrap()
+		return user1.profile
+	}()
+	bioOpt := __SAFE_NAV_INFER__(profileOpt, "bio")
+	bio := func() __INFER__ {
+		if bioOpt.IsSome() {
+			return __UNWRAP__(bioOpt)
 		}
 		return "No bio"
 	}()
 
-	// Test 2: Pointer -> Option transition
-	var userPtr *User = getUserPtr()
-	var name = func() string {
-		__safeNav := func() string {
-			if userPtr == nil {
-				return ""
-			}
-			return userPtr.name
-		}()
-		if __safeNav != "" {
-			return __safeNav
+	userPtr := getUserPtr()
+	nameOpt := func() __INFER__ {
+		if userPtr == nil {
+			return nil
+		}
+		return userPtr.name
+	}()
+	name := func() __INFER__ {
+		if nameOpt.IsSome() {
+			return __UNWRAP__(nameOpt)
 		}
 		return "Anonymous"
 	}()
 
-	// Test 3: Mixed chain with multiple types
-	var user2 UserOption = UserOption_Some(User{
+	user2 := UserOptionSome(User{
 		name:    "Bob",
 		profile: &Profile{bio: "Engineer"},
 	})
-	var profile = func() string {
-		__safeNav := func() string {
-			if user2.IsNone() {
-				return ""
-			}
-			_user := *user2.some
-
-			if _user.profile == nil {
-				return ""
-			}
-
-			return _user.profile.bio
-		}()
-		if __safeNav != "" {
-			return __safeNav
+	profileOpt2 := func() __INFER__ {
+		if user2.IsNone() {
+			return __INFER___None()
+		}
+		user22 := user2.Unwrap()
+		return user22.profile
+	}()
+	bioOpt2 := __SAFE_NAV_INFER__(profileOpt2, "bio")
+	profile := func() __INFER__ {
+		if bioOpt2.IsSome() {
+			return __UNWRAP__(bioOpt2)
 		}
 		return "Default bio"
 	}()
 
-	// Test 4: Option method returning pointer
-	var user3 UserOption = getUser()
-	var email = func() string {
-		__safeNav := func() *string {
-			if user3.IsNone() {
-				return nil
-			}
-			_user := *user3.some
-			return _user.getEmail()
-		}()
-		if __safeNav != nil {
-			return *__safeNav
+	user3 := getUser()
+	emailOpt := func() __INFER__ {
+		if user3.IsNone() {
+			return __INFER___None()
+		}
+		user33 := user3.Unwrap()
+		return user33.getEmail()
+	}()
+	email := func() __INFER__ {
+		if emailOpt.IsSome() {
+			return __UNWRAP__(emailOpt)
 		}
 		return "no-email"
 	}()
@@ -145,15 +171,12 @@ func main() {
 	println("Profile:", profile)
 	println("Email:", email)
 }
-
 func getUser() UserOption {
-	return UserOption_None()
+	return UserOptionNone()
 }
-
 func getUserPtr() *User {
 	return nil
 }
-
 func (u User) getEmail() *string {
 	email := u.name + "@example.com"
 	return &email

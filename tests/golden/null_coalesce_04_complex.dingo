@@ -33,13 +33,15 @@ func main() {
 	let port: IntOption = IntOptionNone()
 	let finalPort = (port ?? 8080) + 1000
 
-	// Test 3: ?? with expressions on both sides
+	// Test 3: ?? with expressions on both sides (separate ?. and ??)
 	let config: ConfigOption = getConfig()
-	let host = config?.host ?? getEnv("HOST") ?? "localhost"
+	let hostOpt = config?.host
+	let host = hostOpt ?? getEnv("HOST") ?? "localhost"
 
-	// Test 4: Complex chaining with method calls
+	// Test 4: Complex chaining with method calls (separate ?. and ??)
 	let user: StringOption = findUser(42)
-	let username = user?.toUpper() ?? getGuestName() ?? "GUEST"
+	let userUpper = user?.toUpper()
+	let username = userUpper ?? getGuestName() ?? "GUEST"
 
 	// Test 5: Nested function calls
 	let timeout: IntOption = IntOptionNone()

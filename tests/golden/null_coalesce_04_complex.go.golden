@@ -1,9 +1,5 @@
 package main
 
-// Test: Complex null coalescing expressions
-// Feature: ?? operator with nested expressions and function calls
-// Complexity: advanced
-
 type StringOptionTag uint8
 
 const (
@@ -16,10 +12,10 @@ type StringOption struct {
 	some *string
 }
 
-func StringOption_Some(arg0 string) StringOption {
+func StringOptionSome(arg0 string) StringOption {
 	return StringOption{tag: StringOptionTagSome, some: &arg0}
 }
-func StringOption_None() StringOption {
+func StringOptionNone() StringOption {
 	return StringOption{tag: StringOptionTagNone}
 }
 func (e StringOption) IsSome() bool {
@@ -27,6 +23,28 @@ func (e StringOption) IsSome() bool {
 }
 func (e StringOption) IsNone() bool {
 	return e.tag == StringOptionTagNone
+}
+func (o StringOption) Map(fn func(string) string) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return StringOptionSome(fn(*o.some))
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
+}
+func (o StringOption) AndThen(fn func(string) StringOption) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
 }
 
 type IntOptionTag uint8
@@ -40,11 +58,10 @@ type IntOption struct {
 	tag  IntOptionTag
 	some *int
 }
-
-func IntOption_Some(arg0 int) IntOption {
+func IntOptionSome(arg0 int) IntOption {
 	return IntOption{tag: IntOptionTagSome, some: &arg0}
 }
-func IntOption_None() IntOption {
+func IntOptionNone() IntOption {
 	return IntOption{tag: IntOptionTagNone}
 }
 func (e IntOption) IsSome() bool {
@@ -52,6 +69,28 @@ func (e IntOption) IsSome() bool {
 }
 func (e IntOption) IsNone() bool {
 	return e.tag == IntOptionTagNone
+}
+func (o IntOption) Map(fn func(int) int) IntOption {
+	switch o.tag {
+	case IntOptionTagSome:
+		if o.some != nil {
+			return IntOptionSome(fn(*o.some))
+		}
+	case IntOptionTagNone:
+		return o
+	}
+	panic("invalid IntOption state")
+}
+func (o IntOption) AndThen(fn func(int) IntOption) IntOption {
+	switch o.tag {
+	case IntOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case IntOptionTagNone:
+		return o
+	}
+	panic("invalid IntOption state")
 }
 
 type ConfigOptionTag uint8
@@ -65,11 +104,10 @@ type ConfigOption struct {
 	tag  ConfigOptionTag
 	some *Config
 }
-
-func ConfigOption_Some(arg0 Config) ConfigOption {
+func ConfigOptionSome(arg0 Config) ConfigOption {
 	return ConfigOption{tag: ConfigOptionTagSome, some: &arg0}
 }
-func ConfigOption_None() ConfigOption {
+func ConfigOptionNone() ConfigOption {
 	return ConfigOption{tag: ConfigOptionTagNone}
 }
 func (e ConfigOption) IsSome() bool {
@@ -78,92 +116,112 @@ func (e ConfigOption) IsSome() bool {
 func (e ConfigOption) IsNone() bool {
 	return e.tag == ConfigOptionTagNone
 }
+func (o ConfigOption) Map(fn func(Config) Config) ConfigOption {
+	switch o.tag {
+	case ConfigOptionTagSome:
+		if o.some != nil {
+			return ConfigOptionSome(fn(*o.some))
+		}
+	case ConfigOptionTagNone:
+		return o
+	}
+	panic("invalid ConfigOption state")
+}
+func (o ConfigOption) AndThen(fn func(Config) ConfigOption) ConfigOption {
+	switch o.tag {
+	case ConfigOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case ConfigOptionTagNone:
+		return o
+	}
+	panic("invalid ConfigOption state")
+}
 
 type Config struct {
 	host string
 	port int
 }
-
 func main() {
-	// Test 1: Function call on right side
-	var name StringOption = StringOption_None()
-	var display = func() string {
-		if name.IsSome() {
-			return *name.some
+
+	name := StringOptionNone()
+	display := func() __INFER__ {
+		coalesce1 := name
+		if coalesce1.IsSome() {
+			return coalesce1.Unwrap()
 		}
 		return getDefaultName()
 	}()
 
-	// Test 2: Nested ?? in expressions
-	var port IntOption = IntOption_None()
-	var finalPort = func() int {
+	port := IntOptionNone()
+	finalPort := (func() __INFER__ {
 		if port.IsSome() {
-			return *port.some
+			return __UNWRAP__(port)
 		}
 		return 8080
-	}() + 1000
+	}()) + 1000
 
-	// Test 3: ?? with expressions on both sides
-	var config ConfigOption = getConfig()
-	var host = func() string {
-		__safeNav := func() string {
-			if config.IsNone() {
-				return ""
-			}
-			_config := *config.some
-			return _config.host
-		}()
-		if __safeNav != "" {
-			return __safeNav
+	config := getConfig()
+	hostOpt := func() __INFER__ {
+		if config.IsNone() {
+			return __INFER___None()
 		}
-		__env := getEnv("HOST")
-		if __env.IsSome() {
-			return *__env.some
+		config1 := config.Unwrap()
+		return config1.host
+	}()
+	host := func() __INFER__ {
+		coalesce2 := hostOpt
+		if __IS_SOME__(coalesce2) {
+			return __UNWRAP__(coalesce2)
+		}
+		coalesce3 := getEnv("HOST")
+		if __IS_SOME__(coalesce3) {
+			return __UNWRAP__(coalesce3)
 		}
 		return "localhost"
 	}()
 
-	// Test 4: Complex chaining with method calls
-	var user StringOption = findUser(42)
-	var username = func() string {
-		__safeNav := func() StringOption {
-			if user.IsNone() {
-				return StringOption_None()
-			}
-			_user := *user.some
-			return _user.toUpper()
-		}()
-		if __safeNav.IsSome() {
-			return *__safeNav.some
+	user := findUser(42)
+	userUpper := func() __INFER__ {
+		if user.IsNone() {
+			return __INFER___None()
 		}
-		__guest := getGuestName()
-		if __guest.IsSome() {
-			return *__guest.some
+		user2 := user.Unwrap()
+		return user2.toUpper()
+	}()
+	username := func() __INFER__ {
+		coalesce4 := userUpper
+		if __IS_SOME__(coalesce4) {
+			return __UNWRAP__(coalesce4)
+		}
+		coalesce5 := getGuestName()
+		if __IS_SOME__(coalesce5) {
+			return __UNWRAP__(coalesce5)
 		}
 		return "GUEST"
 	}()
 
-	// Test 5: Nested function calls
-	var timeout IntOption = IntOption_None()
-	var finalTimeout = func() int {
-		if timeout.IsSome() {
-			return *timeout.some
+	timeout := IntOptionNone()
+	finalTimeout := func() __INFER__ {
+		coalesce6 := timeout
+		if coalesce6.IsSome() {
+			return coalesce6.Unwrap()
 		}
-		__parsed := parseEnv("TIMEOUT")
-		if __parsed.IsSome() {
-			return *__parsed.some
+		coalesce7 := parseEnv("TIMEOUT")
+		if coalesce7.IsSome() {
+			return coalesce7.Unwrap()
 		}
 		return getDefaultTimeout()
 	}()
 
-	// Test 6: Mixed with arithmetic
-	var count IntOption = IntOption_None()
-	var total = func() int {
+	count := IntOptionNone()
+	total := (func() __INFER__ {
 		if count.IsSome() {
-			return *count.some
+			return __UNWRAP__(count)
 		}
 		return 10
-	}() * 2
+	}()) * 2
 
 	println("Display:", display)
 	println("Port:", finalPort)
@@ -172,42 +230,34 @@ func main() {
 	println("Timeout:", finalTimeout)
 	println("Total:", total)
 }
-
 func getDefaultName() string {
 	return "Unknown User"
 }
-
 func getEnv(key string) StringOption {
 	if key == "HOST" {
-		return StringOption_Some("example.com")
+		return StringOptionSome("example.com")
 	}
-	return StringOption_None()
+	return StringOptionNone()
 }
-
 func getConfig() ConfigOption {
-	return ConfigOption_None()
+	return ConfigOptionNone()
 }
-
 func findUser(id int) StringOption {
-	return StringOption_None()
+	return StringOptionNone()
 }
-
 func (s StringOption) toUpper() StringOption {
 	if s.IsNone() {
-		return StringOption_None()
+		return StringOptionNone()
 	}
-	// Simplified - just return the same for demo
+
 	return s
 }
-
 func getGuestName() StringOption {
-	return StringOption_None()
+	return StringOptionNone()
 }
-
 func parseEnv(key string) IntOption {
-	return IntOption_None()
+	return IntOptionNone()
 }
-
 func getDefaultTimeout() int {
 	return 30
 }

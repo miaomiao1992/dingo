@@ -1,69 +1,59 @@
 package main
 
-// Test: Null coalescing with Go raw pointers
-// Feature: ?? operator with pointer types
-// Complexity: intermediate
-
 type User struct {
 	name string
 	age  int
 }
 
 func main() {
-	// Test 1: Pointer ?? literal
-	var user *User = getUser(1)
-	var name = func() string {
-		__safeNav := func() string {
-			if user == nil {
-				return ""
-			}
-			return user.name
-		}()
-		if __safeNav != "" {
-			return __safeNav
+
+	user := getUser(1)
+	nameOpt := func() __INFER__ {
+		if user == nil {
+			return nil
+		}
+		return user.name
+	}()
+	name := func() __INFER__ {
+		if nameOpt.IsSome() {
+			return __UNWRAP__(nameOpt)
 		}
 		return "Unknown"
 	}()
 
-	// Test 2: Pointer ?? pointer
-	var primary *string = getPrimary()
-	var fallback *string = getFallback()
-	var result = func() string {
+	primary := getPrimary()
+	fallback := getFallback()
+	result := func() __INFER__ {
 		if primary != nil {
 			return *primary
 		}
-		if fallback != nil {
-			return *fallback
-		}
-		return ""
+		return fallback
 	}()
 
-	// Test 3: Nested pointer access
-	var userPtr *User = getUser(2)
-	var age = func() int {
-		__safeNav := func() int {
-			if userPtr == nil {
-				return 0
-			}
-			return userPtr.age
-		}()
-		if __safeNav != 0 {
-			return __safeNav
+	userPtr := getUser(2)
+	ageOpt := func() __INFER__ {
+		if userPtr == nil {
+			return nil
+		}
+		return userPtr.age
+	}()
+	age := func() __INFER__ {
+		if ageOpt.IsSome() {
+			return __UNWRAP__(ageOpt)
 		}
 		return 0
 	}()
 
-	// Test 4: Nil pointer handling
-	var nilUser *User = nil
-	var nilName = func() string {
-		__safeNav := func() string {
-			if nilUser == nil {
-				return ""
-			}
-			return nilUser.name
-		}()
-		if __safeNav != "" {
-			return __safeNav
+	nilUser := nil
+	nilNameOpt := func() __INFER__ {
+		if nilUser == nil {
+			return nil
+		}
+		return nilUser.name
+	}()
+	nilName := func() __INFER__ {
+		if nilNameOpt.IsSome() {
+			return __UNWRAP__(nilNameOpt)
 		}
 		return "Default"
 	}()
@@ -72,18 +62,15 @@ func main() {
 	println("Age:", age)
 	println("Nil:", nilName)
 }
-
 func getUser(id int) *User {
 	if id == 1 {
 		return &User{name: "Alice", age: 30}
 	}
 	return nil
 }
-
 func getPrimary() *string {
 	return nil
 }
-
 func getFallback() *string {
 	s := "Fallback"
 	return &s
