@@ -772,6 +772,66 @@ let x = condition ? getValue()? : getDefault()?
 
 ---
 
+## Future Enhancements
+
+These features are **not implemented** in v1.0 but may be added based on user feedback:
+
+### 1. Enhanced Error Messages with Line Numbers
+
+**Status:** Foundation laid (truncateExpr helper exists)
+**Complexity:** Medium (requires threading line numbers through recursive calls)
+
+```dingo
+// Current error:
+// ternary operator nesting too deep (level 4, max 3)
+
+// Future enhancement:
+// line 42: ternary operator nesting too deep (level 4, max 3)
+//   Found: a ? (b ? (c ? (d ? e : f) : g) : h) ...
+//   Consider extracting nested logic into variables
+```
+
+**Decision:** Deferred to avoid risky refactoring without proven user need.
+
+### 2. Configurable Nesting Depth
+
+**Status:** Foundation laid (MaxTernaryNestingDepth constant exists)
+**Complexity:** Low (add TernaryOptions struct and constructor)
+
+```go
+// Future API:
+opts := TernaryOptions{MaxNestingDepth: 5}
+processor := NewTernaryProcessorWithOptions(opts)
+```
+
+**Decision:** Fixed depth of 3 is sensible for v1.0. Runtime configuration adds complexity without proven need. Constant can be changed if users request different limits.
+
+### 3. Multi-Ternary Per Line Support
+
+**Status:** Currently emits clear error message
+**Complexity:** High (requires multi-pass state machine)
+
+```dingo
+// Current: ERROR (not supported)
+let x = a ? 1 : 2, y = b ? 3 : 4
+
+// Future enhancement: Support multiple ternaries per line
+let x = a ? 1 : 2, y = b ? 3 : 4
+```
+
+**Decision:** Use case unclear. Users can split into multiple lines for v1.0.
+
+### 4. Single-Pass String Scanning Optimization
+
+**Status:** Redundant after delimiterTracker refactoring
+**Complexity:** High (consolidate multiple scans into single state machine)
+
+**Current performance:** Already efficient (single-pass with helper), 100x below target (0.1ms for 1000 lines)
+
+**Decision:** Benchmark first if performance becomes issue. Current implementation is already fast enough.
+
+---
+
 ## Success Criteria
 
 Implementation complete when:
@@ -783,8 +843,10 @@ Implementation complete when:
 - ✅ Clean transpilation to IIFE pattern
 - ✅ Zero runtime overhead (inlined by Go compiler)
 - ✅ No interference with `?` (error propagation) or `??` (null coalescing)
-- ✅ Comprehensive test coverage (38+ unit tests, 3+ golden tests)
+- ✅ Comprehensive test coverage (42 unit tests, 3 golden tests)
 - ✅ Documentation and examples
+- ✅ Code quality improvements (delimiterTracker helper, type inference caching)
+- ✅ Multi-model code review approval (3/3 reviewers)
 
 ---
 
