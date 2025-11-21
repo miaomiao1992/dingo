@@ -24,55 +24,45 @@ const firebaseConfig = {
   appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
 };
 
-// Lazy initialization - only initialize when actually used (browser-only)
-let app: ReturnType<typeof initializeApp> | null = null;
-let _auth: Auth | null = null;
-let _db: Firestore | null = null;
+// Initialize Firebase (client-side only)
+// Note: Initialization is safe here because this module only imports in client-side components
+let app: ReturnType<typeof initializeApp> | undefined;
+let _auth: Auth | undefined;
+let _db: Firestore | undefined;
 
-function getFirebaseApp() {
-  if (!app && typeof window !== 'undefined') {
-    app = initializeApp(firebaseConfig);
-  }
-  return app;
+if (typeof window !== 'undefined') {
+  app = initializeApp(firebaseConfig);
+  _auth = getAuth(app);
+  _db = getFirestore(app);
 }
 
-// Initialize Firebase Authentication (lazy)
-export const auth: Auth = new Proxy({} as Auth, {
-  get(_target, prop) {
-    if (!_auth && typeof window !== 'undefined') {
-      const app = getFirebaseApp();
-      if (app) {
-        _auth = getAuth(app);
-      }
-    }
-    return _auth ? (_auth as any)[prop] : undefined;
-  }
-});
+// Export initialized instances
+// These will be undefined during SSR (which is fine - React components guard with client: directives)
+export const auth = _auth as Auth;
+export const db = _db as Firestore;
 
-// Initialize Firebase Firestore (lazy)
-export const db: Firestore = new Proxy({} as Firestore, {
-  get(_target, prop) {
-    if (!_db && typeof window !== 'undefined') {
-      const app = getFirebaseApp();
-      if (app) {
-        _db = getFirestore(app);
-      }
-    }
-    return _db ? (_db as any)[prop] : undefined;
-  }
-});
+// Auth Providers (client-side only)
+let googleProvider: GoogleAuthProvider | undefined;
+let githubProvider: GithubAuthProvider | undefined;
 
-// Auth Providers
-const googleProvider = new GoogleAuthProvider();
-const githubProvider = new GithubAuthProvider();
+if (typeof window !== 'undefined') {
+  googleProvider = new GoogleAuthProvider();
+  githubProvider = new GithubAuthProvider();
+}
 
 // Sign in with Google
 export async function signInWithGoogle(): Promise<UserCredential> {
+  if (!googleProvider) {
+    throw new Error('Firebase not initialized');
+  }
   return signInWithPopup(auth, googleProvider);
 }
 
 // Sign in with GitHub
 export async function signInWithGitHub(): Promise<UserCredential> {
+  if (!githubProvider) {
+    throw new Error('Firebase not initialized');
+  }
   return signInWithPopup(auth, githubProvider);
 }
 
