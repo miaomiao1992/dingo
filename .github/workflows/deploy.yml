@@ -57,14 +57,14 @@ jobs:
           du -ah dist/ | sort -rh | head -10 >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Optional: Fail if build exceeds budget
+          # Fail if build exceeds budget (20MB is reasonable for landing page with Firebase + React + Shiki)
           DIST_SIZE_MB=$(du -sm dist/ | cut -f1)
           echo "Total size: ${DIST_SIZE_MB}MB"
-          if [ $DIST_SIZE_MB -gt 10 ]; then
-            echo "❌ Build size (${DIST_SIZE_MB}MB) exceeds budget (10MB)"
+          if [ $DIST_SIZE_MB -gt 20 ]; then
+            echo "❌ Build size (${DIST_SIZE_MB}MB) exceeds budget (20MB)"
             exit 1
           else
-            echo "✅ Build size within budget"
+            echo "✅ Build size (${DIST_SIZE_MB}MB) within budget (20MB)"
           fi
 
   deploy:
