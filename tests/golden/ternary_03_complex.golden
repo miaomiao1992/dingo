@@ -1,0 +1,30 @@
+package main
+
+func getDiscount(isPremium bool, amount int) int {
+	return func() int {
+		if isPremium {
+			return amount * 20 / 100
+		}
+		return amount * 10 / 100
+	}()
+}
+func main() {
+	amount := 100
+	isPremium := true
+
+	discount := func() any {
+		if isPremium {
+			return getDiscount(true, amount)
+		}
+		return getDiscount(false, amount)
+	}()
+
+	price := amount - (func() int {
+		if isPremium {
+			return amount / 5
+		}
+		return amount / 10
+	}())
+
+	println("Discount:", discount, "Price:", price)
+}

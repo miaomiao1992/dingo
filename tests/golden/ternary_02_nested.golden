@@ -1,0 +1,39 @@
+package main
+
+func main() {
+	age := 25
+	hasLicense := true
+
+	canDrive := func() any {
+		if age >= 18 {
+			return func() string {
+				if hasLicense {
+					return "yes"
+				}
+				return "no license"
+			}()
+		}
+		return "too young"
+	}()
+
+	score := 85
+	grade := func() any {
+		if score >= 90 {
+			return "A"
+		}
+		return func() any {
+			if score >= 80 {
+				return "B"
+			}
+			return func() string {
+				if score >= 70 {
+					return "C"
+				}
+				return "F"
+			}()
+		}()
+	}()
+
+	println("Can drive:", canDrive)
+	println("Grade:", grade)
+}

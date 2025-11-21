@@ -4,6 +4,7 @@ package preprocessor
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"go/parser"
 	"go/printer"
 	"go/token"
@@ -84,22 +85,27 @@ func newWithConfigAndCache(source []byte, cfg *config.Config, cache *FunctionExc
 		NewLambdaProcessorWithConfig(cfg),
 		// 3. Type annotations (: → space) - after lambdas, after generic syntax
 		NewTypeAnnotProcessor(),
-		// 4. Safe navigation (?.) - BEFORE null coalescing (SafeNav handles ?. before NullCoalesce sees ??)
+		// 4. Tuples ((a, b) = (1, 2)) - BEFORE safe navigation (uses . in field access)
+		NewTupleProcessor(),
+		// 5. Safe navigation (?.) - BEFORE null coalescing (SafeNav handles ?. before NullCoalesce sees ??)
 		NewSafeNavProcessor(),
-		// 5. Null coalescing (??) - AFTER safe navigation, BEFORE error propagation
-		//    CRITICAL: Must run BEFORE ErrorPropProcessor to avoid transforming ?? into error handling
+		// 6. Null coalescing (??) - AFTER safe navigation, BEFORE ternary
+		//    CRITICAL: Must run BEFORE TernaryProcessor and ErrorPropProcessor
 		NewNullCoalesceProcessor(),
-		// 6. Error propagation (expr?) - AFTER null coalescing (both use ?)
+		// 7. Ternary operator (? :) - AFTER null coalescing, BEFORE error propagation
+		//    Process ternary BEFORE error prop to cleanly separate ? : from single ?
+		NewTernaryProcessor(),
+		// 8. Error propagation (expr?) - AFTER ternary (handles remaining ?)
 		NewErrorPropProcessor(),
 	}
 
-	// 7. Enums (enum Name { ... }) - after error prop, before keywords
+	// 9. Enums (enum Name { ... }) - after error prop, before keywords
 	processors = append(processors, NewEnumProcessor())
 
-	// 8. Keywords (let → var) - after pattern match, error prop, and enum
+	// 10. Keywords (let → var) - after pattern match, error prop, and enum
 	processors = append(processors, NewKeywordProcessor())
 
-	// 9. Unqualified imports (ReadFile → os.ReadFile) - requires cache
+	// 11. Unqualified imports (ReadFile → os.ReadFile) - requires cache
 	if cache != nil {
 		processors = append(processors, NewUnqualifiedImportProcessor(cache))
 	}
@@ -161,16 +167,37 @@ func (p *Preprocessor) Process() (string, *SourceMap, error) {
 		}
 
 		// Calculate how many lines the import block occupies
-		// importInsertLine is where imports start (e.g., line 2)
-		// importBlockEndLine is where imports end (e.g., line 3 for single-line import)
+		// importInsertLine is where imports are inserted (after package declaration)
+		// importBlockEndLine is where imports end (last line of import block)
 		// CRITICAL FIX: Only apply adjustment if imports were actually added
 		if importInsertLine > 0 && importBlockEndLine > 0 {
-			// Add +3 to account for code generator reformatting:
-			// - Single-line "import \"pkg\"" becomes 3-line block format "import (\n\t\"pkg\"\n)"
-			// - Additional blank line added after import block
-			// - go/printer reformatting adds extra spacing
-			// So a single-line import at line 3 becomes lines 3-6 (+3 extra lines)
-			importBlockSize := importBlockEndLine - importInsertLine + 3
+			// Calculate the number of lines added by the import block
+			//
+			// Example - multi-line import:
+			// BEFORE import injection (preprocessed code):
+			//   Line 1: package main
+			//   Line 2: [blank]
+			//   Line 3: func readConfig(...) {
+			//   Line 4:     tmp, err := os.ReadFile(path)  ← mapping says gen_line=4
+			//
+			// AFTER import injection:
+			//   Line 1: package main
+			//   Line 2: [blank]
+			//   Line 3: import (             ← importInsertLine is BEFORE this (line 2)
+			//   Line 4:     "os"
+			//   Line 5: )                    ← importBlockEndLine = 5
+			//   Line 6: [blank line added by go/printer]
+			//   Line 7: func readConfig(...) {
+			//   Line 8:     tmp, err := os.ReadFile(path)  ← should be gen_line=8
+			//
+			// Calculation:
+			//   importInsertLine = 2 (line after package, before imports start)
+			//   importBlockEndLine = 5 (last line of import block)
+			//   Shift needed = 8 - 4 = 4 lines
+			//   Formula: importBlockEndLine - importInsertLine + 1 = 5 - 2 + 1 = 4 ✓
+			//
+			// The +1 accounts for the blank line that go/printer adds after the import block
+			importBlockSize := importBlockEndLine - importInsertLine + 1
 
 			// Adjust all source mappings to account for added import lines
 			adjustMappingsForImports(sourceMap, importBlockSize, importInsertLine)
@@ -247,16 +274,48 @@ func injectImportsWithPosition(source []byte, needed []string) ([]byte, int, int
 		astutil.AddImport(fset, node, pkg)
 	}
 
-	// Generate output with imports
+	// CRITICAL FIX: Print imports in multi-line format to match generator output
+	// The generator always uses "import (\n\t...\n)" format, so we must do the same
+	// to ensure source map line numbers are correct
 	var buf bytes.Buffer
-	if err := printer.Fprint(&buf, fset, node); err != nil {
-		return nil, 0, 0, fmt.Errorf("failed to print AST with imports: %w", err)
+	cfg := printer.Config{
+		Mode:     printer.TabIndent | printer.UseSpaces,
+		Tabwidth: 8,
 	}
 
-	// CRITICAL FIX: Determine import block end line by scanning the generated output
-	// We need to find where the import block ends in the printed output
-	result := buf.Bytes()
-	resultStr := string(result)
+	// Print package statement
+	fmt.Fprintf(&buf, "package %s\n\n", node.Name.Name)
+
+	// Print imports in multi-line format (matching generator behavior)
+	if len(node.Imports) > 0 {
+		buf.WriteString("import (\n")
+		for _, imp := range node.Imports {
+			if err := cfg.Fprint(&buf, fset, imp); err != nil {
+				return nil, 0, 0, fmt.Errorf("failed to print import: %w", err)
+			}
+			buf.WriteString("\n")
+		}
+		buf.WriteString(")\n\n")
+	}
+
+	// Print the rest of declarations (skip imports - already printed)
+	for _, decl := range node.Decls {
+		// Skip import declarations (already printed above)
+		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.IMPORT {
+			continue
+		}
+
+		if err := cfg.Fprint(&buf, fset, decl); err != nil {
+			return nil, 0, 0, fmt.Errorf("failed to print declaration: %w", err)
+		}
+		buf.WriteString("\n")
+	}
+
+	formatted := buf.Bytes()
+
+	// CRITICAL FIX: Determine import block end line by scanning the FORMATTED output
+	// This ensures line numbers match the final generated code
+	resultStr := string(formatted)
 	lines := strings.Split(resultStr, "\n")
 
 	// Find the last import line by looking for import declarations
@@ -277,7 +336,7 @@ func injectImportsWithPosition(source []byte, needed []string) ([]byte, int, int
 		if inImportBlock {
 			// Check if we reached a declaration (end of import section)
 			if strings.HasPrefix(trimmed, "func") || strings.HasPrefix(trimmed, "type") ||
-			   strings.HasPrefix(trimmed, "const") || strings.HasPrefix(trimmed, "var") {
+				strings.HasPrefix(trimmed, "const") || strings.HasPrefix(trimmed, "var") {
 				// Reached first declaration. Import block has ended.
 				break
 			}
@@ -289,7 +348,7 @@ func injectImportsWithPosition(source []byte, needed []string) ([]byte, int, int
 		}
 	}
 
-	return result, importInsertLine, importBlockEndLine, nil
+	return formatted, importInsertLine, importBlockEndLine, nil
 }
 
 // adjustMappingsForImports shifts mapping line numbers to account for added imports
