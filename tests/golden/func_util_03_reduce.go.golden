@@ -10,11 +10,11 @@ func reduce(arr []int, initial int, f func(int, int) int) int {
 func main() {
 	numbers := []int{1, 2, 3, 4, 5}
 
-	sum := reduce(numbers, 0, func(acc, x) { return acc + x })
+	sum := reduce(numbers, 0, func(acc __TYPE_INFERENCE_NEEDED, x __TYPE_INFERENCE_NEEDED) { return acc + x })
 
-	product := reduce(numbers, 1, func(acc, x) { return acc * x })
+	product := reduce(numbers, 1, func(acc __TYPE_INFERENCE_NEEDED, x __TYPE_INFERENCE_NEEDED) { return acc * x })
 
-	max := reduce(numbers, numbers[0], func(acc, x) {
+	max := reduce(numbers, numbers[0], func(acc __TYPE_INFERENCE_NEEDED, x __TYPE_INFERENCE_NEEDED) {
 		if x > acc {
 			return x
 		}

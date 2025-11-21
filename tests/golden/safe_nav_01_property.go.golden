@@ -24,6 +24,28 @@ func (e UserOption) IsSome() bool {
 func (e UserOption) IsNone() bool {
 	return e.tag == UserOptionTagNone
 }
+func (o UserOption) Map(fn func(User) User) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return UserOptionSome(fn(*o.some))
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
+func (o UserOption) AndThen(fn func(User) UserOption) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
 
 type AddressOptionTag uint8
 
@@ -48,6 +70,28 @@ func (e AddressOption) IsSome() bool {
 func (e AddressOption) IsNone() bool {
 	return e.tag == AddressOptionTagNone
 }
+func (o AddressOption) Map(fn func(Address) Address) AddressOption {
+	switch o.tag {
+	case AddressOptionTagSome:
+		if o.some != nil {
+			return AddressOptionSome(fn(*o.some))
+		}
+	case AddressOptionTagNone:
+		return o
+	}
+	panic("invalid AddressOption state")
+}
+func (o AddressOption) AndThen(fn func(Address) AddressOption) AddressOption {
+	switch o.tag {
+	case AddressOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case AddressOptionTagNone:
+		return o
+	}
+	panic("invalid AddressOption state")
+}
 
 type User struct {
 	name    string
@@ -66,6 +110,6 @@ func getUser(id int) UserOption {
 func main() {
 	user := getUser(1)
 
-	city := __SAFE_NAV_INFER__(user, "address", "city")
+	city := user
 	println(city)
 }

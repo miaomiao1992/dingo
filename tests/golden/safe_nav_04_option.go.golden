@@ -24,6 +24,28 @@ func (e UserOption) IsSome() bool {
 func (e UserOption) IsNone() bool {
 	return e.tag == UserOptionTagNone
 }
+func (o UserOption) Map(fn func(User) User) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return UserOptionSome(fn(*o.some))
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
+func (o UserOption) AndThen(fn func(User) UserOption) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
 
 type ProfileOptionTag uint8
 
@@ -47,6 +69,28 @@ func (e ProfileOption) IsSome() bool {
 }
 func (e ProfileOption) IsNone() bool {
 	return e.tag == ProfileOptionTagNone
+}
+func (o ProfileOption) Map(fn func(Profile) Profile) ProfileOption {
+	switch o.tag {
+	case ProfileOptionTagSome:
+		if o.some != nil {
+			return ProfileOptionSome(fn(*o.some))
+		}
+	case ProfileOptionTagNone:
+		return o
+	}
+	panic("invalid ProfileOption state")
+}
+func (o ProfileOption) AndThen(fn func(Profile) ProfileOption) ProfileOption {
+	switch o.tag {
+	case ProfileOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case ProfileOptionTagNone:
+		return o
+	}
+	panic("invalid ProfileOption state")
 }
 
 type StringOptionTag uint8
@@ -72,6 +116,28 @@ func (e StringOption) IsSome() bool {
 func (e StringOption) IsNone() bool {
 	return e.tag == StringOptionTagNone
 }
+func (o StringOption) Map(fn func(string) string) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return StringOptionSome(fn(*o.some))
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
+}
+func (o StringOption) AndThen(fn func(string) StringOption) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
+}
 
 type User struct {
 	id      int
@@ -92,14 +158,14 @@ func fetchUser(id int) UserOption {
 func main() {
 
 	user := fetchUser(1)
-	bio := __SAFE_NAV_INFER__(user, "profile", "bio")
+	bio := user
 	println("Bio:", bio)
 
 	noUser := fetchUser(0)
-	noBio := __SAFE_NAV_INFER__(noUser, "profile", "bio")
+	noBio := noUser
 	println("No Bio:", noBio)
 
 	partialUser := UserOptionSome(User{id: 2, profile: ProfileOptionNone()})
-	partialBio := __SAFE_NAV_INFER__(partialUser, "profile", "bio")
+	partialBio := partialUser
 	println("Partial Bio:", partialBio)
 }

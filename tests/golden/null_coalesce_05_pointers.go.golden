@@ -14,9 +14,9 @@ func main() {
 		}
 		return user.name
 	}()
-	name := func() __INFER__ {
+	name := func() string {
 		if nameOpt.IsSome() {
-			return __UNWRAP__(nameOpt)
+			return nameOpt.Unwrap()
 		}
 		return "Unknown"
 	}()
@@ -37,9 +37,9 @@ func main() {
 		}
 		return userPtr.age
 	}()
-	age := func() __INFER__ {
+	age := func() int {
 		if ageOpt.IsSome() {
-			return __UNWRAP__(ageOpt)
+			return ageOpt.Unwrap()
 		}
 		return 0
 	}()
@@ -51,9 +51,9 @@ func main() {
 		}
 		return nilUser.name
 	}()
-	nilName := func() __INFER__ {
+	nilName := func() string {
 		if nilNameOpt.IsSome() {
-			return __UNWRAP__(nilNameOpt)
+			return nilNameOpt.Unwrap()
 		}
 		return "Default"
 	}()

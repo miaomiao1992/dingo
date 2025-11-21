@@ -13,8 +13,8 @@ const (
 
 type Result struct {
 	tag ResultTag
-	ok  *string
 	err *error
+	ok  *string
 }
 
 func ResultOk(arg0 string) Result {
@@ -28,6 +28,28 @@ func (e Result) IsOk() bool {
 }
 func (e Result) IsErr() bool {
 	return e.tag == ResultTagErr
+}
+func (r Result) Map(fn func(string) string) Result {
+	switch r.tag {
+	case ResultTagOk:
+		if r.ok != nil {
+			return ResultOk(fn(*r.ok))
+		}
+	case ResultTagErr:
+		return r
+	}
+	panic("invalid Result state")
+}
+func (r Result) AndThen(fn func(string) Result) Result {
+	switch r.tag {
+	case ResultTagOk:
+		if r.ok != nil {
+			return fn(*r.ok)
+		}
+	case ResultTagErr:
+		return r
+	}
+	panic("invalid Result state")
 }
 func fetchUser(id int) Result {
 	if id <= 0 {
@@ -52,14 +74,14 @@ func processUser(id int) Result {
 		{
 			validated := validateUser(u)
 
-			scrutinee := validated
-			switch scrutinee.tag {
+			scrutinee3 := validated
+			switch scrutinee3.tag {
 			case ResultTagOk:
-				v := *scrutinee.ok
+				v := *scrutinee3.ok
 
 				return ResultOk(v)
 			case ResultTagErr:
-				e := scrutinee.err
+				e := *scrutinee3.err
 
 				return ResultErr(e)
 			}
@@ -67,7 +89,7 @@ func processUser(id int) Result {
 
 		}
 	case ResultTagErr:
-		e := scrutinee.err
+		e := *scrutinee.err
 
 		return ResultErr(e)
 	}
@@ -82,11 +104,11 @@ func main() {
 	case ResultTagOk:
 		user := *scrutinee2.ok
 
-		println("Success:", user)
+		return println("Success:", user)
 	case ResultTagErr:
-		error := scrutinee2.err
+		error := *scrutinee2.err
 
-		println("Error:", error)
+		return println("Error:", error)
 	}
 	panic("unreachable: match is exhaustive")
 

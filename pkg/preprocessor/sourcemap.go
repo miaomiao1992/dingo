@@ -11,21 +11,25 @@ import (
 // SourceMap tracks position mappings between original Dingo source
 // and preprocessed Go source for error reporting and LSP integration
 type SourceMap struct {
-	Version  int       `json:"version"`           // Source map format version
-	DingoFile string   `json:"dingo_file,omitempty"` // Original .dingo file path
-	GoFile    string   `json:"go_file,omitempty"`    // Generated .go file path
-	Mappings []Mapping `json:"mappings"`
+	Version   int       `json:"version"`              // Source map format version
+	DingoFile string    `json:"dingo_file,omitempty"` // Original .dingo file path
+	GoFile    string    `json:"go_file,omitempty"`    // Generated .go file path
+	Mappings  []Mapping `json:"mappings"`
 }
 
 // Mapping represents a single position mapping
 type Mapping struct {
-	// Preprocessed (generated) position
+	// Final Generated position (will be calculated at the end)
 	GeneratedLine   int `json:"generated_line"`
 	GeneratedColumn int `json:"generated_column"`
 
 	// Original (Dingo) position
 	OriginalLine    int `json:"original_line"`
 	OriginalColumn  int `json:"original_column"`
+
+	// Processor Input Line: The line number in the source *input* to the processor that created this mapping.
+	// This is used for cumulative line mapping before the final GeneratedLine is known.
+	ProcessorInputLine int `json:"processor_input_line"`
 
 	// Length of the mapped segment
 	Length int `json:"length"`

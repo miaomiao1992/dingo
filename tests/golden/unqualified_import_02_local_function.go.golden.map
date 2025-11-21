@@ -1,4 +1,77 @@
 {
   "version": 1,
-  "mappings": []
+  "mappings": [
+    {
+      "generated_line": 1,
+      "generated_column": 1,
+      "original_line": 1,
+      "original_column": 1,
+      "processor_input_line": 0,
+      "length": 12,
+      "name": "identity"
+    },
+    {
+      "generated_line": 8,
+      "generated_column": 1,
+      "original_line": 8,
+      "original_column": 1,
+      "processor_input_line": 0,
+      "length": 35,
+      "name": "identity"
+    },
+    {
+      "generated_line": 9,
+      "generated_column": 2,
+      "original_line": 9,
+      "original_column": 2,
+      "processor_input_line": 0,
+      "length": 42,
+      "name": "identity"
+    },
+    {
+      "generated_line": 10,
+      "generated_column": 1,
+      "original_line": 10,
+      "original_column": 1,
+      "processor_input_line": 0,
+      "length": 1,
+      "name": "identity"
+    },
+    {
+      "generated_line": 12,
+      "generated_column": 1,
+      "original_line": 12,
+      "original_column": 1,
+      "processor_input_line": 0,
+      "length": 13,
+      "name": "identity"
+    },
+    {
+      "generated_line": 14,
+      "generated_column": 2,
+      "original_line": 14,
+      "original_column": 2,
+      "processor_input_line": 0,
+      "length": 28,
+      "name": "identity"
+    },
+    {
+      "generated_line": 15,
+      "generated_column": 2,
+      "original_line": 15,
+      "original_column": 2,
+      "processor_input_line": 0,
+      "length": 13,
+      "name": "identity"
+    },
+    {
+      "generated_line": 16,
+      "generated_column": 1,
+      "original_line": 16,
+      "original_column": 1,
+      "processor_input_line": 0,
+      "length": 1,
+      "name": "identity"
+    }
+  ]
 }

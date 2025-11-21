@@ -1,5 +1,20 @@
 package main
 
+type Tuple12IntIntIntIntIntIntIntIntIntIntIntInt struct {
+	_0  int
+	_1  int
+	_2  int
+	_3  int
+	_4  int
+	_5  int
+	_6  int
+	_7  int
+	_8  int
+	_9  int
+	_10 int
+	_11 int
+}
+
 func getTwelveInts() (int, int, int, int, int, int, int, int, int, int, int, int) {
 	return 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
 }
@@ -21,7 +36,7 @@ func main() {
 	i, s, b, f, p, sl, m, ch, e, iface, by, r := tmp2._0, tmp2._1, tmp2._2, tmp2._3, tmp2._4, tmp2._5, tmp2._6, tmp2._7, tmp2._8, tmp2._9, tmp2._10, tmp2._11
 	println("Mixed types:", i, s, b, f, *p, len(sl), len(m), ch, e, iface, by, r)
 
-	dozen := __TUPLE_12__LITERAL__336755c5(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+	dozen := Tuple12IntIntIntIntIntIntIntIntIntIntIntInt{_0: 1, _1: 2, _2: 3, _3: 4, _4: 5, _5: 6, _6: 7, _7: 8, _8: 9, _9: 10, _10: 11, _11: 12}
 	tmp3 := dozen
 	a, b, c, d, e, f, g, h, i, j, k, l := tmp3._0, tmp3._1, tmp3._2, tmp3._3, tmp3._4, tmp3._5, tmp3._6, tmp3._7, tmp3._8, tmp3._9, tmp3._10, tmp3._11
 	println("Dozen:", a, b, c, d, e, f, g, h, i, j, k, l)

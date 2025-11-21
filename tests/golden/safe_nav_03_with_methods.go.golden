@@ -13,34 +13,16 @@ func (c *Config) validate() bool {
 func main() {
 	config := &Config{timeout: nil}
 
-	__tmp0, __err0 := __SAFE_NAV_INFER__(config, "getTimeout()")
+	timeout := config
+	isValid := config
 
-	if __err0 != nil {
-		return nil, __err0
-	}
-	// dingo:e:1
-	var timeout = __tmp0
-	__tmp1, __err1 := __SAFE_NAV_INFER__(config, "validate()")
-
-	if __err1 != nil {
-		return nil, __err1
-	}
-	// dingo:e:1
-	var isValid = __tmp1
-
-	__tmp2, __err2 := func() __INFER__ {
-		__coalesce0 := __SAFE_NAV_INFER__(config, "getTimeout()")
-		if __IS_SOME__(__coalesce0) {
-			return __UNWRAP__(__coalesce0)
+	actualTimeout := func() int {
+		coalesce := config
+		if coalesce.IsSome() {
+			return coalesce.Unwrap()
 		}
 		return 30
 	}()
-
-	if __err2 != nil {
-		return nil, __err2
-	}
-	// dingo:e:1
-	var actualTimeout = __tmp2
 
 	println("Timeout:", timeout, "Valid:", isValid, "Actual:", actualTimeout)
 }

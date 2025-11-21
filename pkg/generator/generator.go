@@ -87,6 +87,12 @@ func NewWithPlugins(fset *token.FileSet, registry *plugin.Registry, logger plugi
 	noneContextPlugin := builtin.NewNoneContextPlugin()
 	pipeline.RegisterPlugin(noneContextPlugin)
 
+	// CRITICAL FIX: Placeholder resolution plugin
+	// This MUST run after type inference plugins but before unused vars
+	// Resolves all __INFER__, __UNWRAP__, __IS_SOME__ placeholders
+	placeholderResolver := builtin.NewPlaceholderResolverPlugin()
+	pipeline.RegisterPlugin(placeholderResolver)
+
 	// Register unused variable handling plugin (runs last)
 	unusedVarsPlugin := builtin.NewUnusedVarsPlugin()
 	pipeline.RegisterPlugin(unusedVarsPlugin)

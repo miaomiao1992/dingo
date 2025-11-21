@@ -110,10 +110,10 @@ func main() {
 		user := user.Unwrap()
 		return user.profile
 	}()
-	bioOpt := __SAFE_NAV_INFER__(profileOpt, "bio")
-	bio := func() __INFER__ {
+	bioOpt := profileOpt
+	bio := func() string {
 		if bioOpt.IsSome() {
-			return __UNWRAP__(bioOpt)
+			return bioOpt.Unwrap()
 		}
 		return "No bio"
 	}()
@@ -125,9 +125,9 @@ func main() {
 		}
 		return userPtr.name
 	}()
-	name := func() __INFER__ {
+	name := func() string {
 		if nameOpt.IsSome() {
-			return __UNWRAP__(nameOpt)
+			return nameOpt.Unwrap()
 		}
 		return "Anonymous"
 	}()
@@ -143,10 +143,10 @@ func main() {
 		user21 := user2.Unwrap()
 		return user21.profile
 	}()
-	bioOpt2 := __SAFE_NAV_INFER__(profileOpt2, "bio")
-	profile := func() __INFER__ {
+	bioOpt2 := profileOpt2
+	profile := func() string {
 		if bioOpt2.IsSome() {
-			return __UNWRAP__(bioOpt2)
+			return bioOpt2.Unwrap()
 		}
 		return "Default bio"
 	}()
@@ -159,9 +159,9 @@ func main() {
 		user32 := user3.Unwrap()
 		return user32.getEmail()
 	}()
-	email := func() __INFER__ {
+	email := func() string {
 		if emailOpt.IsSome() {
-			return __UNWRAP__(emailOpt)
+			return emailOpt.Unwrap()
 		}
 		return "no-email"
 	}()

@@ -162,10 +162,10 @@ func getUserRoleString(role UserRole) string {
 
 }
 func getUserBio(user User) string {
-	return func() __INFER__ {
+	return func() string {
 		coalesce := user.Bio
-		if __IS_SOME__(coalesce) {
-			return __UNWRAP__(coalesce)
+		if coalesce.IsSome() {
+			return coalesce.Unwrap()
 		}
 		return "No bio provided"
 	}()

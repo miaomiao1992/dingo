@@ -12,8 +12,8 @@ func filter(arr []int, predicate func(int) bool) []int {
 func main() {
 	numbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-	evens := filter(numbers, func(x) { return x%2 == 0 })
-	greaterThanFive := filter(numbers, func(x) { return x > 5 })
+	evens := filter(numbers, func(x __TYPE_INFERENCE_NEEDED) { return x%2 == 0 })
+	greaterThanFive := filter(numbers, func(x __TYPE_INFERENCE_NEEDED) { return x > 5 })
 
 	println("Evens:", evens)
 	println("Greater than 5:", greaterThanFive)

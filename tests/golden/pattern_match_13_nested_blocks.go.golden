@@ -11,12 +11,131 @@ const (
 	ResultTagErr
 )
 
+type Result_Option_int_error struct {
+	tag ResultTag
+	ok  *Option_int
+	err *error
+}
+
+func Result_Option_int_error_Ok(arg0 Option_int) Result_Option_int_error {
+	return Result_Option_int_error{tag: ResultTagOk, ok: &arg0}
+}
+func Result_Option_int_error_Err(arg0 error) Result_Option_int_error {
+	return Result_Option_int_error{tag: ResultTagErr, err: &arg0}
+}
+func (r Result_Option_int_error) IsOk() bool {
+	return r.tag == ResultTagOk
+}
+func (r Result_Option_int_error) IsErr() bool {
+	return r.tag == ResultTagErr
+}
+func (r Result_Option_int_error) Unwrap() Option_int {
+	if r.tag != ResultTagOk {
+		panic("called Unwrap on Err")
+	}
+	if r.ok == nil {
+		panic("Result contains nil Ok value")
+	}
+	return *r.ok
+}
+func (r Result_Option_int_error) UnwrapOr(defaultValue Option_int) Option_int {
+	if r.tag == ResultTagOk {
+		return *r.ok
+	}
+	return defaultValue
+}
+func (r Result_Option_int_error) UnwrapErr() error {
+	if r.tag != ResultTagErr {
+		panic("called UnwrapErr on Ok")
+	}
+	if r.err == nil {
+		panic("Result contains nil Err value")
+	}
+	return *r.err
+}
+func (r Result_Option_int_error) UnwrapOrElse(fn func(error) Option_int) Option_int {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return *r.ok
+	}
+	if r.err != nil {
+		return fn(*r.err)
+	}
+	panic("Result in invalid state")
+}
+func (r Result_Option_int_error) Map(fn func(Option_int) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		u := fn(*r.ok)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *error
+		}{tag: ResultTagOk, ok: &u}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_Option_int_error) MapErr(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		f := fn(*r.err)
+		return struct {
+			tag ResultTag
+			ok  *Option_int
+			err *interface{}
+		}{tag: ResultTagErr, ok: nil, err: &f}
+	}
+	return struct {
+		tag ResultTag
+		ok  *Option_int
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_Option_int_error) Filter(predicate func(Option_int) bool) Result_Option_int_error {
+	if r.tag == ResultTagOk && predicate(*r.ok) {
+		return r
+	}
+	return r
+}
+func (r Result_Option_int_error) AndThen(fn func(Option_int) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return fn(*r.ok)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_Option_int_error) OrElse(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		return fn(*r.err)
+	}
+	return struct {
+		tag ResultTag
+		ok  *Option_int
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_Option_int_error) And(other interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return other
+	}
+	return r
+}
+func (r Result_Option_int_error) Or(other Result_Option_int_error) Result_Option_int_error {
+	if r.tag == ResultTagOk {
+		return r
+	}
+	return other
+}
+
 type Result_interface_error struct {
 	tag ResultTag
 	ok  *interface{}
 	err *error
 }
-
 func Result_interface_error_Ok(arg0 interface{}) Result_interface_error {
 	return Result_interface_error{tag: ResultTagOk, ok: &arg0}
 }
@@ -318,7 +437,7 @@ func processNestedMatch(result Result) int {
 
 }
 func main() {
-	r1 := Result_interface_error{tag: ResultTagOk, ok: func() *interface{} {
+	r1 := Result_Option_int_error{tag: ResultTagOk, ok: func() *Option_int {
 		tmp4 := Some(42)
 		return &tmp4
 	}()}

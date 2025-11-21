@@ -157,6 +157,11 @@ func classifyType(typeName string) TypeKind {
 		return TypeOption
 	}
 
+	// Option type with underscore: Option_string, Option_User, etc.
+	if strings.HasPrefix(typeName, "Option_") {
+		return TypeOption
+	}
+
 	// Generic Option syntax: Option<T>, Option[T] (future)
 	if strings.HasPrefix(typeName, "Option<") || strings.HasPrefix(typeName, "Option[") {
 		return TypeOption

@@ -48,40 +48,45 @@ type ProfileInput struct {
 // These will be called with the ? operator for automatic error propagation
 
 func validateEmail(email string) Result<string, error> {
-	return match {
-		!strings.Contains(email, "@") || !strings.Contains(email, ".") => Err("invalid email format")
-		_ => Ok(email)
+	if !strings.Contains(email, "@") || !strings.Contains(email, ".") {
+		return Err("invalid email format")
 	}
+	return Ok(email)
 }
 
 func validatePassword(password string) Result<string, error> {
-	return match {
-		len(password) < 8 => Err("password must be at least 8 characters")
-		_ => Ok(password)
+	if len(password) < 8 {
+		return Err("password must be at least 8 characters")
 	}
+	return Ok(password)
 }
 
 func validateUsername(username string) Result<string, error> {
-	return match {
-		len(username) < 3 => Err("username must be at least 3 characters")
-		len(username) > 20 => Err("username too long")
-		_ => Ok(username)
+	if len(username) < 3 {
+		return Err("username must be at least 3 characters")
 	}
+	if len(username) > 20 {
+		return Err("username too long")
+	}
+	return Ok(username)
 }
 
 // Database operations using Result types
 func checkUserExists(db *sql.DB, email string) Result<bool, error> {
 	let exists bool
-	db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)").Scan(&exists)?
+	let err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)").Scan(&exists)
+	if err != nil {
+		return Err(err)
+	}
 	return Ok(exists)
 }
 
 func hashPassword(password string) Result<string, error> {
 	// Simplified for example - real code would use bcrypt
-	return match {
-		password == "" => Err("cannot hash empty password")
-		_ => Ok("hashed_" + password)
+	if password == "" {
+		return Err("cannot hash empty password")
 	}
+	return Ok("hashed_" + password)
 }
 
 func saveUser(db *sql.DB, username string, email string, hashedPwd string, status UserStatus, profile *UserProfile) Result<int64, error> {
@@ -91,26 +96,49 @@ func saveUser(db *sql.DB, username string, email string, hashedPwd string, statu
 	let phone = profile?.PhoneNumber ?? ""
 	let country = profile?.Country ?? "US"
 
-	let result = db.Exec(
+	let result, err = db.Exec(
 		"INSERT INTO users (username, email, password, status, bio, website, phone, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		username, email, hashedPwd, status, bio, website, phone, country,
-	)?
-	let id = result.LastInsertId()?
+	)
+	if err != nil {
+		return Err(err)
+	}
+	let id, err1 = result.LastInsertId()
+	if err1 != nil {
+		return Err(err1)
+	}
 	return Ok(id)
 }
 
-// Main business logic - showcases error propagation with ? operator
-// Notice: Zero manual error checks! The ? operator handles all error propagation.
-// Across all functions, 10 if err != nil blocks are eliminated by the ? operator.
+// Main business logic - showcases error propagation and safe navigation
+// Demonstrates manual error handling (? operator support coming in future phase)
 // NEW (Phase 7): Safe navigation (?.) and null coalescing (??) for optional fields
 func registerUser(db *sql.DB, req RegisterRequest) Result<User, error> {
-	// All validations with error context annotations
-	let email = validateEmail(req.Email)? "email validation failed"
-	let password = validatePassword(req.Password)? "password validation failed"
-	let username = validateUsername(req.Username)? "username validation failed"
+	// All validations with manual error checks
+	let emailResult = validateEmail(req.Email)
+	if emailResult.IsErr() {
+		return Err("email validation failed")
+	}
+	let email = emailResult.Unwrap()
 
-	// Check if user exists - guard clause with error context
-	if checkUserExists(db, email)? "failed to check user existence" {
+	let passwordResult = validatePassword(req.Password)
+	if passwordResult.IsErr() {
+		return Err("password validation failed")
+	}
+	let password = passwordResult.Unwrap()
+
+	let usernameResult = validateUsername(req.Username)
+	if usernameResult.IsErr() {
+		return Err("username validation failed")
+	}
+	let username = usernameResult.Unwrap()
+
+	// Check if user exists - guard clause
+	let existsResult = checkUserExists(db, email)
+	if existsResult.IsErr() {
+		return Err("failed to check user existence")
+	}
+	if existsResult.Unwrap() {
 		return Err("user already exists")
 	}
 
@@ -118,15 +146,24 @@ func registerUser(db *sql.DB, req RegisterRequest) Result<User, error> {
 	let userProfile = buildUserProfile(req.Profile)
 
 	// Hash password and save user
-	let hashedPassword = hashPassword(password)? "password hashing failed"
-	let id = saveUser(db, username, email, hashedPassword, UserStatus_Pending(), userProfile)? "failed to save user"
+	let hashedPasswordResult = hashPassword(password)
+	if hashedPasswordResult.IsErr() {
+		return Err("password hashing failed")
+	}
+	let hashedPassword = hashedPasswordResult.Unwrap()
+
+	let idResult = saveUser(db, username, email, hashedPassword, UserStatus_Pending, userProfile)
+	if idResult.IsErr() {
+		return Err("failed to save user")
+	}
+	let id = idResult.Unwrap()
 
 	// Return created user with type-safe enum status
 	return Ok(User{
 		ID:       int(id),
 		Username: username,
 		Email:    email,
-		Status:   UserStatus_Pending(),
+		Status:   UserStatus_Pending,
 		Profile:  userProfile,
 	})
 }
@@ -144,26 +181,31 @@ func buildUserProfile(input *ProfileInput) *UserProfile {
 }
 
 // HTTP handler - clean and focused on business logic
-// Using lambda notation with type inference
 func handleRegister(db *sql.DB) http.HandlerFunc {
-	return (w, r) => {
+	return func(w http.ResponseWriter, r *http.Request) {
 		let req RegisterRequest
-		json.NewDecoder(r.Body).Decode(&req)? "invalid request body"
+		let err = json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
 
-		// Process registration - pattern matching on Result type
-		match registerUser(db, req) {
-			Ok(user) => {
-				w.WriteHeader(http.StatusCreated)
-				json.NewEncoder(w).Encode(user)
-			}
-			Err(err) => http.Error(w, err.Error(), http.StatusBadRequest)
+		// Process registration
+		let result = registerUser(db, req)
+		if result.IsOk() {
+			let user = result.Unwrap()
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(user)
+		} else {
+			let err1 = result.UnwrapErr()
+			http.Error(w, err1.Error(), http.StatusBadRequest)
 		}
 	}
 }
 
 // NEW (Phase 7): Handler demonstrating safe navigation in response formatting
 func handleGetUser(db *sql.DB) http.HandlerFunc {
-	return (w, r) => {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// Extract user ID from query params
 		let userID = r.URL.Query().Get("id")
 		if userID == "" {
@@ -200,10 +242,14 @@ func getUserByID(db *sql.DB, id string) *User {
 }
 
 func getUserStatusString(status UserStatus) string {
-	match status {
-		UserStatus_Active() => "active"
-		UserStatus_Pending() => "pending"
-		UserStatus_Suspended() => "suspended"
-		_ => "unknown"
+	if status == UserStatus_Active {
+		return "active"
 	}
+	if status == UserStatus_Pending {
+		return "pending"
+	}
+	if status == UserStatus_Suspended {
+		return "suspended"
+	}
+	return "unknown"
 }

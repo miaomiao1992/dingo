@@ -181,7 +181,72 @@ func (e *ErrorPropProcessor) Name() string {
 	return "error_propagation"
 }
 
-// Process transforms error propagation operators
+// ProcessV2 implements FeatureProcessorV2 interface for Post-AST source map support
+// Emits TransformMetadata with unique markers for each error propagation transformation
+func (e *ErrorPropProcessor) ProcessV2(source []byte, mode PreprocessorMode) (ProcessResult, error) {
+	// Initialize import tracker
+	e.importTracker = NewImportTracker()
+	e.mappings = []Mapping{}
+
+	// Split into lines for processing
+	e.lines = strings.Split(string(source), "\n")
+	e.needsFmt = false
+
+	var output bytes.Buffer
+	inputLineNum := 0
+	outputLineNum := 1          // Track current output line number (1-based)
+	markerCounter := 0          // Counter for unique markers
+	var metadata []TransformMetadata // Collect metadata
+
+	for inputLineNum < len(e.lines) {
+		line := e.lines[inputLineNum]
+
+		// Check if this is a function declaration
+		if e.isFunctionDeclaration(line) {
+			e.currentFunc = e.parseFunctionSignature(inputLineNum)
+			e.tryCounter = 1 // Reset counter for each function
+		}
+
+		// Process the line with metadata collection
+		transformed, newMappings, meta, err := e.processLineWithMetadata(line, inputLineNum+1, outputLineNum, &markerCounter, mode)
+		if err != nil {
+			return ProcessResult{}, fmt.Errorf("line %d: %w", inputLineNum+1, err)
+		}
+		output.WriteString(transformed)
+		if inputLineNum < len(e.lines)-1 {
+			output.WriteByte('\n')
+		}
+
+		// Add mappings (if in Legacy or Dual mode)
+		if mode == ModeLegacy || mode == ModeDual {
+			if len(newMappings) > 0 {
+				e.mappings = append(e.mappings, newMappings...)
+			}
+		}
+
+		// Add metadata (if in PostAST or Dual mode)
+		if mode == ModePostAST || mode == ModeDual {
+			if meta != nil {
+				metadata = append(metadata, *meta)
+			}
+		}
+
+		// Update output line count
+		newlineCount := strings.Count(transformed, "\n")
+		linesOccupied := newlineCount + 1
+		outputLineNum += linesOccupied
+
+		inputLineNum++
+	}
+
+	return ProcessResult{
+		Source:   output.Bytes(),
+		Mappings: e.mappings,
+		Metadata: metadata,
+	}, nil
+}
+
+// Process transforms error propagation operators (Legacy interface)
 func (e *ErrorPropProcessor) Process(source []byte) ([]byte, []Mapping, error) {
 	// Initialize import tracker
 	e.importTracker = NewImportTracker()
@@ -1061,3 +1126,410 @@ func (e *ErrorPropProcessor) trackFunctionCallInExpr(expr string) {
 	}
 }
 
+// processLineWithMetadata processes a single line with metadata generation for Post-AST source maps
+// Returns: (transformed_text, mappings, metadata, error)
+func (e *ErrorPropProcessor) processLineWithMetadata(line string, originalLineNum int, outputLineNum int, markerCounter *int, mode PreprocessorMode) (string, []Mapping, *TransformMetadata, error) {
+	// Check if line contains ? operator (and not ternary)
+	if !strings.Contains(line, "?") {
+		// No transformation needed
+		mapping := e.createIdentityMapping(line, originalLineNum, outputLineNum)
+		return line, mapping, nil, nil
+	}
+
+	// Skip if line contains ?? null coalesce operator
+	if strings.Contains(line, "??") {
+		mapping := e.createIdentityMapping(line, originalLineNum, outputLineNum)
+		return line, mapping, nil, nil
+	}
+
+	// Check if it's a ternary (has : after ?)
+	if e.isTernaryLine(line) {
+		mapping := e.createIdentityMapping(line, originalLineNum, outputLineNum)
+		return line, mapping, nil, nil
+	}
+
+	// Pattern: let/var NAME = EXPR? ["message"]
+	if matches := assignPattern.FindStringSubmatch(line); matches != nil {
+		rightSide := matches[3] // Everything after =
+		if strings.Contains(rightSide, "?") {
+			expr, errMsg := e.extractExpressionAndMessage(rightSide)
+
+			// Find position of ? operator
+			qPos := strings.LastIndex(matches[0], "?")
+			if qPos == -1 {
+				qPos = 0
+			}
+
+			// Generate unique marker
+			marker := fmt.Sprintf("// dingo:e:%d", *markerCounter)
+			*markerCounter++
+
+			// Create metadata
+			meta := &TransformMetadata{
+				Type:            "error_prop",
+				OriginalLine:    originalLineNum,
+				OriginalColumn:  qPos + 1,
+				OriginalLength:  1,
+				OriginalText:    "?",
+				GeneratedMarker: marker,
+				ASTNodeType:     "IfStmt",
+			}
+
+			result, mappings, err := e.expandAssignmentWithMarker(matches, expr, errMsg, marker, originalLineNum, outputLineNum)
+			if err != nil {
+				return "", nil, nil, err
+			}
+			return result, mappings, meta, nil
+		}
+	}
+
+	// Pattern: return EXPR? ["message"]
+	if matches := returnPattern.FindStringSubmatch(line); matches != nil {
+		returnPart := matches[1] // Everything after return
+		if strings.Contains(returnPart, "?") {
+			expr, errMsg := e.extractExpressionAndMessage(returnPart)
+
+			// Find position of ? operator
+			qPos := strings.LastIndex(matches[0], "?")
+			if qPos == -1 {
+				qPos = 0
+			}
+
+			// Generate unique marker
+			marker := fmt.Sprintf("// dingo:e:%d", *markerCounter)
+			*markerCounter++
+
+			// Create metadata
+			meta := &TransformMetadata{
+				Type:            "error_prop",
+				OriginalLine:    originalLineNum,
+				OriginalColumn:  qPos + 1,
+				OriginalLength:  1,
+				OriginalText:    "?",
+				GeneratedMarker: marker,
+				ASTNodeType:     "IfStmt",
+			}
+
+			result, mappings, err := e.expandReturnWithMarker(matches, expr, errMsg, marker, originalLineNum, outputLineNum)
+			if err != nil {
+				return "", nil, nil, err
+			}
+			return result, mappings, meta, nil
+		}
+	}
+
+	// If we can't recognize the pattern, leave as-is
+	mapping := e.createIdentityMapping(line, originalLineNum, outputLineNum)
+	return line, mapping, nil, nil
+}
+
+// expandAssignmentWithMarker is like expandAssignment but inserts the unique marker comment
+// Used by ProcessV2 to support Post-AST source map generation
+func (e *ErrorPropProcessor) expandAssignmentWithMarker(matches []string, expr string, errMsg string, marker string, originalLine int, startOutputLine int) (string, []Mapping, error) {
+	varName := matches[2]
+	exprClean := strings.TrimSpace(strings.TrimSuffix(expr, "?"))
+
+	// Track function call for import detection
+	e.trackFunctionCallInExpr(exprClean)
+
+	// No-number-first pattern: first occurrence has no number
+	tmpVar := ""
+	if e.tryCounter == 1 {
+		tmpVar = "tmp"
+	} else {
+		tmpVar = fmt.Sprintf("tmp%d", e.tryCounter-1)
+	}
+
+	errVar := ""
+	if e.tryCounter == 1 {
+		errVar = "err"
+	} else {
+		errVar = fmt.Sprintf("err%d", e.tryCounter-1)
+	}
+	e.tryCounter++
+
+	// Calculate exact position of ? operator for accurate source mapping
+	fullLineText := matches[0]
+	qPos := strings.LastIndex(fullLineText, "?")
+	if qPos == -1 {
+		qPos = 0
+	}
+
+	// Generate the expansion
+	var buf bytes.Buffer
+	indent := e.getIndent(matches[0])
+	mappings := []Mapping{}
+
+	// Line 1: tmpN, errN := expr
+	buf.WriteString(indent)
+	generatedLine := fmt.Sprintf("%s, %s := %s\n", tmpVar, errVar, exprClean)
+	buf.WriteString(generatedLine)
+
+	// Add mappings (same as original expandAssignment)
+	exprWithoutQ := strings.TrimSuffix(exprClean, "?")
+	exprPosInOriginal := strings.Index(fullLineText, exprWithoutQ)
+	if exprPosInOriginal >= 0 {
+		prefixLen := len(tmpVar) + len(", ") + len(errVar) + len(" := ")
+		genCol := len(indent) + prefixLen + 1
+		origCol := exprPosInOriginal + 1
+
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  origCol,
+			GeneratedLine:   startOutputLine,
+			GeneratedColumn: genCol,
+			Length:          len(exprWithoutQ),
+			Name:            "expr_mapping",
+		})
+	}
+
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 2: // dingo:e:N (UNIQUE MARKER)
+	buf.WriteString(indent)
+	buf.WriteString(marker)
+	buf.WriteString("\n")
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 1,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 3: if errN != nil {
+	buf.WriteString(indent)
+	buf.WriteString(fmt.Sprintf("if %s != nil {\n", errVar))
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 2,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 4: return zeroValues, wrapped_error
+	buf.WriteString(indent)
+	buf.WriteString("\t")
+	buf.WriteString(e.generateReturnStatement(errVar, errMsg))
+	buf.WriteString("\n")
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 3,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 5: }
+	buf.WriteString(indent)
+	buf.WriteString("}\n")
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 4,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 6: var varName = tmpN
+	buf.WriteString(indent)
+	buf.WriteString(fmt.Sprintf("var %s = %s", varName, tmpVar))
+
+	// Add mapping for variable name
+	varNamePos := strings.Index(fullLineText, varName)
+	if varNamePos >= 0 {
+		genVarCol := len(indent) + len("var ") + 1
+		origVarCol := varNamePos + 1
+
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  origVarCol,
+			GeneratedLine:   startOutputLine + 5,
+			GeneratedColumn: genVarCol,
+			Length:          len(varName),
+			Name:            "var_name",
+		})
+	}
+
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 5,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	return buf.String(), mappings, nil
+}
+
+// expandReturnWithMarker is like expandReturn but inserts the unique marker comment
+// Used by ProcessV2 to support Post-AST source map generation
+func (e *ErrorPropProcessor) expandReturnWithMarker(matches []string, expr string, errMsg string, marker string, originalLine int, startOutputLine int) (string, []Mapping, error) {
+	exprClean := strings.TrimSpace(strings.TrimSuffix(expr, "?"))
+
+	// Track function call for import detection
+	e.trackFunctionCallInExpr(exprClean)
+
+	// Generate correct number of temporary variables for multi-value returns
+	numNonErrorReturns := 1
+	if e.currentFunc != nil && len(e.currentFunc.returnTypes) > 1 {
+		numNonErrorReturns = len(e.currentFunc.returnTypes) - 1
+
+		// Check config mode
+		if e.config != nil && e.config.MultiValueReturnMode == "single" && numNonErrorReturns > 1 {
+			return "", nil, fmt.Errorf(
+				"multi-value error propagation not allowed in 'single' mode (use --multi-value-return=full): function returns %d values plus error",
+				numNonErrorReturns,
+			)
+		}
+	}
+
+	// Generate temporary variable names
+	baseCounter := e.tryCounter
+	tmpVars := []string{}
+	for i := 0; i < numNonErrorReturns; i++ {
+		var tmpVar string
+		if baseCounter == 1 {
+			tmpVar = "tmp"
+		} else {
+			tmpVar = fmt.Sprintf("tmp%d", baseCounter-1)
+		}
+		tmpVars = append(tmpVars, tmpVar)
+		baseCounter++
+	}
+
+	var errVar string
+	if e.tryCounter == 1 {
+		errVar = "err"
+	} else {
+		errVar = fmt.Sprintf("err%d", e.tryCounter-1)
+	}
+	e.tryCounter++
+
+	// Calculate exact position of ? operator
+	fullLineText := matches[0]
+	qPos := strings.LastIndex(fullLineText, "?")
+	if qPos == -1 {
+		qPos = 0
+	}
+
+	// Generate the expansion
+	var buf bytes.Buffer
+	indent := e.getIndent(matches[0])
+	mappings := []Mapping{}
+
+	// Line 1: tmp1, tmp2, ..., errN := expr
+	buf.WriteString(indent)
+	allVars := append(tmpVars, errVar)
+	generatedLine := fmt.Sprintf("%s := %s\n", strings.Join(allVars, ", "), exprClean)
+	buf.WriteString(generatedLine)
+
+	// Add mappings (same as original expandReturn)
+	exprWithoutQ := strings.TrimSuffix(exprClean, "?")
+	exprPosInOriginal := strings.Index(fullLineText, exprWithoutQ)
+	if exprPosInOriginal >= 0 {
+		varsPrefix := strings.Join(allVars, ", ") + " := "
+		genCol := len(indent) + len(varsPrefix) + 1
+		origCol := exprPosInOriginal + 1
+
+		mappings = append(mappings, Mapping{
+			OriginalLine:    originalLine,
+			OriginalColumn:  origCol,
+			GeneratedLine:   startOutputLine,
+			GeneratedColumn: genCol,
+			Length:          len(exprWithoutQ),
+			Name:            "expr_mapping",
+		})
+	}
+
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 2: // dingo:e:N (UNIQUE MARKER)
+	buf.WriteString(indent)
+	buf.WriteString(marker)
+	buf.WriteString("\n")
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 1,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 3: if errN != nil {
+	buf.WriteString(indent)
+	buf.WriteString(fmt.Sprintf("if %s != nil {\n", errVar))
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 2,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 4: return zeroValues, wrapped_error
+	buf.WriteString(indent)
+	buf.WriteString("\t")
+	buf.WriteString(e.generateReturnStatement(errVar, errMsg))
+	buf.WriteString("\n")
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 3,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 5: }
+	buf.WriteString(indent)
+	buf.WriteString("}\n")
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 4,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	// Line 6: return tmp1, tmp2, ..., nil
+	buf.WriteString(indent)
+	returnVals := append([]string{}, tmpVars...)
+	if e.currentFunc != nil && len(e.currentFunc.returnTypes) > 1 {
+		returnVals = append(returnVals, "nil")
+	}
+	buf.WriteString(fmt.Sprintf("return %s", strings.Join(returnVals, ", ")))
+	mappings = append(mappings, Mapping{
+		OriginalLine:    originalLine,
+		OriginalColumn:  qPos + 1,
+		GeneratedLine:   startOutputLine + 5,
+		GeneratedColumn: 1,
+		Length:          1,
+		Name:            "error_prop",
+	})
+
+	return buf.String(), mappings, nil
+}

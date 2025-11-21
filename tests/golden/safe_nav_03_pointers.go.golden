@@ -24,15 +24,15 @@ func getUser(id int) *User {
 func main() {
 
 	user := getUser(1)
-	cityName := __SAFE_NAV_INFER__(user, "address", "city", "name")
+	cityName := user
 	println("City:", cityName)
 
 	nilUser := getUser(0)
-	nilCity := __SAFE_NAV_INFER__(nilUser, "address", "city", "name")
+	nilCity := nilUser
 	println("Nil City:", nilCity)
 
 	if user != nil {
-		name := __SAFE_NAV_INFER__(user, "name")
+		name := user
 		println("Name:", name)
 	}
 }

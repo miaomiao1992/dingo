@@ -59,23 +59,23 @@ func main() {
 
 	index := func() __INFER__ {
 		coalesce := find(numbers, 25)
-		if __IS_SOME__(coalesce) {
-			return __UNWRAP__(coalesce)
+		if coalesce.IsSome() {
+			return coalesce.Unwrap()
 		}
 		return -1
 	}()
-	value := func() __INFER__ {
+	value := func() int {
 		coalesce1 := find(numbers, 30)
-		if __IS_SOME__(coalesce1) {
-			return __UNWRAP__(coalesce1)
+		if coalesce1.IsSome() {
+			return coalesce1.Unwrap()
 		}
 		return 0
 	}()
 
 	result := func() __INFER__ {
 		coalesce2 := find(numbers, 20)
-		if __IS_SOME__(coalesce2) {
-			return __UNWRAP__(coalesce2)
+		if coalesce2.IsSome() {
+			return coalesce2.Unwrap()
 		}
 		return -1
 	}()

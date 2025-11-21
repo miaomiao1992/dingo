@@ -1,25 +1,25 @@
 package main
 
 import (
-	"json"
+	"encoding/json"
 	"os"
 )
 
 func loadData(path string) (map[string]interface{}, error) {
-	__tmp0, __err0 := os.ReadFile(path)
+	tmp, err := os.ReadFile(path)
 
-	if __err0 != nil {
-		return nil, __err0
+	if err != nil {
+		return nil, err
 	}
 	// dingo:e:1
-	var data = __tmp0
+	var data = tmp
 	var result map[string]interface{}
-	__tmp1, __err1 := json.Unmarshal(data, &result)
+	tmp1, err1 := json.Unmarshal(data, &result)
 
-	if __err1 != nil {
-		return nil, __err1
+	if err1 != nil {
+		return nil, err1
 	}
 	// dingo:e:1
-	var err = __tmp1
+	var err = tmp1
 	return result, nil
 }

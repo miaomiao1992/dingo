@@ -83,7 +83,7 @@ func parseConfig(host Result, port Result, timeout Result) string {
 				h := *elem0.ok
 				p := *elem1.ok
 				e := *elem2.err
-				return "Config: " + h + ":" + p + " (default timeout, error: " + e.Error() + ")"
+				return "Config: " + h + ":" + p + " __TUPLE_2__LITERAL__0b5d4307(default timeout, error: " + e.Error() + ")"
 			case ResultTagOk:
 
 				h := *elem0.ok

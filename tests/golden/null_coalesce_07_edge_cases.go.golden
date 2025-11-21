@@ -95,17 +95,17 @@ func (o BoolOption) AndThen(fn func(bool) BoolOption) BoolOption {
 func main() {
 
 	name := StringOptionSome("")
-	display := func() __INFER__ {
+	display := func() string {
 		if name.IsSome() {
-			return __UNWRAP__(name)
+			return name.Unwrap()
 		}
 		return "Default"
 	}()
 
 	zero := BoolOptionSome(false)
-	result := func() __INFER__ {
+	result := func() bool {
 		if zero.IsSome() {
-			return __UNWRAP__(zero)
+			return zero.Unwrap()
 		}
 		return true
 	}()
@@ -114,36 +114,36 @@ func main() {
 	opt2 := StringOptionSome("Found")
 	intermediate := func() __INFER__ {
 		if opt1.IsSome() {
-			return __UNWRAP__(opt1)
+			return opt1.Unwrap()
 		}
 		return opt2
 	}()
-	combined := func() __INFER__ {
+	combined := func() string {
 		if intermediate.IsSome() {
-			return __UNWRAP__(intermediate)
+			return intermediate.Unwrap()
 		}
 		return "Fallback"
 	}()
 
 	flag := BoolOptionNone()
-	enabled := func() __INFER__ {
+	enabled := func() bool {
 		if flag.IsSome() {
-			return __UNWRAP__(flag)
+			return flag.Unwrap()
 		}
 		return false
 	}()
 
 	first := StringOptionNone()
 	second := StringOptionNone()
-	a := func() __INFER__ {
+	a := func() string {
 		if first.IsSome() {
-			return __UNWRAP__(first)
+			return first.Unwrap()
 		}
 		return "A"
 	}()
-	b := func() __INFER__ {
+	b := func() string {
 		if second.IsSome() {
-			return __UNWRAP__(second)
+			return second.Unwrap()
 		}
 		return "B"
 	}()
@@ -157,9 +157,9 @@ func main() {
 		text := text.Unwrap()
 		return text.toUpper()
 	}()
-	upper := func() __INFER__ {
+	upper := func() string {
 		if upperOpt.IsSome() {
-			return __UNWRAP__(upperOpt)
+			return upperOpt.Unwrap()
 		}
 		return "DEFAULT"
 	}()

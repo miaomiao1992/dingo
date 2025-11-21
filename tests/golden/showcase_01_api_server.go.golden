@@ -3,11 +3,733 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strings"
 )
 
+type ResultTag uint8
+
+const (
+	ResultTagOk ResultTag = iota
+	ResultTagErr
+)
+
+type Result_string_error struct {
+	tag ResultTag
+	ok  *string
+	err *error
+}
+
+func Result_string_error_Ok(arg0 string) Result_string_error {
+	return Result_string_error{tag: ResultTagOk, ok: &arg0}
+}
+func Result_string_error_Err(arg0 error) Result_string_error {
+	return Result_string_error{tag: ResultTagErr, err: &arg0}
+}
+func (r Result_string_error) IsOk() bool {
+	return r.tag == ResultTagOk
+}
+func (r Result_string_error) IsErr() bool {
+	return r.tag == ResultTagErr
+}
+func (r Result_string_error) Unwrap() string {
+	if r.tag != ResultTagOk {
+		panic("called Unwrap on Err")
+	}
+	if r.ok == nil {
+		panic("Result contains nil Ok value")
+	}
+	return *r.ok
+}
+func (r Result_string_error) UnwrapOr(defaultValue string) string {
+	if r.tag == ResultTagOk {
+		return *r.ok
+	}
+	return defaultValue
+}
+func (r Result_string_error) UnwrapErr() error {
+	if r.tag != ResultTagErr {
+		panic("called UnwrapErr on Ok")
+	}
+	if r.err == nil {
+		panic("Result contains nil Err value")
+	}
+	return *r.err
+}
+func (r Result_string_error) UnwrapOrElse(fn func(error) string) string {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return *r.ok
+	}
+	if r.err != nil {
+		return fn(*r.err)
+	}
+	panic("Result in invalid state")
+}
+func (r Result_string_error) Map(fn func(string) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		u := fn(*r.ok)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *error
+		}{tag: ResultTagOk, ok: &u}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_string_error) MapErr(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		f := fn(*r.err)
+		return struct {
+			tag ResultTag
+			ok  *string
+			err *interface{}
+		}{tag: ResultTagErr, ok: nil, err: &f}
+	}
+	return struct {
+		tag ResultTag
+		ok  *string
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_string_error) Filter(predicate func(string) bool) Result_string_error {
+	if r.tag == ResultTagOk && predicate(*r.ok) {
+		return r
+	}
+	return r
+}
+func (r Result_string_error) AndThen(fn func(string) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return fn(*r.ok)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_string_error) OrElse(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		return fn(*r.err)
+	}
+	return struct {
+		tag ResultTag
+		ok  *string
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_string_error) And(other interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return other
+	}
+	return r
+}
+func (r Result_string_error) Or(other Result_string_error) Result_string_error {
+	if r.tag == ResultTagOk {
+		return r
+	}
+	return other
+}
+
+type Result_interface_string struct {
+	tag ResultTag
+	ok  *interface{}
+	err *string
+}
+func Result_interface_string_Ok(arg0 interface{}) Result_interface_string {
+	return Result_interface_string{tag: ResultTagOk, ok: &arg0}
+}
+func Result_interface_string_Err(arg0 string) Result_interface_string {
+	return Result_interface_string{tag: ResultTagErr, err: &arg0}
+}
+func (r Result_interface_string) IsOk() bool {
+	return r.tag == ResultTagOk
+}
+func (r Result_interface_string) IsErr() bool {
+	return r.tag == ResultTagErr
+}
+func (r Result_interface_string) Unwrap() interface{} {
+	if r.tag != ResultTagOk {
+		panic("called Unwrap on Err")
+	}
+	if r.ok == nil {
+		panic("Result contains nil Ok value")
+	}
+	return *r.ok
+}
+func (r Result_interface_string) UnwrapOr(defaultValue interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return *r.ok
+	}
+	return defaultValue
+}
+func (r Result_interface_string) UnwrapErr() string {
+	if r.tag != ResultTagErr {
+		panic("called UnwrapErr on Ok")
+	}
+	if r.err == nil {
+		panic("Result contains nil Err value")
+	}
+	return *r.err
+}
+func (r Result_interface_string) UnwrapOrElse(fn func(string) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return *r.ok
+	}
+	if r.err != nil {
+		return fn(*r.err)
+	}
+	panic("Result in invalid state")
+}
+func (r Result_interface_string) Map(fn func(interface{}) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		u := fn(*r.ok)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *string
+		}{tag: ResultTagOk, ok: &u}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *string
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_interface_string) MapErr(fn func(string) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		f := fn(*r.err)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *interface{}
+		}{tag: ResultTagErr, ok: nil, err: &f}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_interface_string) Filter(predicate func(interface{}) bool) Result_interface_string {
+	if r.tag == ResultTagOk && predicate(*r.ok) {
+		return r
+	}
+	return r
+}
+func (r Result_interface_string) AndThen(fn func(interface{}) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return fn(*r.ok)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *string
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_interface_string) OrElse(fn func(string) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		return fn(*r.err)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_interface_string) And(other interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return other
+	}
+	return r
+}
+func (r Result_interface_string) Or(other Result_interface_string) Result_interface_string {
+	if r.tag == ResultTagOk {
+		return r
+	}
+	return other
+}
+
+type Result_interface_error struct {
+	tag ResultTag
+	ok  *interface{}
+	err *error
+}
+func Result_interface_error_Ok(arg0 interface{}) Result_interface_error {
+	return Result_interface_error{tag: ResultTagOk, ok: &arg0}
+}
+func Result_interface_error_Err(arg0 error) Result_interface_error {
+	return Result_interface_error{tag: ResultTagErr, err: &arg0}
+}
+func (r Result_interface_error) IsOk() bool {
+	return r.tag == ResultTagOk
+}
+func (r Result_interface_error) IsErr() bool {
+	return r.tag == ResultTagErr
+}
+func (r Result_interface_error) Unwrap() interface{} {
+	if r.tag != ResultTagOk {
+		panic("called Unwrap on Err")
+	}
+	if r.ok == nil {
+		panic("Result contains nil Ok value")
+	}
+	return *r.ok
+}
+func (r Result_interface_error) UnwrapOr(defaultValue interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return *r.ok
+	}
+	return defaultValue
+}
+func (r Result_interface_error) UnwrapErr() error {
+	if r.tag != ResultTagErr {
+		panic("called UnwrapErr on Ok")
+	}
+	if r.err == nil {
+		panic("Result contains nil Err value")
+	}
+	return *r.err
+}
+func (r Result_interface_error) UnwrapOrElse(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return *r.ok
+	}
+	if r.err != nil {
+		return fn(*r.err)
+	}
+	panic("Result in invalid state")
+}
+func (r Result_interface_error) Map(fn func(interface{}) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		u := fn(*r.ok)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *error
+		}{tag: ResultTagOk, ok: &u}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_interface_error) MapErr(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		f := fn(*r.err)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *interface{}
+		}{tag: ResultTagErr, ok: nil, err: &f}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_interface_error) Filter(predicate func(interface{}) bool) Result_interface_error {
+	if r.tag == ResultTagOk && predicate(*r.ok) {
+		return r
+	}
+	return r
+}
+func (r Result_interface_error) AndThen(fn func(interface{}) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return fn(*r.ok)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_interface_error) OrElse(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		return fn(*r.err)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_interface_error) And(other interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return other
+	}
+	return r
+}
+func (r Result_interface_error) Or(other Result_interface_error) Result_interface_error {
+	if r.tag == ResultTagOk {
+		return r
+	}
+	return other
+}
+
+type Result_bool_error struct {
+	tag ResultTag
+	ok  *bool
+	err *error
+}
+func Result_bool_error_Ok(arg0 bool) Result_bool_error {
+	return Result_bool_error{tag: ResultTagOk, ok: &arg0}
+}
+func Result_bool_error_Err(arg0 error) Result_bool_error {
+	return Result_bool_error{tag: ResultTagErr, err: &arg0}
+}
+func (r Result_bool_error) IsOk() bool {
+	return r.tag == ResultTagOk
+}
+func (r Result_bool_error) IsErr() bool {
+	return r.tag == ResultTagErr
+}
+func (r Result_bool_error) Unwrap() bool {
+	if r.tag != ResultTagOk {
+		panic("called Unwrap on Err")
+	}
+	if r.ok == nil {
+		panic("Result contains nil Ok value")
+	}
+	return *r.ok
+}
+func (r Result_bool_error) UnwrapOr(defaultValue bool) bool {
+	if r.tag == ResultTagOk {
+		return *r.ok
+	}
+	return defaultValue
+}
+func (r Result_bool_error) UnwrapErr() error {
+	if r.tag != ResultTagErr {
+		panic("called UnwrapErr on Ok")
+	}
+	if r.err == nil {
+		panic("Result contains nil Err value")
+	}
+	return *r.err
+}
+func (r Result_bool_error) UnwrapOrElse(fn func(error) bool) bool {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return *r.ok
+	}
+	if r.err != nil {
+		return fn(*r.err)
+	}
+	panic("Result in invalid state")
+}
+func (r Result_bool_error) Map(fn func(bool) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		u := fn(*r.ok)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *error
+		}{tag: ResultTagOk, ok: &u}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_bool_error) MapErr(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		f := fn(*r.err)
+		return struct {
+			tag ResultTag
+			ok  *bool
+			err *interface{}
+		}{tag: ResultTagErr, ok: nil, err: &f}
+	}
+	return struct {
+		tag ResultTag
+		ok  *bool
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_bool_error) Filter(predicate func(bool) bool) Result_bool_error {
+	if r.tag == ResultTagOk && predicate(*r.ok) {
+		return r
+	}
+	return r
+}
+func (r Result_bool_error) AndThen(fn func(bool) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return fn(*r.ok)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_bool_error) OrElse(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		return fn(*r.err)
+	}
+	return struct {
+		tag ResultTag
+		ok  *bool
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_bool_error) And(other interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return other
+	}
+	return r
+}
+func (r Result_bool_error) Or(other Result_bool_error) Result_bool_error {
+	if r.tag == ResultTagOk {
+		return r
+	}
+	return other
+}
+
+type Result_int64_error struct {
+	tag ResultTag
+	ok  *int64
+	err *error
+}
+func Result_int64_error_Ok(arg0 int64) Result_int64_error {
+	return Result_int64_error{tag: ResultTagOk, ok: &arg0}
+}
+func Result_int64_error_Err(arg0 error) Result_int64_error {
+	return Result_int64_error{tag: ResultTagErr, err: &arg0}
+}
+func (r Result_int64_error) IsOk() bool {
+	return r.tag == ResultTagOk
+}
+func (r Result_int64_error) IsErr() bool {
+	return r.tag == ResultTagErr
+}
+func (r Result_int64_error) Unwrap() int64 {
+	if r.tag != ResultTagOk {
+		panic("called Unwrap on Err")
+	}
+	if r.ok == nil {
+		panic("Result contains nil Ok value")
+	}
+	return *r.ok
+}
+func (r Result_int64_error) UnwrapOr(defaultValue int64) int64 {
+	if r.tag == ResultTagOk {
+		return *r.ok
+	}
+	return defaultValue
+}
+func (r Result_int64_error) UnwrapErr() error {
+	if r.tag != ResultTagErr {
+		panic("called UnwrapErr on Ok")
+	}
+	if r.err == nil {
+		panic("Result contains nil Err value")
+	}
+	return *r.err
+}
+func (r Result_int64_error) UnwrapOrElse(fn func(error) int64) int64 {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return *r.ok
+	}
+	if r.err != nil {
+		return fn(*r.err)
+	}
+	panic("Result in invalid state")
+}
+func (r Result_int64_error) Map(fn func(int64) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		u := fn(*r.ok)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *error
+		}{tag: ResultTagOk, ok: &u}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_int64_error) MapErr(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		f := fn(*r.err)
+		return struct {
+			tag ResultTag
+			ok  *int64
+			err *interface{}
+		}{tag: ResultTagErr, ok: nil, err: &f}
+	}
+	return struct {
+		tag ResultTag
+		ok  *int64
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_int64_error) Filter(predicate func(int64) bool) Result_int64_error {
+	if r.tag == ResultTagOk && predicate(*r.ok) {
+		return r
+	}
+	return r
+}
+func (r Result_int64_error) AndThen(fn func(int64) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return fn(*r.ok)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_int64_error) OrElse(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		return fn(*r.err)
+	}
+	return struct {
+		tag ResultTag
+		ok  *int64
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_int64_error) And(other interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return other
+	}
+	return r
+}
+func (r Result_int64_error) Or(other Result_int64_error) Result_int64_error {
+	if r.tag == ResultTagOk {
+		return r
+	}
+	return other
+}
+
+type Result_User_error struct {
+	tag ResultTag
+	ok  *User
+	err *error
+}
+func Result_User_error_Ok(arg0 User) Result_User_error {
+	return Result_User_error{tag: ResultTagOk, ok: &arg0}
+}
+func Result_User_error_Err(arg0 error) Result_User_error {
+	return Result_User_error{tag: ResultTagErr, err: &arg0}
+}
+func (r Result_User_error) IsOk() bool {
+	return r.tag == ResultTagOk
+}
+func (r Result_User_error) IsErr() bool {
+	return r.tag == ResultTagErr
+}
+func (r Result_User_error) Unwrap() User {
+	if r.tag != ResultTagOk {
+		panic("called Unwrap on Err")
+	}
+	if r.ok == nil {
+		panic("Result contains nil Ok value")
+	}
+	return *r.ok
+}
+func (r Result_User_error) UnwrapOr(defaultValue User) User {
+	if r.tag == ResultTagOk {
+		return *r.ok
+	}
+	return defaultValue
+}
+func (r Result_User_error) UnwrapErr() error {
+	if r.tag != ResultTagErr {
+		panic("called UnwrapErr on Ok")
+	}
+	if r.err == nil {
+		panic("Result contains nil Err value")
+	}
+	return *r.err
+}
+func (r Result_User_error) UnwrapOrElse(fn func(error) User) User {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return *r.ok
+	}
+	if r.err != nil {
+		return fn(*r.err)
+	}
+	panic("Result in invalid state")
+}
+func (r Result_User_error) Map(fn func(User) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		u := fn(*r.ok)
+		return struct {
+			tag ResultTag
+			ok  *interface{}
+			err *error
+		}{tag: ResultTagOk, ok: &u}
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_User_error) MapErr(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		f := fn(*r.err)
+		return struct {
+			tag ResultTag
+			ok  *User
+			err *interface{}
+		}{tag: ResultTagErr, ok: nil, err: &f}
+	}
+	return struct {
+		tag ResultTag
+		ok  *User
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_User_error) Filter(predicate func(User) bool) Result_User_error {
+	if r.tag == ResultTagOk && predicate(*r.ok) {
+		return r
+	}
+	return r
+}
+func (r Result_User_error) AndThen(fn func(User) interface{}) interface{} {
+	if r.tag == ResultTagOk && r.ok != nil {
+		return fn(*r.ok)
+	}
+	return struct {
+		tag ResultTag
+		ok  *interface{}
+		err *error
+	}{tag: r.tag, ok: nil, err: r.err}
+}
+func (r Result_User_error) OrElse(fn func(error) interface{}) interface{} {
+	if r.tag == ResultTagErr && r.err != nil {
+		return fn(*r.err)
+	}
+	return struct {
+		tag ResultTag
+		ok  *User
+		err *interface{}
+	}{tag: r.tag, ok: r.ok, err: nil}
+}
+func (r Result_User_error) And(other interface{}) interface{} {
+	if r.tag == ResultTagOk {
+		return other
+	}
+	return r
+}
+func (r Result_User_error) Or(other Result_User_error) Result_User_error {
+	if r.tag == ResultTagOk {
+		return r
+	}
+	return other
+}
+
+// Sum type for user status - no boilerplate needed!
 type UserStatusTag uint8
 
 const (
@@ -19,14 +741,13 @@ const (
 type UserStatus struct {
 	tag UserStatusTag
 }
-
-func UserStatus_Active() UserStatus {
+func UserStatusActive() UserStatus {
 	return UserStatus{tag: UserStatusTagActive}
 }
-func UserStatus_Pending() UserStatus {
+func UserStatusPending() UserStatus {
 	return UserStatus{tag: UserStatusTagPending}
 }
-func UserStatus_Suspended() UserStatus {
+func UserStatusSuspended() UserStatus {
 	return UserStatus{tag: UserStatusTagSuspended}
 }
 func (e UserStatus) IsActive() bool {
@@ -39,155 +760,329 @@ func (e UserStatus) IsSuspended() bool {
 	return e.tag == UserStatusTagSuspended
 }
 
+// Domain models
 type User struct {
 	ID       int
 	Username string
 	Email    string
 	Status   UserStatus
+	Profile  *UserProfile // Optional profile (Phase 7 - safe navigation)
 }
-
+type UserProfile struct {
+	Bio         *string
+	Website     *string
+	PhoneNumber *string
+	Country     *string
+}
 type RegisterRequest struct {
 	Username string
 	Email    string
 	Password string
+	Profile  *ProfileInput // Optional profile data
 }
-
-func validateEmail(email string) (string, error) {
+type ProfileInput struct {
+	Bio     *string
+	Website *string
+	Phone   *string
+	Country *string
+}
+func validateEmail(email string) Result[string, error] {
 	if !strings.Contains(email, "@") || !strings.Contains(email, ".") {
-		return "", errors.New("invalid email format")
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp14 := "invalid email format"
+			return &tmp14
+		}()}
 	}
-	return email, nil
+	return Result_interface_error{tag: ResultTagOk, ok: &email}
 }
-
-func validatePassword(password string) (string, error) {
+func validatePassword(password string) Result[string, error] {
 	if len(password) < 8 {
-		return "", errors.New("password must be at least 8 characters")
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp15 := "password must be at least 8 characters"
+			return &tmp15
+		}()}
 	}
-	return password, nil
+	return Result_interface_error{tag: ResultTagOk, ok: &password}
 }
-
-func validateUsername(username string) (string, error) {
+func validateUsername(username string) Result[string, error] {
 	if len(username) < 3 {
-		return "", errors.New("username must be at least 3 characters")
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp16 := "username must be at least 3 characters"
+			return &tmp16
+		}()}
 	}
 	if len(username) > 20 {
-		return "", errors.New("username too long")
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp17 := "username too long"
+			return &tmp17
+		}()}
 	}
-	return username, nil
+	return Result_interface_error{tag: ResultTagOk, ok: &username}
 }
 
-func checkUserExists(db *sql.DB, email string) (bool, error) {
+// Database operations using Result types
+func checkUserExists(db *sql.DB, email string) Result[bool, error] {
 	var exists bool
-	query := "SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)"
-	err := db.QueryRow(query, email).Scan(&exists)
-	if err != nil {
-		return false, err
-	}
-	return exists, nil
-}
+	tmp, err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)").Scan(&exists)
 
-func hashPassword(password string) (string, error) {
+	if err != nil {
+		return nil, err
+	}
+	// dingo:e:1
+	var err = tmp
+	if err != nil {
+		return Result_interface_error{tag: ResultTagErr, err: &err}
+	}
+	return Result_interface_error{tag: ResultTagOk, ok: &exists}
+}
+func hashPassword(password string) Result[string, error] {
 
 	if password == "" {
-		return "", errors.New("cannot hash empty password")
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp18 := "cannot hash empty password"
+			return &tmp18
+		}()}
 	}
-	hashed := "hashed_" + password
-	return hashed, nil
+	return Result_interface_error{tag: ResultTagOk, ok: func() *interface{} {
+		tmp19 := "hashed_" + password
+		return &tmp19
+	}()}
 }
+func saveUser(db *sql.DB, username string, email string, hashedPwd string, status UserStatus, profile *UserProfile) Result[int64, error] {
 
-func saveUser(db *sql.DB, username string, email string, hashedPwd string, status UserStatus) (int64, error) {
-	query := "INSERT INTO users (username, email, password, status) VALUES (?, ?, ?, ?)"
-	result, err := db.Exec(query, username, email, hashedPwd, status)
+	bio := func() string {
+		coalesce := profile
+		if coalesce.IsSome() {
+			return coalesce.Unwrap()
+		}
+		return ""
+	}()
+	website := func() string {
+		coalesce1 := profile
+		if coalesce1.IsSome() {
+			return coalesce1.Unwrap()
+		}
+		return ""
+	}()
+	phone := func() string {
+		coalesce2 := profile
+		if coalesce2.IsSome() {
+			return coalesce2.Unwrap()
+		}
+		return ""
+	}()
+	country := func() string {
+		coalesce3 := profile
+		if coalesce3.IsSome() {
+			return coalesce3.Unwrap()
+		}
+		return "US"
+	}()
+
+	result, err := db.Exec(
+		"INSERT INTO users __TUPLE_8__LITERAL__eb050a9d(username, email, password, status, bio, website, phone, country) VALUES __TUPLE_8__LITERAL__93fb6712(?, ?, ?, ?, ?, ?, ?, ?)",
+		username, email, hashedPwd, status, bio, website, phone, country,
+	)
 	if err != nil {
-		return 0, err
+		return Result_interface_error{tag: ResultTagErr, err: &err}
 	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
+	id, err1 := result.LastInsertId()
+	if err1 != nil {
+		return Result_interface_error{tag: ResultTagErr, err: &err1}
 	}
-
-	return id, nil
+	return Result_interface_error{tag: ResultTagOk, ok: &id}
 }
 
-func registerUser(db *sql.DB, req RegisterRequest) (User, error) {
+// Main business logic - showcases error propagation and safe navigation
+// Demonstrates manual error handling (? operator support coming in future phase)
+// NEW (Phase 7): Safe navigation (?.) and null coalescing (??) for optional fields
+func registerUser(db *sql.DB, req RegisterRequest) Result[User, error] {
 
-	__tmp0, __err0 := validateEmail(req.Email)
+	emailResult := validateEmail(req.Email)
+	if emailResult.IsErr() {
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp20 := "email validation failed"
+			return &tmp20
+		}()}
+	}
+	email := emailResult.Unwrap()
 
-	if __err0 != nil {
-		return User{}, __err0
+	passwordResult := validatePassword(req.Password)
+	if passwordResult.IsErr() {
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp21 := "password validation failed"
+			return &tmp21
+		}()}
+	}
+	password := passwordResult.Unwrap()
+
+	usernameResult := validateUsername(req.Username)
+	if usernameResult.IsErr() {
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp22 := "username validation failed"
+			return &tmp22
+		}()}
+	}
+	username := usernameResult.Unwrap()
+
+	existsResult := checkUserExists(db, email)
+	if existsResult.IsErr() {
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp23 := "failed to check user existence"
+			return &tmp23
+		}()}
+	}
+	if existsResult.Unwrap() {
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp24 := "user already exists"
+			return &tmp24
+		}()}
 	}
 
-	var email = __tmp0
-	__tmp1, __err1 := validatePassword(req.Password)
+	userProfile := buildUserProfile(req.Profile)
 
-	if __err1 != nil {
-		return User{}, __err1
+	hashedPasswordResult := hashPassword(password)
+	if hashedPasswordResult.IsErr() {
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp25 := "password hashing failed"
+			return &tmp25
+		}()}
 	}
+	hashedPassword := hashedPasswordResult.Unwrap()
 
-	var password = __tmp1
-	__tmp2, __err2 := validateUsername(req.Username)
-
-	if __err2 != nil {
-		return User{}, __err2
+	idResult := saveUser(db, username, email, hashedPassword, UserStatus_Pending, userProfile)
+	if idResult.IsErr() {
+		return Result_interface_string{tag: ResultTagErr, err: func() *string {
+			tmp26 := "failed to save user"
+			return &tmp26
+		}()}
 	}
+	id := idResult.Unwrap()
 
-	var username = __tmp2
-
-	__tmp3, __err3 := checkUserExists(db, email)
-
-	if __err3 != nil {
-		return User{}, __err3
-	}
-
-	var exists = __tmp3
-	if exists {
-		return User{}, errors.New("user already exists")
-	}
-
-	__tmp4, __err4 := hashPassword(password)
-
-	if __err4 != nil {
-		return User{}, __err4
-	}
-
-	var hashedPassword = __tmp4
-
-	__tmp5, __err5 := saveUser(db, username, email, hashedPassword, UserStatus_Pending())
-
-	if __err5 != nil {
-		return User{}, __err5
-	}
-
-	var id = __tmp5
-
-	user := User{
-		ID:       int(id),
-		Username: username,
-		Email:    email,
-		Status:   UserStatus_Pending(),
-	}
-
-	return user, nil
+	return Result_User_error{tag: ResultTagOk, ok: func() *User {
+		tmp27 := User{
+			ID:       int(id),
+			Username: username,
+			Email:    email,
+			Status:   UserStatus_Pending,
+			Profile:  userProfile,
+		}
+		return &tmp27
+	}()}
 }
 
+// NEW (Phase 7): Build user profile with safe defaults using ?. and ??
+func buildUserProfile(input *ProfileInput) *UserProfile {
+
+	return &UserProfile{
+		Bio:         input,
+		Website:     input,
+		PhoneNumber: input,
+		Country:     input,
+	}
+}
+
+// HTTP handler - clean and focused on business logic
 func handleRegister(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RegisterRequest
-
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return
 		}
 
-		user, err := registerUser(db, req)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		result := registerUser(db, req)
+		if result.IsOk() {
+			user := result.Unwrap()
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(user)
+		} else {
+			err1 := result.UnwrapErr()
+			http.Error(w, err1.Error(), http.StatusBadRequest)
+		}
+	}
+}
+
+// NEW (Phase 7): Handler demonstrating safe navigation in response formatting
+func handleGetUser(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		userID := r.URL.Query().Get("id")
+		if userID == "" {
+			http.Error(w, "user ID required", http.StatusBadRequest)
 			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(user)
+		user := getUserByID(db, userID)
+
+		response := map[string]interface{}{
+			"id": userID,
+			"username": func() string {
+				coalesce4 := user
+				if coalesce4.IsSome() {
+					return coalesce4.Unwrap()
+				}
+				return "unknown"
+			}(),
+			"email": func() string {
+				coalesce5 := user
+				if coalesce5.IsSome() {
+					return coalesce5.Unwrap()
+				}
+				return "no-email@example.com"
+			}(),
+			"status": getUserStatusString(user),
+
+			"bio": func() string {
+				coalesce6 := user
+				if coalesce6.IsSome() {
+					return coalesce6.Unwrap()
+				}
+				return "No bio provided"
+			}(),
+			"website": func() string {
+				coalesce7 := user
+				if coalesce7.IsSome() {
+					return coalesce7.Unwrap()
+				}
+				return ""
+			}(),
+			"phone": func() string {
+				coalesce8 := user
+				if coalesce8.IsSome() {
+					return coalesce8.Unwrap()
+				}
+				return ""
+			}(),
+			"country": func() string {
+				coalesce9 := user
+				if coalesce9.IsSome() {
+					return coalesce9.Unwrap()
+				}
+				return "Unknown"
+			}(),
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
 	}
+}
+
+// Helper functions for new handler
+func getUserByID(db *sql.DB, id string) *User {
+
+	return nil
+}
+func getUserStatusString(status UserStatus) string {
+	if status == UserStatus_Active {
+		return "active"
+	}
+	if status == UserStatus_Pending {
+		return "pending"
+	}
+	if status == UserStatus_Suspended {
+		return "suspended"
+	}
+	return "unknown"
 }

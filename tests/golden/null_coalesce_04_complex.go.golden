@@ -155,9 +155,9 @@ func main() {
 	}()
 
 	port := IntOptionNone()
-	finalPort := (func() __INFER__ {
+	finalPort := (func() int {
 		if port.IsSome() {
-			return __UNWRAP__(port)
+			return port.Unwrap()
 		}
 		return 8080
 	}()) + 1000
@@ -170,14 +170,14 @@ func main() {
 		config := config.Unwrap()
 		return config.host
 	}()
-	host := func() __INFER__ {
+	host := func() string {
 		coalesce1 := hostOpt
-		if __IS_SOME__(coalesce1) {
-			return __UNWRAP__(coalesce1)
+		if coalesce1.IsSome() {
+			return coalesce1.Unwrap()
 		}
 		coalesce2 := getEnv("HOST")
-		if __IS_SOME__(coalesce2) {
-			return __UNWRAP__(coalesce2)
+		if coalesce2.IsSome() {
+			return coalesce2.Unwrap()
 		}
 		return "localhost"
 	}()
@@ -190,14 +190,14 @@ func main() {
 		user1 := user.Unwrap()
 		return user1.toUpper()
 	}()
-	username := func() __INFER__ {
+	username := func() string {
 		coalesce3 := userUpper
-		if __IS_SOME__(coalesce3) {
-			return __UNWRAP__(coalesce3)
+		if coalesce3.IsSome() {
+			return coalesce3.Unwrap()
 		}
 		coalesce4 := getGuestName()
-		if __IS_SOME__(coalesce4) {
-			return __UNWRAP__(coalesce4)
+		if coalesce4.IsSome() {
+			return coalesce4.Unwrap()
 		}
 		return "GUEST"
 	}()
@@ -216,9 +216,9 @@ func main() {
 	}()
 
 	count := IntOptionNone()
-	total := (func() __INFER__ {
+	total := (func() int {
 		if count.IsSome() {
-			return __UNWRAP__(count)
+			return count.Unwrap()
 		}
 		return 10
 	}()) * 2

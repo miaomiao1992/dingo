@@ -1,14 +1,14 @@
 package main
 
 func main() {
-	// Basic ternary operator
-	var status = func() interface{} {
+
+	status := func() string {
 		if age >= 18 {
 			return "adult"
 		}
 		return "minor"
 	}()
-	var max = func() interface{} {
+	max := func() any {
 		if a > b {
 			return a
 		}

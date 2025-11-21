@@ -244,62 +244,62 @@ func (o Option_bool) Filter(predicate func(bool) bool) Option_bool {
 	return Option_bool{tag: OptionTagNone}
 }
 
-type Option_any struct {
+type Option_interface struct {
 	tag  OptionTag
 	some *interface{}
 }
-func Option_any_Some(arg0 interface{}) Option_any {
-	return Option_any{tag: OptionTagSome, some: &arg0}
+func Option_interface_Some(arg0 interface{}) Option_interface {
+	return Option_interface{tag: OptionTagSome, some: &arg0}
 }
-func Option_any_None() Option_any {
-	return Option_any{tag: OptionTagNone}
+func Option_interface_None() Option_interface {
+	return Option_interface{tag: OptionTagNone}
 }
-func (o Option_any) IsSome() bool {
+func (o Option_interface) IsSome() bool {
 	return o.tag == OptionTagSome
 }
-func (o Option_any) IsNone() bool {
+func (o Option_interface) IsNone() bool {
 	return o.tag == OptionTagNone
 }
-func (o Option_any) Unwrap() interface{} {
+func (o Option_interface) Unwrap() interface{} {
 	if o.tag != OptionTagSome {
 		panic("called Unwrap on None")
 	}
 	return *o.some
 }
-func (o Option_any) UnwrapOr(defaultValue interface{}) interface{} {
+func (o Option_interface) UnwrapOr(defaultValue interface{}) interface{} {
 	if o.tag == OptionTagSome {
 		return *o.some
 	}
 	return defaultValue
 }
-func (o Option_any) UnwrapOrElse(fn func() interface{}) interface{} {
+func (o Option_interface) UnwrapOrElse(fn func() interface{}) interface{} {
 	if o.tag == OptionTagSome {
 		return *o.some
 	}
 	return fn()
 }
-func (o Option_any) Map(fn func(interface{}) interface{}) Option_any {
+func (o Option_interface) Map(fn func(interface{}) interface{}) Option_interface {
 	if o.tag == OptionTagNone {
 		return o
 	}
 	mapped := fn(*o.some)
 	result := mapped.(interface{})
-	return Option_any{tag: OptionTagSome, some: &result}
+	return Option_interface{tag: OptionTagSome, some: &result}
 }
-func (o Option_any) AndThen(fn func(interface{}) Option_any) Option_any {
+func (o Option_interface) AndThen(fn func(interface{}) Option_interface) Option_interface {
 	if o.tag == OptionTagNone {
 		return o
 	}
 	return fn(*o.some)
 }
-func (o Option_any) Filter(predicate func(interface{}) bool) Option_any {
+func (o Option_interface) Filter(predicate func(interface{}) bool) Option_interface {
 	if o.tag == OptionTagNone {
 		return o
 	}
 	if predicate(*o.some) {
 		return o
 	}
-	return Option_any{tag: OptionTagNone}
+	return Option_interface{tag: OptionTagNone}
 }
 func main() {
 

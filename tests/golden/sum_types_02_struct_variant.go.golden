@@ -11,8 +11,8 @@ const (
 type Shape struct {
 	tag              ShapeTag
 	circle_radius    *float64
-	rectangle_width  *float64
 	rectangle_height *float64
+	rectangle_width  *float64
 }
 
 func ShapePoint() Shape {

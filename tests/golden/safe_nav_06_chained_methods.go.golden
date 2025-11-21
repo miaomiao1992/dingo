@@ -24,6 +24,28 @@ func (e UserOption) IsSome() bool {
 func (e UserOption) IsNone() bool {
 	return e.tag == UserOptionTagNone
 }
+func (o UserOption) Map(fn func(User) User) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return UserOptionSome(fn(*o.some))
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
+func (o UserOption) AndThen(fn func(User) UserOption) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
 
 type StringOptionTag uint8
 
@@ -48,6 +70,28 @@ func (e StringOption) IsSome() bool {
 func (e StringOption) IsNone() bool {
 	return e.tag == StringOptionTagNone
 }
+func (o StringOption) Map(fn func(string) string) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return StringOptionSome(fn(*o.some))
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
+}
+func (o StringOption) AndThen(fn func(string) StringOption) StringOption {
+	switch o.tag {
+	case StringOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case StringOptionTagNone:
+		return o
+	}
+	panic("invalid StringOption state")
+}
 
 type ProfileOptionTag uint8
 
@@ -71,6 +115,28 @@ func (e ProfileOption) IsSome() bool {
 }
 func (e ProfileOption) IsNone() bool {
 	return e.tag == ProfileOptionTagNone
+}
+func (o ProfileOption) Map(fn func(Profile) Profile) ProfileOption {
+	switch o.tag {
+	case ProfileOptionTagSome:
+		if o.some != nil {
+			return ProfileOptionSome(fn(*o.some))
+		}
+	case ProfileOptionTagNone:
+		return o
+	}
+	panic("invalid ProfileOption state")
+}
+func (o ProfileOption) AndThen(fn func(Profile) ProfileOption) ProfileOption {
+	switch o.tag {
+	case ProfileOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case ProfileOptionTagNone:
+		return o
+	}
+	panic("invalid ProfileOption state")
 }
 
 type User struct {
@@ -111,9 +177,9 @@ func getUser(id int) UserOption {
 func main() {
 	user := getUser(1)
 
-	upperName := __SAFE_NAV_INFER__(user, "getName()", "toUpper()")
+	upperName := user
 	println(upperName)
 
-	bio := __SAFE_NAV_INFER__(user, "getProfile()", "getBio()")
+	bio := user
 	println(bio)
 }

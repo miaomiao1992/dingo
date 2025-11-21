@@ -95,9 +95,9 @@ func (o IntOption) AndThen(fn func(int) IntOption) IntOption {
 func main() {
 
 	name := getUserName()
-	displayName := func() __INFER__ {
+	displayName := func() string {
 		if name.IsSome() {
-			return __UNWRAP__(name)
+			return name.Unwrap()
 		}
 		return "Guest"
 	}()
@@ -105,31 +105,31 @@ func main() {
 	fallback := StringOptionSome("Default")
 	result := func() __INFER__ {
 		if name.IsSome() {
-			return __UNWRAP__(name)
+			return name.Unwrap()
 		}
 		return fallback
 	}()
 
 	count := getCount()
-	finalCount := func() __INFER__ {
+	finalCount := func() int {
 		if count.IsSome() {
-			return __UNWRAP__(count)
+			return count.Unwrap()
 		}
 		return 0
 	}()
 
 	firstName := StringOptionNone()
-	firstDisplay := func() __INFER__ {
+	firstDisplay := func() string {
 		if firstName.IsSome() {
-			return __UNWRAP__(firstName)
+			return firstName.Unwrap()
 		}
 		return "Anonymous"
 	}()
 
 	age := IntOptionNone()
-	ageDisplay := func() __INFER__ {
+	ageDisplay := func() int {
 		if age.IsSome() {
-			return __UNWRAP__(age)
+			return age.Unwrap()
 		}
 		return 18
 	}()

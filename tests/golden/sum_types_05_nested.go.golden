@@ -11,8 +11,8 @@ const (
 
 type variants struct {
 	tag variantsTag
-	ok  *Value
 	err *error
+	ok  *Value
 }
 
 func variantsOk(arg0 Value) variants {
@@ -26,6 +26,28 @@ func (e variants) IsOk() bool {
 }
 func (e variants) IsErr() bool {
 	return e.tag == variantsTagErr
+}
+func (r variants) Map(fn func(Value) Value) variants {
+	switch r.tag {
+	case variantsTagOk:
+		if r.ok != nil {
+			return variantsOk(fn(*r.ok))
+		}
+	case variantsTagErr:
+		return r
+	}
+	panic("invalid variants state")
+}
+func (r variants) AndThen(fn func(Value) variants) variants {
+	switch r.tag {
+	case variantsTagOk:
+		if r.ok != nil {
+			return fn(*r.ok)
+		}
+	case variantsTagErr:
+		return r
+	}
+	panic("invalid variants state")
 }
 
 type ValueTag uint8

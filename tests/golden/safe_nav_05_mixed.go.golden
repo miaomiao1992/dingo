@@ -24,6 +24,28 @@ func (e UserOption) IsSome() bool {
 func (e UserOption) IsNone() bool {
 	return e.tag == UserOptionTagNone
 }
+func (o UserOption) Map(fn func(User) User) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return UserOptionSome(fn(*o.some))
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
+func (o UserOption) AndThen(fn func(User) UserOption) UserOption {
+	switch o.tag {
+	case UserOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case UserOptionTagNone:
+		return o
+	}
+	panic("invalid UserOption state")
+}
 
 type SettingsOptionTag uint8
 
@@ -47,6 +69,28 @@ func (e SettingsOption) IsSome() bool {
 }
 func (e SettingsOption) IsNone() bool {
 	return e.tag == SettingsOptionTagNone
+}
+func (o SettingsOption) Map(fn func(Settings) Settings) SettingsOption {
+	switch o.tag {
+	case SettingsOptionTagSome:
+		if o.some != nil {
+			return SettingsOptionSome(fn(*o.some))
+		}
+	case SettingsOptionTagNone:
+		return o
+	}
+	panic("invalid SettingsOption state")
+}
+func (o SettingsOption) AndThen(fn func(Settings) SettingsOption) SettingsOption {
+	switch o.tag {
+	case SettingsOptionTagSome:
+		if o.some != nil {
+			return fn(*o.some)
+		}
+	case SettingsOptionTagNone:
+		return o
+	}
+	panic("invalid SettingsOption state")
 }
 
 type User struct {
@@ -80,13 +124,13 @@ func getUser(id int) UserOption {
 func main() {
 
 	user := getUser(1)
-	color := __SAFE_NAV_INFER__(user, "config", "theme", "color")
+	color := user
 	println("Theme:", color)
 
-	offset := __SAFE_NAV_INFER__(user, "settings", "timezone", "offset")
+	offset := user
 	println("Timezone:", offset)
 
 	noUser := getUser(0)
-	noColor := __SAFE_NAV_INFER__(noUser, "config", "theme", "color")
+	noColor := noUser
 	println("No Theme:", noColor)
 }

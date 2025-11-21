@@ -25,7 +25,42 @@ type Preprocessor struct {
 
 	// Package-wide cache (optional, for unqualified import inference)
 	// When present, enables early bailout optimization and local function exclusion
-	cache      *FunctionExclusionCache
+	cache *FunctionExclusionCache
+
+	// Source map generation mode (Phase 2: Post-AST support)
+	mode PreprocessorMode
+}
+
+// PreprocessorMode controls which source map generation mode is used
+type PreprocessorMode int
+
+const (
+	// ModeLegacy uses the old source map generation (predictions during preprocessing)
+	ModeLegacy PreprocessorMode = iota
+	// ModePostAST uses the new Post-AST source map generation (Phase 2)
+	ModePostAST
+	// ModeDual generates both legacy mappings and Post-AST metadata (for testing/migration)
+	ModeDual
+)
+
+// TransformMetadata holds metadata about a transformation (NOT final mappings)
+// This is emitted by preprocessors and used by Post-AST generator to match AST nodes
+type TransformMetadata struct {
+	Type            string // "error_prop", "type_annot", "enum", etc.
+	OriginalLine    int    // Line in .dingo file
+	OriginalColumn  int    // Column in .dingo file
+	OriginalLength  int    // Length in .dingo file
+	OriginalText    string // Original Dingo syntax (e.g., "?")
+	GeneratedMarker string // Unique marker in Go code (e.g., "// dingo:e:0")
+	ASTNodeType     string // "CallExpr", "FuncDecl", "IfStmt", etc.
+}
+
+// ProcessResult holds the result of preprocessing
+// Supports both legacy mappings and new Post-AST metadata
+type ProcessResult struct {
+	Source   []byte              // Transformed Go source code
+	Mappings []Mapping           // LEGACY: For backward compatibility
+	Metadata []TransformMetadata // NEW: For Post-AST generation
 }
 
 // FeatureProcessor defines the interface for individual feature preprocessors
@@ -35,9 +70,19 @@ type FeatureProcessor interface {
 
 	// Process transforms the source code and returns:
 	// - transformed source
-	// - source mappings
+	// - source mappings for error reporting
 	// - error if transformation failed
 	Process(source []byte) ([]byte, []Mapping, error)
+}
+
+// FeatureProcessorV2 is the new interface that supports Post-AST metadata emission
+// Processors can implement this interface to support the new Post-AST source map generation
+type FeatureProcessorV2 interface {
+	FeatureProcessor // Embed the old interface for backward compatibility
+
+	// ProcessV2 transforms the source code and returns a ProcessResult
+	// This method supports both legacy mappings and Post-AST metadata
+	ProcessV2(source []byte, mode PreprocessorMode) (ProcessResult, error)
 }
 
 // ImportProvider is an optional interface for processors that need to add imports
@@ -116,11 +161,126 @@ func newWithConfigAndCache(source []byte, cfg *config.Config, cache *FunctionExc
 		oldConfig:  nil, // No longer used
 		processors: processors,
 		cache:      cache,
+		mode:       ModeLegacy, // Default to legacy mode for backward compatibility
 	}
 }
 
+// SetMode sets the source map generation mode
+// This allows switching between legacy and Post-AST modes
+func (p *Preprocessor) SetMode(mode PreprocessorMode) {
+	p.mode = mode
+}
+
+// GetMode returns the current source map generation mode
+func (p *Preprocessor) GetMode() PreprocessorMode {
+	return p.mode
+}
+
+// ProcessWithMetadata runs all feature processors and returns both legacy mappings and Post-AST metadata
+// This is the new unified method that supports all modes (Legacy, PostAST, Dual)
+func (p *Preprocessor) ProcessWithMetadata() (string, *SourceMap, []TransformMetadata, error) {
+	// Early bailout optimization (GPT-5.1): If cache indicates no unqualified imports
+	// in this package, skip expensive symbol resolution for unqualified import processors
+	skipUnqualifiedProcessing := false
+	if p.cache != nil && !p.cache.HasUnqualifiedImports() {
+		// This package has no unqualified stdlib calls, skip that processing
+		skipUnqualifiedProcessing = true
+	}
+	_ = skipUnqualifiedProcessing // TODO: Use when UnqualifiedImportProcessor is integrated
+
+	result := p.source
+	sourceMap := NewSourceMap()
+	allMetadata := []TransformMetadata{}
+	neededImports := []string{}
+
+	// Run each processor in sequence
+	for _, proc := range p.processors {
+		// Check if processor implements V2 interface
+		if procV2, ok := proc.(FeatureProcessorV2); ok {
+			// Use new ProcessV2 method
+			procResult, err := procV2.ProcessV2(result, p.mode)
+			if err != nil {
+				return "", nil, nil, fmt.Errorf("%s preprocessing failed: %w", proc.Name(), err)
+			}
+
+			// Update result
+			result = procResult.Source
+
+			// Merge mappings (if in Legacy or Dual mode)
+			if p.mode == ModeLegacy || p.mode == ModeDual {
+				for _, m := range procResult.Mappings {
+					sourceMap.AddMapping(m)
+				}
+			}
+
+			// Collect metadata (if in PostAST or Dual mode)
+			if p.mode == ModePostAST || p.mode == ModeDual {
+				allMetadata = append(allMetadata, procResult.Metadata...)
+			}
+		} else {
+			// Fall back to legacy Process method
+			processed, mappings, err := proc.Process(result)
+			if err != nil {
+				return "", nil, nil, fmt.Errorf("%s preprocessing failed: %w", proc.Name(), err)
+			}
+
+			// Update result
+			result = processed
+
+			// Merge mappings (legacy mode always uses mappings)
+			for _, m := range mappings {
+				sourceMap.AddMapping(m)
+			}
+		}
+
+		// Collect needed imports if processor implements ImportProvider
+		if importProvider, ok := proc.(ImportProvider); ok {
+			imports := importProvider.GetNeededImports()
+			neededImports = append(neededImports, imports...)
+		}
+	}
+
+	// Inject all needed imports at the end (after all transformations complete)
+	if len(neededImports) > 0 {
+		var importInsertLine, importBlockEndLine int
+		var err error
+		// CRITICAL FIX: Get both import start and end lines for accurate shifting
+		result, importInsertLine, importBlockEndLine, err = injectImportsWithPosition(result, neededImports)
+		if err != nil {
+			return "", nil, nil, fmt.Errorf("failed to inject imports: %w", err)
+		}
+
+		// Calculate how many lines the import block occupies
+		// importInsertLine is where imports are inserted (after package declaration)
+		// importBlockEndLine is where imports end (last line of import block)
+		// CRITICAL FIX: Only apply adjustment if imports were actually added
+		if importInsertLine > 0 && importBlockEndLine > 0 {
+			importBlockSize := importBlockEndLine - importInsertLine + 1
+
+			// Adjust all source mappings to account for added import lines
+			if p.mode == ModeLegacy || p.mode == ModeDual {
+				adjustMappingsForImports(sourceMap, importBlockSize, importInsertLine)
+			}
+
+			// TODO: Adjust metadata line numbers for Post-AST mode
+			// This will be needed when we integrate with Phase 3
+		}
+	}
+
+	return string(result), sourceMap, allMetadata, nil
+}
+
 // Process runs all feature processors in sequence and combines source maps
+// This is the legacy method that returns only source maps (for backward compatibility)
 func (p *Preprocessor) Process() (string, *SourceMap, error) {
+	// Delegate to ProcessWithMetadata and discard metadata
+	result, sourceMap, _, err := p.ProcessWithMetadata()
+	return result, sourceMap, err
+}
+
+// DEPRECATED: Old Process implementation kept for reference during migration
+// Will be removed after all callers migrate to ProcessWithMetadata
+func (p *Preprocessor) processLegacy() (string, *SourceMap, error) {
 	// Early bailout optimization (GPT-5.1): If cache indicates no unqualified imports
 	// in this package, skip expensive symbol resolution for unqualified import processors
 	skipUnqualifiedProcessing := false
