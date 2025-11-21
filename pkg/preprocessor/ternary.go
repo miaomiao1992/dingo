@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+// MaxTernaryNestingDepth is the maximum depth of nested ternary operators allowed.
+// This prevents overly complex nested ternaries that harm readability.
+const MaxTernaryNestingDepth = 3
+
 // TernaryProcessor handles the ternary operator (condition ? trueValue : falseValue)
 // Transforms: condition ? trueValue : falseValue → IIFE pattern
 //
@@ -28,8 +32,42 @@ import (
 // Processing Order:
 // CRITICAL: Must run BEFORE ErrorPropProcessor to avoid ? conflicts
 // Disambiguates: condition ? true : false (ternary) vs expr? (error propagation)
+//
+// Edge Cases Handled:
+//
+// 1. Comparison Operators:
+//    ✅ a == b ? c : d     (== not treated as assignment)
+//    ✅ a != b ? c : d     (!= properly excluded)
+//    ✅ a >= b ? c : d     (>=, <= properly excluded)
+//
+// 2. String Literals:
+//    ✅ cond ? "http://url" : "default"  (colon in string ignored)
+//    ✅ cond ? `host:port` : "default"   (raw strings supported)
+//    ✅ cond ? "Is this?" : "No"         (? in string ignored)
+//
+// 3. Nested Contexts:
+//    ✅ ((a) ? (b) : (c))               (nested parentheses)
+//    ✅ a ? (b ? c : d) : e             (nested ternaries up to 3 levels)
+//    ✅ foo(a ? b : c)                  (function arguments)
+//    ✅ struct{ f: a ? b : c }          (struct fields)
+//
+// Known Limitations:
+//
+// 1. Multi-ternary Per Line:
+//    ❌ let x = a ? 1 : 2, y = b ? 3 : 4
+//    Error emitted with clear message
+//
+// 2. String Interpolation:
+//    ❌ message := f"Result: {cond ? 'yes' : 'no'}"
+//    Not yet supported (future feature)
+//
+// 3. Tuple Context:
+//    ❌ let x, y = cond ? (1, 2) : (3, 4)
+//    Not yet supported (may be added in future)
 type TernaryProcessor struct {
-	tmpCounter   int                   // For nested ternary temp vars (no-number-first pattern)
+	// tmpCounter reserves naming for potential future nested ternary temp variables.
+	// Currently unused but reserved for complex nested expression optimization.
+	tmpCounter   int
 	mappings     []Mapping             // Source mappings
 	typeInferrer *TernaryTypeInferrer  // Concrete type inference
 }
@@ -42,6 +80,69 @@ type ternaryPosition struct {
 	condition      string // Expression before ?
 	trueVal        string // Expression between ? and :
 	falseVal       string // Expression after :
+}
+
+// delimiterTracker tracks nested delimiters and string contexts while scanning.
+// This helper consolidates duplicate delimiter tracking logic across multiple functions.
+type delimiterTracker struct {
+	parenDepth    int
+	bracketDepth  int
+	braceDepth    int
+	inDoubleQuote bool
+	inBacktick    bool
+	escaped       bool
+}
+
+// process updates the tracker state based on the current character.
+func (d *delimiterTracker) process(ch byte) {
+	if d.escaped {
+		d.escaped = false
+		return
+	}
+
+	if ch == '\\' && !d.inBacktick {
+		d.escaped = true
+		return
+	}
+
+	if ch == '"' && !d.inBacktick {
+		d.inDoubleQuote = !d.inDoubleQuote
+		return
+	}
+
+	if ch == '`' && !d.inDoubleQuote {
+		d.inBacktick = !d.inBacktick
+		return
+	}
+
+	if d.inDoubleQuote || d.inBacktick {
+		return
+	}
+
+	switch ch {
+	case '(':
+		d.parenDepth++
+	case ')':
+		d.parenDepth--
+	case '[':
+		d.bracketDepth++
+	case ']':
+		d.bracketDepth--
+	case '{':
+		d.braceDepth++
+	case '}':
+		d.braceDepth--
+	}
+}
+
+// isAtTopLevel returns true if we're not inside any delimiters.
+func (d *delimiterTracker) isAtTopLevel() bool {
+	return d.parenDepth == 0 && d.bracketDepth == 0 && d.braceDepth == 0
+}
+
+// inString returns true if we're currently inside a string literal.
+func (d *delimiterTracker) inString() bool {
+	return d.inDoubleQuote || d.inBacktick
 }
 
 // NewTernaryProcessor creates a new ternary operator preprocessor
@@ -224,87 +325,25 @@ func (t *TernaryProcessor) findTernaryPositions(line string) []ternaryPosition {
 // findFalseValueEnd finds where the false value ends
 // by tracking balanced parentheses, brackets, and braces
 func (t *TernaryProcessor) findFalseValueEnd(line string, startPos int) int {
-	parenDepth := 0
-	bracketDepth := 0
-	braceDepth := 0
-	inDoubleQuote := false
-	inBacktick := false
-	escaped := false
+	tracker := &delimiterTracker{}
 
 	for i := startPos; i < len(line); i++ {
 		ch := line[i]
 
-		// Handle escape sequences in strings
-		if escaped {
-			escaped = false
-			continue
-		}
-		// No escapes in raw strings (backticks)
-		if ch == '\\' && !inBacktick {
-			escaped = true
-			continue
+		// Track closing delimiters before processing (for unmatched check)
+		isClosing := (ch == ')' || ch == ']' || ch == '}')
+		wasAtTopLevel := tracker.isAtTopLevel()
+
+		tracker.process(ch)
+
+		// Check for unmatched closing delimiters
+		if isClosing && wasAtTopLevel && !tracker.inString() {
+			// Unmatched closing delimiter - end of false value
+			return i
 		}
 
-		// Track string literals
-		if ch == '"' && !inBacktick {
-			inDoubleQuote = !inDoubleQuote
-			continue
-		}
-		if ch == '`' && !inDoubleQuote {
-			inBacktick = !inBacktick
-			continue
-		}
-
-		// Skip delimiter tracking inside strings
-		if inDoubleQuote || inBacktick {
-			continue
-		}
-
-		// Track opening delimiters
-		if ch == '(' {
-			parenDepth++
-			continue
-		}
-		if ch == '[' {
-			bracketDepth++
-			continue
-		}
-		if ch == '{' {
-			braceDepth++
-			continue
-		}
-
-		// Track closing delimiters
-		if ch == ')' {
-			if parenDepth > 0 {
-				parenDepth--
-			} else {
-				// Unmatched closing paren - end of false value
-				return i
-			}
-			continue
-		}
-		if ch == ']' {
-			if bracketDepth > 0 {
-				bracketDepth--
-			} else {
-				// Unmatched closing bracket - end of false value
-				return i
-			}
-			continue
-		}
-		if ch == '}' {
-			if braceDepth > 0 {
-				braceDepth--
-			} else {
-				// Unmatched closing brace - end of false value
-				return i
-			}
-			continue
-		}
-
-		// At depth 0, check for delimiters that end the expression
-		if parenDepth == 0 && bracketDepth == 0 && braceDepth == 0 {
+		// At top level, check for expression terminators
+		if tracker.isAtTopLevel() && !tracker.inString() {
 			if ch == ',' || ch == ';' {
 				return i
 			}
@@ -484,72 +523,15 @@ func (t *TernaryProcessor) findMatchingColon(line string, qPos int) int {
 	// Scan from ? position to end of line
 	// Track nesting depth: each ? increments, each : decrements
 	// When depth reaches 0, we found our matching :
-	inDoubleQuote := false
-	inBacktick := false
-	escaped := false
+	tracker := &delimiterTracker{}
 	depth := 1 // Start at 1 for the initial ?
-	parenDepth := 0
-	bracketDepth := 0
-	braceDepth := 0
 
 	for i := qPos + 1; i < len(line); i++ {
 		ch := line[i]
+		tracker.process(ch)
 
-		// Handle escape sequences
-		if escaped {
-			escaped = false
-			continue
-		}
-		// No escapes in raw strings (backticks)
-		if ch == '\\' && !inBacktick {
-			escaped = true
-			continue
-		}
-
-		// Track string literals
-		if ch == '"' && !inBacktick {
-			inDoubleQuote = !inDoubleQuote
-			continue
-		}
-		if ch == '`' && !inDoubleQuote {
-			inBacktick = !inBacktick
-			continue
-		}
-
-		// Skip everything inside strings
-		if inDoubleQuote || inBacktick {
-			continue
-		}
-
-		// Track delimiters
-		if ch == '(' {
-			parenDepth++
-			continue
-		}
-		if ch == ')' {
-			parenDepth--
-			continue
-		}
-		if ch == '[' {
-			bracketDepth++
-			continue
-		}
-		if ch == ']' {
-			bracketDepth--
-			continue
-		}
-		if ch == '{' {
-			braceDepth++
-			continue
-		}
-		if ch == '}' {
-			braceDepth--
-			continue
-		}
-
-		// Only process ? and : when not inside delimiters
-		// (nested ternaries inside parens are handled in the recursive call)
-		if parenDepth == 0 && bracketDepth == 0 && braceDepth == 0 {
+		// Only process ? and : at top level (not inside delimiters)
+		if tracker.isAtTopLevel() && !tracker.inString() {
 			// Check for nested ternary operator
 			if ch == '?' {
 				// Check if this is actually a ternary (not ?? or error prop)
@@ -583,55 +565,36 @@ func (t *TernaryProcessor) findMatchingColon(line string, qPos int) int {
 
 // containsColonAfter checks if there's a : after position pos (not in strings/delimiters)
 func (t *TernaryProcessor) containsColonAfter(line string, pos int) bool {
-	inDoubleQuote := false
-	inBacktick := false
-	escaped := false
-	parenDepth := 0
+	tracker := &delimiterTracker{}
 
 	for i := pos + 1; i < len(line); i++ {
 		ch := line[i]
+		tracker.process(ch)
 
-		if escaped {
-			escaped = false
-			continue
-		}
-		// No escapes in raw strings (backticks)
-		if ch == '\\' && !inBacktick {
-			escaped = true
-			continue
-		}
-		if ch == '"' && !inBacktick {
-			inDoubleQuote = !inDoubleQuote
-			continue
-		}
-		if ch == '`' && !inDoubleQuote {
-			inBacktick = !inBacktick
-			continue
-		}
-		if inDoubleQuote || inBacktick {
-			continue
-		}
-
-		if ch == '(' {
-			parenDepth++
-		} else if ch == ')' {
-			parenDepth--
-		} else if ch == ':' && parenDepth == 0 {
+		if ch == ':' && tracker.isAtTopLevel() && !tracker.inString() {
 			return true
 		}
 	}
 	return false
 }
 
+// truncateExpr truncates long expressions for error messages
+func truncateExpr(expr string, maxLen int) string {
+	if len(expr) <= maxLen {
+		return expr
+	}
+	return expr[:maxLen] + "..."
+}
+
 // expandTernary expands a ternary expression into IIFE pattern
 // Handles nested ternaries recursively with nesting depth check
 func (t *TernaryProcessor) expandTernary(expr, condition, trueVal, falseVal string, nestingLevel int) (string, []Mapping, error) {
-	// CRITICAL: Enforce maximum nesting depth (3 levels)
-	if nestingLevel > 3 {
+	// CRITICAL: Enforce maximum nesting depth
+	if nestingLevel > MaxTernaryNestingDepth {
 		return "", nil, fmt.Errorf(
-			"ternary operator nesting too deep (level %d, max 3). "+
+			"ternary operator nesting too deep (level %d, max %d). "+
 				"Consider extracting nested logic into variables for readability",
-			nestingLevel,
+			nestingLevel, MaxTernaryNestingDepth,
 		)
 	}
 

@@ -16,6 +16,7 @@ import (
 type TernaryTypeInferrer struct {
 	fset   *token.FileSet
 	config *types.Config
+	cache  map[string]string // Expression → type cache for performance
 }
 
 // NewTernaryTypeInferrer creates a new TernaryTypeInferrer instance.
@@ -28,6 +29,7 @@ func NewTernaryTypeInferrer() *TernaryTypeInferrer {
 			},
 			Importer: nil, // No imports needed for literals
 		},
+		cache: make(map[string]string), // Initialize cache
 	}
 }
 
@@ -46,23 +48,30 @@ func NewTernaryTypeInferrer() *TernaryTypeInferrer {
 //   - []int{1,2} → "[]int"
 //   - unknown → "any"
 func (ti *TernaryTypeInferrer) InferType(expr string) string {
+	// Check cache first
+	if cachedType, ok := ti.cache[expr]; ok {
+		return cachedType
+	}
+
+	var result string
+
 	// Fast path: detect string literals
 	if ti.isStringLiteral(expr) {
-		return "string"
+		result = "string"
+	} else if numType := ti.detectNumericType(expr); numType != "" {
+		// Fast path: detect numeric literals
+		result = numType
+	} else if ti.isBooleanLiteral(expr) {
+		// Fast path: detect boolean literals
+		result = "bool"
+	} else {
+		// Fallback: parse and analyze with go/types
+		result = ti.inferTypeFromAST(expr)
 	}
 
-	// Fast path: detect numeric literals
-	if numType := ti.detectNumericType(expr); numType != "" {
-		return numType
-	}
-
-	// Fast path: detect boolean literals
-	if ti.isBooleanLiteral(expr) {
-		return "bool"
-	}
-
-	// Fallback: parse and analyze with go/types
-	return ti.inferTypeFromAST(expr)
+	// Cache result before returning
+	ti.cache[expr] = result
+	return result
 }
 
 // isStringLiteral checks if expression is a string literal.
@@ -290,21 +299,50 @@ func (ti *TernaryTypeInferrer) isComparisonOp(op token.Token) bool {
 	}
 }
 
+// isNumericType checks if a type is a numeric type
+func isNumericType(t string) bool {
+	return t == "int" || t == "int8" || t == "int16" || t == "int32" || t == "int64" ||
+		t == "uint" || t == "uint8" || t == "uint16" || t == "uint32" || t == "uint64" ||
+		t == "float32" || t == "float64"
+}
+
+// promoteNumericTypes promotes two numeric types to their common type
+func promoteNumericTypes(t1, t2 string) string {
+	// If either is float, promote to float
+	if strings.HasPrefix(t1, "float") || strings.HasPrefix(t2, "float") {
+		// Use larger float type
+		if t1 == "float64" || t2 == "float64" {
+			return "float64"
+		}
+		return "float32"
+	}
+
+	// Both integers - use larger type (simplified: use int64 for safety)
+	return "int64"
+}
+
 // InferBranchTypes analyzes both branches of a ternary and returns the appropriate return type.
 // If both branches have the same concrete type, returns that type.
+// Handles numeric type promotion (e.g., int + float64 → float64).
 // Otherwise returns "any" (Go 1.18+ generic any type).
 //
 // Examples:
 //   - ("adult", "minor") → "string"
 //   - (100, 200) → "int"
+//   - (42, 3.14) → "float64" (numeric promotion)
 //   - ("text", 42) → "any"
 func (ti *TernaryTypeInferrer) InferBranchTypes(trueVal, falseVal string) string {
 	trueType := ti.InferType(trueVal)
 	falseType := ti.InferType(falseVal)
 
-	// If types match, return the concrete type
+	// If types match exactly, return the concrete type
 	if trueType == falseType {
 		return trueType
+	}
+
+	// Handle numeric type promotion
+	if isNumericType(trueType) && isNumericType(falseType) {
+		return promoteNumericTypes(trueType, falseType)
 	}
 
 	// If either is "any", return "any"
