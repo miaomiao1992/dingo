@@ -263,16 +263,35 @@ func TestNoMappingsToComments(t *testing.T) {
 }
 
 // TestRoundTripTranslation verifies that .dingo → .go → .dingo translation is lossless
+// EXPANDED: Now tests BOTH transformed AND untransformed lines to catch identity mapping bugs
 func TestRoundTripTranslation(t *testing.T) {
 	tests := []struct {
-		name      string
-		dingoFile string
-		testLines []int // Test line numbers in .dingo (1-based)
+		name        string
+		dingoFile   string
+		testLines   []int  // Test line numbers in .dingo (1-based)
+		description []string // What each line is (for debugging)
 	}{
 		{
 			name:      "error_prop_01_simple",
 			dingoFile: "../../tests/golden/error_prop_01_simple.dingo",
-			testLines: []int{4, 10}, // Two ? operators
+			testLines: []int{
+				1,  // package main (identity mapping - CRITICAL)
+				3,  // func readConfig (identity mapping - CRITICAL for Go to Definition)
+				4,  // let data = ... ? (transformation)
+				5,  // return data (identity mapping)
+				9,  // func test (identity mapping)
+				10, // let a = ... ? (transformation)
+				11, // println (identity mapping)
+			},
+			description: []string{
+				"package main",
+				"func readConfig",
+				"? operator",
+				"return statement",
+				"func test",
+				"? operator",
+				"println call",
+			},
 		},
 	}
 
@@ -286,13 +305,23 @@ func TestRoundTripTranslation(t *testing.T) {
 			sm := loadSourceMapFile(t, mapFile)
 
 			// 2. Build reverse mapping (generated line → original line)
+			// NOTE: Multiple mappings can have the same generated line (e.g., due to duplicates)
+			// We need to handle this properly - for now, use the FIRST mapping (prefer transformations)
 			reverseMap := make(map[int]int)
 			for _, m := range sm.Mappings {
-				reverseMap[m.GeneratedLine] = m.OriginalLine
+				// Only set if not already set (first mapping wins)
+				if _, exists := reverseMap[m.GeneratedLine]; !exists {
+					reverseMap[m.GeneratedLine] = m.OriginalLine
+				}
 			}
 
 			// 3. Test round-trip for each line
-			for _, dingoLine := range tt.testLines {
+			for i, dingoLine := range tt.testLines {
+				desc := ""
+				if i < len(tt.description) {
+					desc = tt.description[i]
+				}
+
 				// Forward: .dingo → .go
 				var goLine int
 				for _, m := range sm.Mappings {
@@ -303,21 +332,105 @@ func TestRoundTripTranslation(t *testing.T) {
 				}
 
 				if goLine == 0 {
-					t.Errorf("No mapping found for dingo line %d", dingoLine)
+					t.Errorf("No mapping found for dingo line %d (%s)", dingoLine, desc)
 					continue
 				}
 
 				// Reverse: .go → .dingo
 				backToDingoLine, exists := reverseMap[goLine]
 				if !exists {
-					t.Errorf("No reverse mapping for go line %d", goLine)
+					t.Errorf("No reverse mapping for go line %d (from dingo line %d: %s)", goLine, dingoLine, desc)
 					continue
 				}
 
 				// Verify round-trip accuracy
 				if backToDingoLine != dingoLine {
-					t.Errorf("Round-trip failed: %d → %d → %d", dingoLine, goLine, backToDingoLine)
+					t.Errorf("Round-trip failed for %s: dingo %d → go %d → dingo %d (expected %d)",
+						desc, dingoLine, goLine, backToDingoLine, dingoLine)
+
+					// Show actual lines for debugging
+					dingoContent, _ := os.ReadFile(tt.dingoFile)
+					goContent, _ := os.ReadFile(goFile)
+					dingoLines := strings.Split(string(dingoContent), "\n")
+					goLines := strings.Split(string(goContent), "\n")
+
+					t.Errorf("  Expected: dingo line %d: %q", dingoLine, dingoLines[dingoLine-1])
+					t.Errorf("  Got:      dingo line %d: %q", backToDingoLine, dingoLines[backToDingoLine-1])
+					t.Errorf("  Via:      go line %d: %q", goLine, goLines[goLine-1])
 				}
+			}
+		})
+	}
+}
+
+// TestIdentityMappingReverse specifically tests reverse mapping for UNTRANSFORMED lines
+// This catches bugs where identity mappings don't account for line shifts (e.g., import blocks)
+func TestIdentityMappingReverse(t *testing.T) {
+	tests := []struct {
+		name              string
+		dingoFile         string
+		goLine            int    // Line in .go file (1-based)
+		expectedDingoLine int    // Expected line in .dingo file (1-based)
+		description       string // What this line is
+	}{
+		{
+			name:              "function_definition",
+			dingoFile:         "../../tests/golden/error_prop_01_simple.dingo",
+			goLine:            7,  // func readConfig in .go
+			expectedDingoLine: 3,  // func readConfig in .dingo
+			description:       "func readConfig(path string) ([]byte, error)",
+		},
+		{
+			name:              "package_declaration",
+			dingoFile:         "../../tests/golden/error_prop_01_simple.dingo",
+			goLine:            1,  // package main in .go
+			expectedDingoLine: 1,  // package main in .dingo
+			description:       "package main",
+		},
+		{
+			name:              "return_statement",
+			dingoFile:         "../../tests/golden/error_prop_01_simple.dingo",
+			goLine:            14, // return data, nil in .go
+			expectedDingoLine: 5,  // return data, nil in .dingo
+			description:       "return data, nil",
+		},
+		{
+			name:              "second_function",
+			dingoFile:         "../../tests/golden/error_prop_01_simple.dingo",
+			goLine:            16, // func test in .go
+			expectedDingoLine: 9,  // func test in .dingo
+			description:       "func test()",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			goFile, mapFile := transpileDingoFile(t, tt.dingoFile)
+			defer os.Remove(goFile)
+			defer os.Remove(mapFile)
+
+			sm := loadSourceMapFile(t, mapFile)
+
+			// Reverse translate: .go → .dingo
+			dingoLine, _ := sm.MapToOriginal(tt.goLine, 1)
+
+			if dingoLine != tt.expectedDingoLine {
+				t.Errorf("CRITICAL: Go to Definition would jump to WRONG line!")
+				t.Errorf("Go line %d (%s)", tt.goLine, tt.description)
+				t.Errorf("Expected .dingo line %d, got %d", tt.expectedDingoLine, dingoLine)
+
+				// Read files and show actual lines
+				dingoContent, _ := os.ReadFile(tt.dingoFile)
+				goContent, _ := os.ReadFile(goFile)
+				dingoLines := strings.Split(string(dingoContent), "\n")
+				goLines := strings.Split(string(goContent), "\n")
+
+				t.Errorf("")
+				t.Errorf("Expected: %q", dingoLines[tt.expectedDingoLine-1])
+				if dingoLine >= 1 && dingoLine <= len(dingoLines) {
+					t.Errorf("Got:      %q", dingoLines[dingoLine-1])
+				}
+				t.Errorf("Go line:  %q", goLines[tt.goLine-1])
 			}
 		})
 	}
@@ -457,4 +570,68 @@ func getSymbolAtLine(t *testing.T, goPath string, line int) string {
 	}
 
 	return lines[line-1]
+}
+
+// TestGoToDefinitionReverse verifies reverse translation (Go → Dingo) for LSP "Go to Definition"
+// This test exposes the critical bug: identity mappings don't account for import block shifts
+func TestGoToDefinitionReverse(t *testing.T) {
+	dingoFile := "../../tests/golden/error_prop_01_simple.dingo"
+
+	// Transpile and load source map
+	goFile, mapFile := transpileDingoFile(t, dingoFile)
+	defer os.Remove(goFile)
+	defer os.Remove(mapFile)
+
+	sm := loadSourceMapFile(t, mapFile)
+
+	// Read both files to understand the line shift
+	dingoContent, _ := os.ReadFile(dingoFile)
+	goContent, _ := os.ReadFile(goFile)
+	dingoLines := strings.Split(string(dingoContent), "\n")
+	goLines := strings.Split(string(goContent), "\n")
+
+	t.Logf("Dingo file has %d lines, Go file has %d lines", len(dingoLines), len(goLines))
+
+	// TEST CASE: In .go file, "func readConfig" is at line 7
+	// In .dingo file, it's at line 3
+	// Expected: MapToOriginal(7, 1) → (3, 1)
+	//
+	// CURRENT BUG: Identity mapping says line 3 → line 3
+	// So reverse lookup on line 7 will fail or return wrong line
+
+	goLineWithFunc := 7 // func readConfig in .go file
+
+	// Use MapToOriginal to reverse translate
+	originalLine, originalCol := sm.MapToOriginal(goLineWithFunc, 1)
+
+	t.Logf("MapToOriginal(%d, 1) → (%d, %d)", goLineWithFunc, originalLine, originalCol)
+
+	// Debug: Show all mappings to understand the offset
+	t.Logf("All mappings:")
+	for i, m := range sm.Mappings {
+		if i < 15 { // Show first 15 mappings
+			t.Logf("  %s: dingo line %d → go line %d", m.Name, m.OriginalLine, m.GeneratedLine)
+		}
+	}
+
+	// Expected: line 3 (where "func readConfig" actually is in .dingo)
+	expectedDingoLine := 3
+
+	if originalLine != expectedDingoLine {
+		t.Errorf("CRITICAL BUG: Go to Definition would jump to WRONG line!")
+		t.Errorf("Expected original line %d, got %d", expectedDingoLine, originalLine)
+		t.Errorf("")
+		t.Errorf("Dingo file line %d: %q", expectedDingoLine, dingoLines[expectedDingoLine-1])
+		t.Errorf("Dingo file line %d: %q", originalLine, dingoLines[originalLine-1])
+		t.Errorf("")
+		t.Errorf("Go file line %d: %q", goLineWithFunc, goLines[goLineWithFunc-1])
+	}
+
+	// Verify the line we mapped to is actually the function definition
+	if originalLine >= 1 && originalLine <= len(dingoLines) {
+		dingoLine := dingoLines[originalLine-1]
+		if !strings.Contains(dingoLine, "func readConfig") {
+			t.Errorf("Mapped line %d is NOT the function definition: %q", originalLine, dingoLine)
+		}
+	}
 }

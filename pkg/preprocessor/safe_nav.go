@@ -187,8 +187,42 @@ func (s *SafeNavProcessor) Name() string {
 
 // Process is the legacy interface method (implements FeatureProcessor)
 func (s *SafeNavProcessor) Process(source []byte) ([]byte, []Mapping, error) {
-	result, _, err := s.ProcessInternal(string(source))
-	return []byte(result), nil, err
+	// Use the old processLine method to get mappings
+	s.typeDetector.ParseSource(source)
+	s.tmpCounter = 1
+
+	lines := strings.Split(string(source), "\n")
+	var output bytes.Buffer
+	var allMappings []Mapping
+
+	inputLineNum := 0
+	outputLineNum := 1
+
+	for inputLineNum < len(lines) {
+		line := lines[inputLineNum]
+
+		transformed, mappings, err := s.processLine(line, inputLineNum+1, outputLineNum)
+		if err != nil {
+			return nil, nil, fmt.Errorf("line %d: %w", inputLineNum+1, err)
+		}
+
+		output.WriteString(transformed)
+		if inputLineNum < len(lines)-1 {
+			output.WriteByte('\n')
+		}
+
+		// Collect mappings
+		allMappings = append(allMappings, mappings...)
+
+		// Update output line count
+		newlineCount := strings.Count(transformed, "\n")
+		linesOccupied := newlineCount + 1
+		outputLineNum += linesOccupied
+
+		inputLineNum++
+	}
+
+	return output.Bytes(), allMappings, nil
 }
 
 // ProcessInternal implements safe navigation transformation with metadata emission
@@ -583,15 +617,17 @@ func (s *SafeNavProcessor) processLineWithMetadata(line string, originalLineNum 
 		// Detect base type
 		baseType := s.typeDetector.DetectType(base)
 
-		// Generate code with marker
-		replacement, err := s.generateSafeNavCodeWithMarker(base, elements, baseType, markerCounter)
+		// Create marker for metadata
+		marker := fmt.Sprintf("// dingo:s:%d", *markerCounter)
+
+		// Generate code with marker inserted
+		replacement, _, err := s.generateSafeNavCodeWithMarker(base, elements, baseType, marker, originalLineNum, outputLineNum)
 		if err != nil {
 			return "", nil, err
 		}
 
 		// Create metadata for first transformation only
 		if firstTransform {
-			marker := fmt.Sprintf("// dingo:s:%d", *markerCounter-1)
 			meta = &TransformMetadata{
 				Type:            "safe_nav",
 				OriginalLine:    originalLineNum,
@@ -601,6 +637,7 @@ func (s *SafeNavProcessor) processLineWithMetadata(line string, originalLineNum 
 				GeneratedMarker: marker,
 				ASTNodeType:     "CallExpr",
 			}
+			*markerCounter++
 			firstTransform = false
 		}
 
@@ -859,10 +896,16 @@ func (s *SafeNavProcessor) generateOptionMode(base string, elements []ChainEleme
 	currentVar := base
 	outputLinesGenerated := 1 // Start counting from the opening func() line
 
+	// Track the current type through the chain for proper wrapping
+	currentType := ""
+	if varType, ok := s.typeDetector.varTypes[base]; ok {
+		currentType = varType
+	}
+
 	for i, elem := range elements {
 		// Check if current value is None
 		buf.WriteString(fmt.Sprintf("\tif %s.IsNone() {\n", currentVar))
-		buf.WriteString("\t\treturn __INFER___None()\n")
+		buf.WriteString("\t\treturn __INFER__None()\n")
 		buf.WriteString("\t}\n")
 		outputLinesGenerated += 3
 
@@ -880,12 +923,39 @@ func (s *SafeNavProcessor) generateOptionMode(base string, elements []ChainEleme
 
 		// If last element, return it
 		if i == len(elements)-1 {
+			// Determine the return expression
+			returnExpr := ""
 			if elem.IsMethod {
 				// Method call: call with arguments
-				buf.WriteString(fmt.Sprintf("\treturn %s.%s(%s)\n", tmpVar, elem.Name, elem.RawArgs))
+				returnExpr = fmt.Sprintf("%s.%s(%s)", tmpVar, elem.Name, elem.RawArgs)
 			} else {
 				// Property access
-				buf.WriteString(fmt.Sprintf("\treturn %s.%s\n", tmpVar, elem.Name))
+				returnExpr = fmt.Sprintf("%s.%s", tmpVar, elem.Name)
+			}
+
+			// Bug 2 & 3 fix: Conditional wrapping based on actual field type
+			// Determine if the field type is already an Option type
+			fieldType := ""
+			if currentType != "" {
+				// Strip "Option" suffix to get struct type
+				structType := strings.TrimSuffix(currentType, "Option")
+				// Build field key: "StructType.fieldName"
+				fieldKey := structType + "." + elem.Name
+				// Look up in TypeDetector
+				if ft, ok := s.typeDetector.fieldTypes[fieldKey]; ok {
+					fieldType = ft
+				}
+			}
+
+			// Check if field type ends with "Option" (already an Option type)
+			isAlreadyOption := strings.HasSuffix(fieldType, "Option")
+
+			if isAlreadyOption {
+				// Bug 2 fix: Already an Option type, return as-is (no double-wrapping)
+				buf.WriteString(fmt.Sprintf("\treturn %s\n", returnExpr))
+			} else {
+				// Bug 3 fix: Plain type or unknown, wrap in Some()
+				buf.WriteString(fmt.Sprintf("\treturn __INFER__Some(%s)\n", returnExpr))
 			}
 			outputLinesGenerated++
 		} else {
@@ -896,6 +966,15 @@ func (s *SafeNavProcessor) generateOptionMode(base string, elements []ChainEleme
 			} else {
 				// Property access
 				currentVar = fmt.Sprintf("%s.%s", tmpVar, elem.Name)
+			}
+
+			// Update currentType for next iteration
+			if currentType != "" {
+				structType := strings.TrimSuffix(currentType, "Option")
+				fieldKey := structType + "." + elem.Name
+				if ft, ok := s.typeDetector.fieldTypes[fieldKey]; ok {
+					currentType = ft
+				}
 			}
 		}
 	}
@@ -1013,48 +1092,27 @@ func (s *SafeNavProcessor) generateInferPlaceholder(base string, elements []Chai
 	return placeholder, mappings
 }
 
-// generateSafeNavCodeV2 generates safe navigation code with marker support for ProcessV2
-func (s *SafeNavProcessor) generateSafeNavCodeWithMarker(base string, elements []ChainElement, baseType TypeKind, markerCounter *int) (string, error) {
-	var code string
-
-	// Determine mode based on base type (simplified - no line tracking)
-	switch baseType {
-	case TypeOption:
-		code = s.generateOptionModeSimple(base, elements)
-	case TypePointer:
-		code = s.generatePointerModeSimple(base, elements)
-	case TypeUnknown:
-		code = s.generateInferPlaceholderSimple(base, elements)
-	case TypeRegular:
-		return "", fmt.Errorf(
-			"safe navigation requires nullable type\n"+
-				"  Variable '%s' is not Option<T> or pointer type (*T)\n"+
-				"  Help: Use Option<T> for nullable values, or use pointer type (*T)\n"+
-				"  Note: If this is a pointer/Option, ensure type annotation is explicit",
-			base)
+// generateSafeNavCodeWithMarker generates safe navigation code with marker inserted for metadata tracking
+func (s *SafeNavProcessor) generateSafeNavCodeWithMarker(base string, elements []ChainElement, baseType TypeKind, marker string, originalLine int, outputLine int) (string, []Mapping, error) {
+	// Generate the code first
+	code, mappings, err := s.generateSafeNavCode(base, elements, baseType, originalLine, outputLine)
+	if err != nil {
+		return "", nil, err
 	}
 
-	// Insert marker
-	marker := fmt.Sprintf("// dingo:s:%d\n", *markerCounter)
-	code = marker + code
-	*markerCounter++
+	// For IIFE pattern (Option/Pointer mode), insert marker after opening brace
+	// Pattern: "func() __INFER__ {\n" → "func() __INFER__ { " + marker + "\n"
+	braceIdx := strings.Index(code, "{\n")
+	if braceIdx != -1 {
+		// Insert marker after the brace, before the newline
+		before := code[:braceIdx+1] // Include the {
+		after := code[braceIdx+1:]  // Include the \n and rest
+		code = before + " " + marker + after
+	} else {
+		// For placeholder pattern (__SAFE_NAV_INFER__), prepend marker as comment line
+		code = marker + "\n" + code
+	}
 
-	return code, nil
+	return code, mappings, nil
 }
 
-// Simplified helper methods (no mapping tracking)
-func (s *SafeNavProcessor) generateOptionModeSimple(base string, elements []ChainElement) string {
-	// Reuse existing logic, extract first element from tuple return
-	code, _ := s.generateOptionMode(base, elements, 0, 0)
-	return code
-}
-
-func (s *SafeNavProcessor) generatePointerModeSimple(base string, elements []ChainElement) string {
-	code, _ := s.generatePointerMode(base, elements, 0, 0)
-	return code
-}
-
-func (s *SafeNavProcessor) generateInferPlaceholderSimple(base string, elements []ChainElement) string {
-	code, _ := s.generateInferPlaceholder(base, elements, 0, 0)
-	return code
-}

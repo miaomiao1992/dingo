@@ -404,6 +404,70 @@ sourceMap := GenerateFromFiles(dingoPath, goPath, metadata)
 
 **Lesson**: Manual testing revealed the bug; automated tests were validating buggy behavior as correct.
 
+#### Test Coverage Blindspots: The Identity Mapping Example (2025-11-22)
+
+**Bug**: LSP Go-to-Definition jumped to wrong line (blank line 7 instead of line 3 function definition)
+
+**Existing Test**: `TestRoundTripTranslation` - PASSED ✅ (but shouldn't have!)
+
+**Why test didn't catch it**:
+- Test only checked TRANSFORMED lines (lines with `?` operators)
+- Bug was in IDENTITY mappings (untransformed lines like function definitions)
+- Test had coverage blindspot - didn't test what it assumed was "simple"
+
+**The Assumption**: "If transformed lines work, untransformed lines must be fine"
+
+**The Reality**: Identity mappings had different bugs:
+1. Line offset calculation errors
+2. Duplicate mappings for same generated line
+3. Wrong mapping selection in reverse lookup
+
+**Lesson**: Test both the complex cases AND the "simple" cases
+- ✅ Transformed lines (complex, obvious to test)
+- ✅ Untransformed lines (simple, easy to forget)
+- ✅ Edge cases (blank lines, comments, package declarations)
+- ✅ Reverse operations (not just forward)
+- ✅ Real user scenarios (LSP operations)
+
+**Fix Applied**:
+1. Expanded `TestRoundTripTranslation` to include untransformed lines:
+   - Package declaration (line 1)
+   - Function definitions (lines 3, 9) ← **CRITICAL for Go-to-Definition**
+   - Return statements (line 5)
+   - Regular code (line 11)
+2. Added `TestIdentityMappingReverse` specifically for identity mapping reverse lookup
+3. Tests now verify both forward AND reverse translation for all line types
+
+**Before**:
+```go
+testLines: []int{4, 10}, // Two ? operators only
+```
+
+**After**:
+```go
+testLines: []int{
+    1,  // package main (identity - CRITICAL)
+    3,  // func readConfig (identity - CRITICAL for Go to Definition)
+    4,  // ? operator (transformation)
+    5,  // return statement (identity)
+    9,  // func test (identity)
+    10, // ? operator (transformation)
+    11, // println (identity)
+},
+```
+
+**Result**: Tests now expose TWO real bugs:
+1. Duplicate mappings for same generated line (e.g., go line 7 maps to both dingo 3 and 7)
+2. Wrong mapping selection in reverse lookup (picks duplicate instead of correct mapping)
+
+**Checklist for avoiding coverage blindspots**:
+- ✅ Test the complex transformations
+- ✅ Test the "simple" pass-through cases
+- ✅ Test edge cases (blank lines, comments)
+- ✅ Test reverse operations (not just forward)
+- ✅ Test real user scenarios (LSP operations)
+- ✅ Never assume "simple" code doesn't need tests
+
 #### Test Design Checklist
 
 When writing tests, always verify:

@@ -230,17 +230,30 @@ func (p *SafeNavTypePlugin) Transform(node ast.Node) (ast.Node, error) {
 				}
 			}
 
-			// 2. Replace __INFER___None() and __INFER___Some(val) function calls
+			// 2. Replace __INFER__None() and __INFER__Some(val) function calls
 			if call, ok := n.(*ast.CallExpr); ok {
 				if fun, ok := call.Fun.(*ast.Ident); ok {
-					if fun.Name == "__INFER___None" || fun.Name == "__INFER___Some" {
+					if fun.Name == "__INFER__None" || fun.Name == "__INFER__Some" {
 						// Get the Option type from the enclosing function literal
 						var optionType string
 						if len(funcLitStack) > 0 {
 							currentFuncLit := funcLitStack[len(funcLitStack)-1]
 							optionType = funcLitTypes[currentFuncLit]
+
+						// If not in map, check if the function's return type is already resolved
+						if optionType == "" && currentFuncLit.Type != nil && currentFuncLit.Type.Results != nil {
+							if len(currentFuncLit.Type.Results.List) == 1 {
+								if ident, ok := currentFuncLit.Type.Results.List[0].Type.(*ast.Ident); ok {
+									// Use the function's return type directly (e.g., "StringOption")
+									if ident.Name != "__INFER__" {
+										optionType = ident.Name
+										p.ctx.Logger.Debug("SafeNavTypePlugin: Using function return type %s for __INFER__ call", optionType)
+									}
+								}
+							}
 						}
-						if optionType == "" {
+					}
+					if optionType == "" {
 							// Try to resolve from context
 							optionType = p.resolveOptionTypeFromContext(call)
 						}

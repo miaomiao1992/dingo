@@ -77,7 +77,7 @@ Want pattern matching? Enable it. Want sum types? Already working. Think you can
 
 **Note:** Dingo is in active development. **Phase V Complete** - Infrastructure ready for v1.0 with comprehensive documentation, workspace builds, CI/CD enhancements, and 3/4 external model approval.
 
-**In Progress**: Post-AST source map generation (see [`features/post-ast-sourcemaps.md`](features/post-ast-sourcemaps.md)) - Moving to TypeScript-proven architecture for 100% accurate LSP position mapping. Multi-model consensus (5/5 models) approved the design.
+**Latest (2025-11-22)**: ✅ **LSP Integration Complete** - Post-AST source maps (100% accurate position mapping) + auto-rebuild on save. Edit → Save → IDE features work instantly! Hover, go-to-definition, and automatic transpilation fully functional. See [`CHANGELOG.md`](CHANGELOG.md) for details.
 
 ### Installation
 

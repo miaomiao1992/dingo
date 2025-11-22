@@ -73,6 +73,10 @@ func NewWithPlugins(fset *token.FileSet, registry *plugin.Registry, logger plugi
 	optionPlugin := builtin.NewOptionTypePlugin()
 	pipeline.RegisterPlugin(optionPlugin)
 
+	// Safe navigation plugin (transforms ?. markers to IIFEs)
+	safeNavPlugin := builtin.NewSafeNavTypePlugin()
+	pipeline.RegisterPlugin(safeNavPlugin)
+
 	// Tuple plugin for tuple literals and type generation (Phase 8)
 	tuplePlugin := builtin.NewTuplePlugin()
 	pipeline.RegisterPlugin(tuplePlugin)
