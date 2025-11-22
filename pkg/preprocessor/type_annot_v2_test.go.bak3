@@ -13,9 +13,9 @@ func add(x: int, y: int) int {
 	return x + y
 }`
 
-	result, metadata, err := processor.ProcessInternal(input)
+	result, metadata, sourceMap, err := processor.ProcessV2(input, ModePostAST)
 	if err != nil {
-		t.Fatalf("ProcessInternal failed: %v", err)
+		t.Fatalf("ProcessV2 failed: %v", err)
 	}
 
 	// Should have one metadata entry for the function with type annotations
@@ -47,6 +47,10 @@ func add(x: int, y: int) int {
 		t.Errorf("Result should have transformed type annotations")
 	}
 
+	// sourceMap should be nil in PostAST mode
+	if sourceMap != nil {
+		t.Errorf("Expected nil sourceMap in PostAST mode, got %v", sourceMap)
+	}
 }
 
 func TestTypeAnnotProcessor_UniqueMarkers(t *testing.T) {
@@ -61,9 +65,9 @@ func multiply(a: int, b: int) int {
 	return a * b
 }`
 
-	result, metadata, err := processor.ProcessInternal(input)
+	result, metadata, _, err := processor.ProcessV2(input, ModePostAST)
 	if err != nil {
-		t.Fatalf("ProcessInternal failed: %v", err)
+		t.Fatalf("ProcessV2 failed: %v", err)
 	}
 
 	// Should have two metadata entries
@@ -96,9 +100,9 @@ func getValue() -> string {
 	return "hello"
 }`
 
-	result, metadata, err := processor.ProcessInternal(input)
+	result, metadata, _, err := processor.ProcessV2(input, ModePostAST)
 	if err != nil {
-		t.Fatalf("ProcessInternal failed: %v", err)
+		t.Fatalf("ProcessV2 failed: %v", err)
 	}
 
 	// Should have one metadata entry for the return arrow transformation
@@ -127,9 +131,9 @@ func add(x int, y int) int {
 	return x + y
 }`
 
-	result, metadata, err := processor.ProcessInternal(input)
+	result, metadata, _, err := processor.ProcessV2(input, ModePostAST)
 	if err != nil {
-		t.Fatalf("ProcessInternal failed: %v", err)
+		t.Fatalf("ProcessV2 failed: %v", err)
 	}
 
 	// Should have NO metadata since no transformation happened

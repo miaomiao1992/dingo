@@ -11,7 +11,7 @@ func TestSafeNavProcessor_Metadata(t *testing.T) {
 	code := `let name: *string
 let result = user?.name`
 
-	result, metadata, err := p.ProcessInternal(code)
+	result, metadata, err := p.ProcessInternal(code, ModePostAST)
 	if err != nil {
 		t.Fatalf("ProcessV2 failed: %v", err)
 	}
@@ -52,7 +52,7 @@ let name = user?.name
 let city = user?.address?.city
 let zip = user?.address?.zip`
 
-	result, metadata, err := p.ProcessInternal(code)
+	result, metadata, err := p.ProcessInternal(code, ModePostAST)
 	if err != nil {
 		t.Fatalf("ProcessV2 failed: %v", err)
 	}
@@ -81,4 +81,59 @@ let zip = user?.address?.zip`
 	}
 }
 
+func TestSafeNavProcessor_DualMode(t *testing.T) {
+	p := NewSafeNavProcessor()
 
+	code := `let user: *User
+let name = user?.name`
+
+	result, metadata, err := p.ProcessInternal(code, ModeDual)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should generate BOTH metadata AND mappings
+	if len(metadata) != 1 {
+		t.Errorf("Expected 1 metadata entry, got %d", len(metadata))
+	}
+
+	if sourceMap == nil {
+		t.Fatal("Expected source map, got nil")
+	}
+
+	if len(sourceMap.Mappings) == 0 {
+		t.Error("Expected mappings in source map")
+	}
+
+	// Should include marker in output
+	if !strings.Contains(result, "// dingo:s:0") {
+		t.Errorf("Expected marker in output")
+	}
+}
+
+func TestSafeNavProcessor_LegacyMode(t *testing.T) {
+	p := NewSafeNavProcessor()
+
+	code := `let user: *User
+let name = user?.name`
+
+	result, metadata, err := p.ProcessInternal(code, ModeLegacy)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should NOT generate metadata
+	if len(metadata) != 0 {
+		t.Errorf("Expected 0 metadata entries in Legacy mode, got %d", len(metadata))
+	}
+
+	// Should NOT include markers in output
+	if strings.Contains(result, "// dingo:s:") {
+		t.Errorf("Should not include markers in Legacy mode, got:\n%s", result)
+	}
+
+	// Should still generate mappings
+	if sourceMap == nil {
+		t.Fatal("Expected source map in Legacy mode")
+	}
+}

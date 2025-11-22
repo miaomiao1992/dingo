@@ -17,6 +17,7 @@ import (
 	"github.com/MadAppGang/dingo/pkg/plugin"
 	"github.com/MadAppGang/dingo/pkg/plugin/builtin"
 	"github.com/MadAppGang/dingo/pkg/preprocessor"
+	"github.com/MadAppGang/dingo/pkg/sourcemap"
 	"github.com/MadAppGang/dingo/pkg/ui"
 )
 
@@ -220,7 +221,7 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput, cfg
 	// Step 2: Preprocess (with main config + package context for unqualified imports)
 	prepStart := time.Now()
 	var goSource string
-	var sourceMap *preprocessor.SourceMap
+	var metadata []preprocessor.TransformMetadata // Phase 3: Collect metadata for PostASTGenerator
 	var prepDuration time.Duration
 
 	// Get package directory for cache
@@ -233,7 +234,9 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput, cfg
 	if err != nil {
 		// Fall back to no cache if scanning fails (e.g., syntax errors in .dingo file)
 		prep := preprocessor.NewWithMainConfig(src, cfg)
-		goSource, sourceMap, err = prep.Process()
+		var legacyMap *preprocessor.SourceMap
+		goSource, legacyMap, metadata, err = prep.ProcessWithMetadata()
+		_ = legacyMap // Discard legacy map - Phase 3 uses PostASTGenerator
 		prepDuration = time.Since(prepStart)
 		if err != nil {
 			buildUI.PrintStep(ui.Step{
@@ -246,7 +249,9 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput, cfg
 	} else {
 		// Cache scan successful, use preprocessor with unqualified import inference
 		prep := preprocessor.NewWithCache(src, cache)
-		goSource, sourceMap, err = prep.Process()
+		var legacyMap *preprocessor.SourceMap
+		goSource, legacyMap, metadata, err = prep.ProcessWithMetadata()
+		_ = legacyMap // Discard legacy map - Phase 3 uses PostASTGenerator
 		prepDuration = time.Since(prepStart)
 		if err != nil {
 			buildUI.PrintStep(ui.Step{
@@ -327,7 +332,7 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput, cfg
 		Duration: genDuration,
 	})
 
-	// Step 4: Write
+	// Step 4: Write .go file
 	writeStart := time.Now()
 	if err := os.WriteFile(outputPath, outputCode, 0644); err != nil {
 		writeDuration := time.Since(writeStart)
@@ -339,12 +344,21 @@ func buildFile(inputPath string, outputPath string, buildUI *ui.BuildOutput, cfg
 		return fmt.Errorf("failed to write output: %w", err)
 	}
 
-	// Write source map
+	// Phase 3: Generate source map AFTER go/printer using PostASTGenerator
+	// This uses actual FileSet positions as ground truth (no predictions)
 	sourceMapPath := outputPath + ".map"
-	sourceMapJSON, _ := json.MarshalIndent(sourceMap, "", "  ")
-	if err := os.WriteFile(sourceMapPath, sourceMapJSON, 0644); err != nil {
+	postASTGen := sourcemap.NewPostASTGenerator(inputPath, outputPath, fset, file.File, metadata)
+	sourceMap, err := postASTGen.Generate()
+	if err != nil {
 		// Non-fatal: just log warning
-		buildUI.PrintInfo(fmt.Sprintf("Warning: failed to write source map: %v", err))
+		buildUI.PrintInfo(fmt.Sprintf("Warning: source map generation failed: %v", err))
+	} else {
+		// Write source map
+		sourceMapJSON, _ := json.MarshalIndent(sourceMap, "", "  ")
+		if err := os.WriteFile(sourceMapPath, sourceMapJSON, 0644); err != nil {
+			// Non-fatal: just log warning
+			buildUI.PrintInfo(fmt.Sprintf("Warning: failed to write source map: %v", err))
+		}
 	}
 
 	writeDuration := time.Since(writeStart)

@@ -49,7 +49,7 @@ func readConfig(path string) ([]byte, error) {
 	}
 
 	// Create transformation metadata (as preprocessor would emit)
-	metadata := []TransformMetadata{
+	metadata := []preprocessor.TransformMetadata{
 		{
 			Type:            "error_prop",
 			OriginalLine:    4, // "let data = os.ReadFile(path)?"
@@ -162,7 +162,7 @@ func test() error {
 	}
 
 	// Metadata for both transformations
-	metadata := []TransformMetadata{
+	metadata := []preprocessor.TransformMetadata{
 		{
 			Type:            "error_prop",
 			OriginalLine:    4,
@@ -277,7 +277,7 @@ func withError(path string) ([]byte, error) {
 	}
 
 	// Only one transformation (line 8)
-	metadata := []TransformMetadata{
+	metadata := []preprocessor.TransformMetadata{
 		{
 			Type:            "error_prop",
 			OriginalLine:    8,
@@ -353,7 +353,7 @@ func test() int {
 	}
 
 	// Metadata with marker that doesn't exist
-	metadata := []TransformMetadata{
+	metadata := []preprocessor.TransformMetadata{
 		{
 			Type:            "error_prop",
 			OriginalLine:    3,
@@ -423,7 +423,7 @@ func test() (int, error) {
 		t.Fatalf("Failed to write .go file: %v", err)
 	}
 
-	metadata := []TransformMetadata{
+	metadata := []preprocessor.TransformMetadata{
 		{
 			Type:            "error_prop",
 			OriginalLine:    4,
@@ -487,7 +487,7 @@ func test() error {
 		t.Fatalf("Failed to write .go file: %v", err)
 	}
 
-	metadata := []TransformMetadata{
+	metadata := []preprocessor.TransformMetadata{
 		{
 			Type:            "error_prop",
 			OriginalLine:    3, // .dingo line

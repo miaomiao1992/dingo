@@ -36,18 +36,17 @@ func (t *TypeAnnotProcessor) Name() string {
 	return "type_annotations"
 }
 
-// Process transforms type annotations (legacy mode)
-// Converts: func foo(x: int, y: string)
-// To:       func foo(x int, y string)
+// Process is the legacy interface method (implements FeatureProcessor)
 func (t *TypeAnnotProcessor) Process(source []byte) ([]byte, []Mapping, error) {
-	result, _, _, err := t.ProcessV2(string(source), ModeLegacy)
+	result, _, err := t.ProcessInternal(string(source))
 	return []byte(result), nil, err
 }
 
-// ProcessV2 transforms type annotations with metadata emission support
-func (t *TypeAnnotProcessor) ProcessV2(code string, mode PreprocessorMode) (string, []TransformMetadata, *SourceMap, error) {
+// ProcessInternal transforms type annotations with metadata emission support
+// Converts: func foo(x: int, y: string) -> error
+// To:       func foo(x int, y string) error
+func (t *TypeAnnotProcessor) ProcessInternal(code string) (string, []TransformMetadata, error) {
 	var metadata []TransformMetadata
-	var legacyMappings []Mapping
 	counter := 0
 
 	lines := bytes.Split([]byte(code), []byte("\n"))
@@ -104,43 +103,27 @@ func (t *TypeAnnotProcessor) ProcessV2(code string, mode PreprocessorMode) (stri
 				line = lineResult.Bytes()
 			}
 
-			// If we made a transformation and mode supports metadata, emit it
+			// If we made a transformation, emit metadata
 			if hadTransformation {
-				if mode == ModePostAST || mode == ModeDual {
-					marker := fmt.Sprintf("// dingo:t:%d", counter)
+				marker := fmt.Sprintf("// dingo:t:%d", counter)
 
-					// Write transformed line
-					result.Write(line)
+				// Write transformed line
+				result.Write(line)
 
-					// Add marker on next line
-					result.WriteString("\n")
-					result.WriteString(marker)
+				// Add marker on next line
+				result.WriteString("\n")
+				result.WriteString(marker)
 
-					metadata = append(metadata, TransformMetadata{
-						Type:            "type_annot",
-						OriginalLine:    lineNum,
-						OriginalColumn:  1,
-						OriginalLength:  len(line),
-						OriginalText:    string(line),
-						GeneratedMarker: marker,
-						ASTNodeType:     "FuncDecl",
-					})
-					counter++
-				} else {
-					result.Write(line)
-				}
-
-				// Legacy mappings for dual mode
-				if mode == ModeLegacy || mode == ModeDual {
-					legacyMappings = append(legacyMappings, Mapping{
-						GeneratedLine:   lineNum,
-						GeneratedColumn: 1,
-						OriginalLine:    lineNum,
-						OriginalColumn:  1,
-						Length:          len(line),
-						Name:            "type_annot",
-					})
-				}
+				metadata = append(metadata, TransformMetadata{
+					Type:            "type_annot",
+					OriginalLine:    lineNum,
+					OriginalColumn:  1,
+					OriginalLength:  len(line),
+					OriginalText:    string(line),
+					GeneratedMarker: marker,
+					ASTNodeType:     "FuncDecl",
+				})
+				counter++
 			} else {
 				result.Write(line)
 			}
@@ -153,15 +136,7 @@ func (t *TypeAnnotProcessor) ProcessV2(code string, mode PreprocessorMode) (stri
 		}
 	}
 
-	var sourceMap *SourceMap
-	if mode == ModeLegacy || mode == ModeDual {
-		sourceMap = &SourceMap{
-			Version:  1,
-			Mappings: legacyMappings,
-		}
-	}
-
-	return result.String(), metadata, sourceMap, nil
+	return result.String(), metadata, nil
 }
 
 // replaceColonInParams replaces : with space in function parameters

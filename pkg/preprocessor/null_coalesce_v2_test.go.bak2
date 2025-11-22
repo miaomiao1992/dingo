@@ -10,7 +10,7 @@ func TestNullCoalesceProcessor_Metadata(t *testing.T) {
 
 	code := `let x = value ?? default`
 
-	result, metadata, err := p.ProcessInternal(code)
+	result, metadata, err := p.ProcessInternal(code, ModePostAST)
 	if err != nil {
 		t.Fatalf("ProcessV2 failed: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestNullCoalesceProcessor_UniqueMarkers(t *testing.T) {
 let y = c ?? d
 let z = e ?? f`
 
-	result, metadata, err := p.ProcessInternal(code)
+	result, metadata, err := p.ProcessInternal(code, ModePostAST)
 	if err != nil {
 		t.Fatalf("ProcessV2 failed: %v", err)
 	}
@@ -79,4 +79,57 @@ let z = e ?? f`
 	}
 }
 
+func TestNullCoalesceProcessor_DualMode(t *testing.T) {
+	p := NewNullCoalesceProcessor()
 
+	code := `let x = value ?? default`
+
+	result, metadata, err := p.ProcessInternal(code, ModeDual)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should generate BOTH metadata AND mappings
+	if len(metadata) != 1 {
+		t.Errorf("Expected 1 metadata entry, got %d", len(metadata))
+	}
+
+	if sourceMap == nil {
+		t.Fatal("Expected source map, got nil")
+	}
+
+	if len(sourceMap.Mappings) == 0 {
+		t.Error("Expected mappings in source map")
+	}
+
+	// Should include marker in output
+	if !strings.Contains(result, "// dingo:c:0") {
+		t.Errorf("Expected marker in output")
+	}
+}
+
+func TestNullCoalesceProcessor_LegacyMode(t *testing.T) {
+	p := NewNullCoalesceProcessor()
+
+	code := `let x = value ?? default`
+
+	result, metadata, err := p.ProcessInternal(code, ModeLegacy)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should NOT generate metadata
+	if len(metadata) != 0 {
+		t.Errorf("Expected 0 metadata entries in Legacy mode, got %d", len(metadata))
+	}
+
+	// Should NOT include markers in output
+	if strings.Contains(result, "// dingo:c:") {
+		t.Errorf("Should not include markers in Legacy mode, got:\n%s", result)
+	}
+
+	// Should still generate mappings
+	if sourceMap == nil {
+		t.Fatal("Expected source map in Legacy mode")
+	}
+}

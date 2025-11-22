@@ -11,7 +11,7 @@ func TestSafeNavProcessor_Metadata(t *testing.T) {
 	code := `let name: *string
 let result = user?.name`
 
-	result, metadata, err := p.ProcessInternal(code)
+	result, metadata, err := p.ProcessInternal(code, ModePostAST)
 	if err != nil {
 		t.Fatalf("ProcessV2 failed: %v", err)
 	}
@@ -52,7 +52,7 @@ let name = user?.name
 let city = user?.address?.city
 let zip = user?.address?.zip`
 
-	result, metadata, err := p.ProcessInternal(code)
+	result, metadata, err := p.ProcessInternal(code, ModePostAST)
 	if err != nil {
 		t.Fatalf("ProcessV2 failed: %v", err)
 	}

@@ -14,7 +14,7 @@ func TestEnumProcessor_Metadata(t *testing.T) {
 	Blue,
 }`
 
-	result, metadata, err := p.ProcessInternal(code)
+	result, metadata, _, err := p.ProcessInternal(code)
 	if err != nil {
 		t.Fatalf("ProcessV2 failed: %v", err)
 	}
@@ -66,7 +66,7 @@ enum Size {
 	Large,
 }`
 
-	result, metadata, err := p.ProcessInternal(code)
+	result, metadata, _, err := p.ProcessInternal(code)
 	if err != nil {
 		t.Fatalf("ProcessV2 failed: %v", err)
 	}
@@ -95,4 +95,69 @@ enum Size {
 	}
 }
 
+func TestEnumProcessor_DualMode(t *testing.T) {
+	p := NewEnumProcessor()
 
+	code := `enum Color {
+	Red,
+	Green,
+}`
+
+	result, metadata, sourceMap, err := p.ProcessInternal(code)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should generate BOTH metadata AND mappings
+	if len(metadata) != 1 {
+		t.Errorf("Expected 1 metadata entry, got %d", len(metadata))
+	}
+
+	if sourceMap == nil {
+		t.Fatal("Expected source map, got nil")
+	}
+
+	// Should include marker in output
+	if !strings.Contains(result, "// dingo:n:0") {
+		t.Errorf("Expected marker in output")
+	}
+
+	// Should generate sum type
+	if !strings.Contains(result, "type ColorTag uint8") {
+		t.Errorf("Expected sum type to be generated")
+	}
+}
+
+func TestEnumProcessor_LegacyMode(t *testing.T) {
+	p := NewEnumProcessor()
+
+	code := `enum Color {
+	Red,
+	Green,
+}`
+
+	result, metadata, sourceMap, err := p.ProcessInternal(code)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should NOT generate metadata
+	if len(metadata) != 0 {
+		t.Errorf("Expected 0 metadata entries in Legacy mode, got %d", len(metadata))
+	}
+
+	// Should NOT include markers in output
+	if strings.Contains(result, "// dingo:n:") {
+		t.Errorf("Should not include markers in Legacy mode, got:\n%s", result)
+	}
+
+	// Should still generate sum type
+	if !strings.Contains(result, "type ColorTag uint8") {
+		t.Errorf("Expected sum type to be generated even in Legacy mode")
+	}
+
+	// Should still generate mappings
+	if sourceMap == nil {
+		t.Fatal("Expected source map in Legacy mode")
+	}
+}

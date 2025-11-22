@@ -87,13 +87,18 @@ func (l *LambdaProcessor) Name() string {
 	return "lambda"
 }
 
-// ProcessV2 implements Post-AST source map support for lambda transformations
-func (l *LambdaProcessor) ProcessV2(code string, mode PreprocessorMode) (string, []TransformMetadata, *SourceMap, error) {
+// Process is the legacy interface method (implements FeatureProcessor)
+func (l *LambdaProcessor) Process(source []byte) ([]byte, []Mapping, error) {
+	result, _, err := l.ProcessInternal(string(source))
+	return []byte(result), nil, err
+}
+
+// ProcessInternal transforms lambda syntax to Go function literals with metadata emission
+func (l *LambdaProcessor) ProcessInternal(code string) (string, []TransformMetadata, error) {
 	// Reset errors for this processing run
 	l.errors = nil
 
 	var metadata []TransformMetadata
-	var mappings []Mapping
 	counter := 0
 
 	lines := bytes.Split([]byte(code), []byte("\n"))
@@ -102,7 +107,7 @@ func (l *LambdaProcessor) ProcessV2(code string, mode PreprocessorMode) (string,
 	for lineNum, line := range lines {
 		originalLine := line
 
-		// Process based on configured style (no change in logic, just tracking)
+		// Process based on configured style
 		switch l.style {
 		case StyleTypeScript:
 			line = l.processMultiParamArrow(line, lineNum+1)
@@ -114,7 +119,7 @@ func (l *LambdaProcessor) ProcessV2(code string, mode PreprocessorMode) (string,
 		result.Write(line)
 
 		// Add metadata if line was modified
-		if !bytes.Equal(originalLine, line) && (mode == ModePostAST || mode == ModeDual) {
+		if !bytes.Equal(originalLine, line) {
 			marker := fmt.Sprintf("// dingo:l:%d", counter)
 			meta := TransformMetadata{
 				Type:            "lambda",
@@ -129,17 +134,6 @@ func (l *LambdaProcessor) ProcessV2(code string, mode PreprocessorMode) (string,
 			counter++
 		}
 
-		// Add source mapping if line was modified
-		if !bytes.Equal(originalLine, line) && (mode == ModeLegacy || mode == ModeDual) {
-			mappings = append(mappings, Mapping{
-				OriginalLine:    lineNum + 1,
-				GeneratedLine:   lineNum + 1,
-				OriginalColumn:  0,
-				GeneratedColumn: 0,
-				Length:          len(line),
-			})
-		}
-
 		if lineNum < len(lines)-1 {
 			result.WriteByte('\n')
 		}
@@ -147,25 +141,12 @@ func (l *LambdaProcessor) ProcessV2(code string, mode PreprocessorMode) (string,
 
 	// If we collected errors, return them
 	if len(l.errors) > 0 {
-		return "", nil, nil, l.errors[0]
+		return "", nil, l.errors[0]
 	}
 
-	var sourceMap *SourceMap
-	if mode == ModeLegacy || mode == ModeDual {
-		sourceMap = &SourceMap{
-			Version:  1,
-			Mappings: mappings,
-		}
-	}
-
-	return result.String(), metadata, sourceMap, nil
+	return result.String(), metadata, nil
 }
 
-// Process transforms lambda syntax to Go function literals (legacy mode)
-func (l *LambdaProcessor) Process(source []byte) ([]byte, []Mapping, error) {
-	result, _, _, err := l.ProcessV2(string(source), ModeLegacy)
-	return []byte(result), nil, err
-}
 
 // extractBalancedBody extracts lambda body with balanced delimiter tracking
 // Handles nested parentheses, brackets, braces in function calls

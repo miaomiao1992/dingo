@@ -26,22 +26,7 @@ type Preprocessor struct {
 	// Package-wide cache (optional, for unqualified import inference)
 	// When present, enables early bailout optimization and local function exclusion
 	cache *FunctionExclusionCache
-
-	// Source map generation mode (Phase 2: Post-AST support)
-	mode PreprocessorMode
 }
-
-// PreprocessorMode controls which source map generation mode is used
-type PreprocessorMode int
-
-const (
-	// ModeLegacy uses the old source map generation (predictions during preprocessing)
-	ModeLegacy PreprocessorMode = iota
-	// ModePostAST uses the new Post-AST source map generation (Phase 2)
-	ModePostAST
-	// ModeDual generates both legacy mappings and Post-AST metadata (for testing/migration)
-	ModeDual
-)
 
 // TransformMetadata holds metadata about a transformation (NOT final mappings)
 // This is emitted by preprocessors and used by Post-AST generator to match AST nodes
@@ -75,14 +60,14 @@ type FeatureProcessor interface {
 	Process(source []byte) ([]byte, []Mapping, error)
 }
 
-// FeatureProcessorV2 is the new interface that supports Post-AST metadata emission
-// Processors can implement this interface to support the new Post-AST source map generation
+// FeatureProcessorV2 is the new interface that supports metadata emission
+// Processors can implement this interface to support metadata-based source map generation
 type FeatureProcessorV2 interface {
 	FeatureProcessor // Embed the old interface for backward compatibility
 
 	// ProcessV2 transforms the source code and returns a ProcessResult
-	// This method supports both legacy mappings and Post-AST metadata
-	ProcessV2(source []byte, mode PreprocessorMode) (ProcessResult, error)
+	// This method supports metadata generation
+	ProcessV2(source []byte) (ProcessResult, error)
 }
 
 // ImportProvider is an optional interface for processors that need to add imports
@@ -161,23 +146,10 @@ func newWithConfigAndCache(source []byte, cfg *config.Config, cache *FunctionExc
 		oldConfig:  nil, // No longer used
 		processors: processors,
 		cache:      cache,
-		mode:       ModeLegacy, // Default to legacy mode for backward compatibility
 	}
 }
 
-// SetMode sets the source map generation mode
-// This allows switching between legacy and Post-AST modes
-func (p *Preprocessor) SetMode(mode PreprocessorMode) {
-	p.mode = mode
-}
-
-// GetMode returns the current source map generation mode
-func (p *Preprocessor) GetMode() PreprocessorMode {
-	return p.mode
-}
-
-// ProcessWithMetadata runs all feature processors and returns both legacy mappings and Post-AST metadata
-// This is the new unified method that supports all modes (Legacy, PostAST, Dual)
+// ProcessWithMetadata runs all feature processors and returns both legacy mappings and metadata
 func (p *Preprocessor) ProcessWithMetadata() (string, *SourceMap, []TransformMetadata, error) {
 	// Early bailout optimization (GPT-5.1): If cache indicates no unqualified imports
 	// in this package, skip expensive symbol resolution for unqualified import processors
@@ -198,7 +170,7 @@ func (p *Preprocessor) ProcessWithMetadata() (string, *SourceMap, []TransformMet
 		// Check if processor implements V2 interface
 		if procV2, ok := proc.(FeatureProcessorV2); ok {
 			// Use new ProcessV2 method
-			procResult, err := procV2.ProcessV2(result, p.mode)
+			procResult, err := procV2.ProcessV2(result)
 			if err != nil {
 				return "", nil, nil, fmt.Errorf("%s preprocessing failed: %w", proc.Name(), err)
 			}
@@ -206,17 +178,13 @@ func (p *Preprocessor) ProcessWithMetadata() (string, *SourceMap, []TransformMet
 			// Update result
 			result = procResult.Source
 
-			// Merge mappings (if in Legacy or Dual mode)
-			if p.mode == ModeLegacy || p.mode == ModeDual {
-				for _, m := range procResult.Mappings {
-					sourceMap.AddMapping(m)
-				}
+			// Merge mappings (legacy support)
+			for _, m := range procResult.Mappings {
+				sourceMap.AddMapping(m)
 			}
 
-			// Collect metadata (if in PostAST or Dual mode)
-			if p.mode == ModePostAST || p.mode == ModeDual {
-				allMetadata = append(allMetadata, procResult.Metadata...)
-			}
+			// Collect metadata
+			allMetadata = append(allMetadata, procResult.Metadata...)
 		} else {
 			// Fall back to legacy Process method
 			processed, mappings, err := proc.Process(result)
@@ -227,7 +195,7 @@ func (p *Preprocessor) ProcessWithMetadata() (string, *SourceMap, []TransformMet
 			// Update result
 			result = processed
 
-			// Merge mappings (legacy mode always uses mappings)
+			// Merge mappings
 			for _, m := range mappings {
 				sourceMap.AddMapping(m)
 			}
@@ -258,12 +226,10 @@ func (p *Preprocessor) ProcessWithMetadata() (string, *SourceMap, []TransformMet
 			importBlockSize := importBlockEndLine - importInsertLine + 1
 
 			// Adjust all source mappings to account for added import lines
-			if p.mode == ModeLegacy || p.mode == ModeDual {
-				adjustMappingsForImports(sourceMap, importBlockSize, importInsertLine)
-			}
+			adjustMappingsForImports(sourceMap, importBlockSize, importInsertLine)
 
-			// TODO: Adjust metadata line numbers for Post-AST mode
-			// This will be needed when we integrate with Phase 3
+			// TODO: Adjust metadata line numbers
+			// This will be needed when we integrate metadata-based source maps
 		}
 	}
 

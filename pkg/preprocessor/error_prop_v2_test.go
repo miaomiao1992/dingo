@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestErrorPropProcessorV2_Metadata(t *testing.T) {
+func TestErrorPropProcessor_Metadata(t *testing.T) {
 	proc := NewErrorPropProcessor()
 
 	input := `package main
@@ -15,20 +15,20 @@ func readConfig(path string) ([]byte, error) {
 	return data, nil
 }`
 
-	// Test ProcessV2 with PostAST mode
-	result, err := proc.ProcessV2([]byte(input), ModePostAST)
+	// Test Process
+	result, metadata, err := proc.ProcessInternal(input)
 	if err != nil {
-		t.Fatalf("ProcessV2 failed: %v", err)
+		t.Fatalf("Process failed: %v", err)
 	}
 
 	// Verify metadata was generated
-	if len(result.Metadata) != 1 {
-		t.Errorf("Expected 1 metadata entry, got %d", len(result.Metadata))
+	if len(metadata) != 1 {
+		t.Errorf("Expected 1 metadata entry, got %d", len(metadata))
 	}
 
 	// Verify metadata content
-	if len(result.Metadata) > 0 {
-		meta := result.Metadata[0]
+	if len(metadata) > 0 {
+		meta := metadata[0]
 		if meta.Type != "error_prop" {
 			t.Errorf("Expected type 'error_prop', got '%s'", meta.Type)
 		}
@@ -44,13 +44,12 @@ func readConfig(path string) ([]byte, error) {
 	}
 
 	// Verify marker was inserted in generated code
-	output := string(result.Source)
-	if !strings.Contains(output, "// dingo:e:0") {
-		t.Errorf("Expected marker '// dingo:e:0' in output, got:\n%s", output)
+	if !strings.Contains(result, "// dingo:e:0") {
+		t.Errorf("Expected marker '// dingo:e:0' in output, got:\n%s", result)
 	}
 }
 
-func TestErrorPropProcessorV2_UniqueMarkers(t *testing.T) {
+func TestErrorPropProcessor_UniqueMarkers(t *testing.T) {
 	proc := NewErrorPropProcessor()
 
 	input := `package main
@@ -61,73 +60,22 @@ func processFiles(path1, path2 string) error {
 	return nil
 }`
 
-	// Test ProcessV2 with PostAST mode
-	result, err := proc.ProcessV2([]byte(input), ModePostAST)
+	// Test Process
+	result, metadata, err := proc.ProcessInternal(input)
 	if err != nil {
-		t.Fatalf("ProcessV2 failed: %v", err)
+		t.Fatalf("Process failed: %v", err)
 	}
 
 	// Verify two metadata entries
-	if len(result.Metadata) != 2 {
-		t.Errorf("Expected 2 metadata entries, got %d", len(result.Metadata))
+	if len(metadata) != 2 {
+		t.Errorf("Expected 2 metadata entries, got %d", len(metadata))
 	}
 
 	// Verify unique markers
-	output := string(result.Source)
-	if !strings.Contains(output, "// dingo:e:0") {
+	if !strings.Contains(result, "// dingo:e:0") {
 		t.Errorf("Expected marker '// dingo:e:0' in output")
 	}
-	if !strings.Contains(output, "// dingo:e:1") {
+	if !strings.Contains(result, "// dingo:e:1") {
 		t.Errorf("Expected marker '// dingo:e:1' in output")
-	}
-}
-
-func TestErrorPropProcessorV2_DualMode(t *testing.T) {
-	proc := NewErrorPropProcessor()
-
-	input := `package main
-
-func readConfig(path string) ([]byte, error) {
-	let data = os.ReadFile(path)?
-	return data, nil
-}`
-
-	// Test ProcessV2 with Dual mode
-	result, err := proc.ProcessV2([]byte(input), ModeDual)
-	if err != nil {
-		t.Fatalf("ProcessV2 failed: %v", err)
-	}
-
-	// Verify both mappings and metadata were generated
-	if len(result.Mappings) == 0 {
-		t.Error("Expected mappings in Dual mode, got none")
-	}
-	if len(result.Metadata) == 0 {
-		t.Error("Expected metadata in Dual mode, got none")
-	}
-}
-
-func TestErrorPropProcessorV2_LegacyMode(t *testing.T) {
-	proc := NewErrorPropProcessor()
-
-	input := `package main
-
-func readConfig(path string) ([]byte, error) {
-	let data = os.ReadFile(path)?
-	return data, nil
-}`
-
-	// Test ProcessV2 with Legacy mode
-	result, err := proc.ProcessV2([]byte(input), ModeLegacy)
-	if err != nil {
-		t.Fatalf("ProcessV2 failed: %v", err)
-	}
-
-	// Verify only mappings were generated (no metadata)
-	if len(result.Mappings) == 0 {
-		t.Error("Expected mappings in Legacy mode, got none")
-	}
-	if len(result.Metadata) != 0 {
-		t.Errorf("Expected no metadata in Legacy mode, got %d entries", len(result.Metadata))
 	}
 }

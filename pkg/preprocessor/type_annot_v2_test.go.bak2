@@ -13,9 +13,9 @@ func add(x: int, y: int) int {
 	return x + y
 }`
 
-	result, metadata, err := processor.ProcessInternal(input)
+	result, metadata, sourceMap, err := processor.ProcessV2(input, ModePostAST)
 	if err != nil {
-		t.Fatalf("ProcessInternal failed: %v", err)
+		t.Fatalf("ProcessV2 failed: %v", err)
 	}
 
 	// Should have one metadata entry for the function with type annotations
@@ -47,6 +47,10 @@ func add(x: int, y: int) int {
 		t.Errorf("Result should have transformed type annotations")
 	}
 
+	// sourceMap should be nil in PostAST mode
+	if sourceMap != nil {
+		t.Errorf("Expected nil sourceMap in PostAST mode, got %v", sourceMap)
+	}
 }
 
 func TestTypeAnnotProcessor_UniqueMarkers(t *testing.T) {
@@ -61,9 +65,9 @@ func multiply(a: int, b: int) int {
 	return a * b
 }`
 
-	result, metadata, err := processor.ProcessInternal(input)
+	result, metadata, _, err := processor.ProcessV2(input, ModePostAST)
 	if err != nil {
-		t.Fatalf("ProcessInternal failed: %v", err)
+		t.Fatalf("ProcessV2 failed: %v", err)
 	}
 
 	// Should have two metadata entries
@@ -96,9 +100,9 @@ func getValue() -> string {
 	return "hello"
 }`
 
-	result, metadata, err := processor.ProcessInternal(input)
+	result, metadata, _, err := processor.ProcessV2(input, ModePostAST)
 	if err != nil {
-		t.Fatalf("ProcessInternal failed: %v", err)
+		t.Fatalf("ProcessV2 failed: %v", err)
 	}
 
 	// Should have one metadata entry for the return arrow transformation
@@ -117,7 +121,71 @@ func getValue() -> string {
 	}
 }
 
+func TestTypeAnnotProcessor_DualMode(t *testing.T) {
+	processor := NewTypeAnnotProcessor()
+	input := `package main
 
+func add(x: int, y: int) int {
+	return x + y
+}`
+
+	result, metadata, sourceMap, err := processor.ProcessV2(input, ModeDual)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should have metadata
+	if len(metadata) != 1 {
+		t.Fatalf("Expected 1 metadata entry, got %d", len(metadata))
+	}
+
+	// Should have source map
+	if sourceMap == nil {
+		t.Fatal("Expected sourceMap in Dual mode, got nil")
+	}
+	if len(sourceMap.Mappings) == 0 {
+		t.Error("Expected non-empty mappings in Dual mode")
+	}
+
+	// Should contain marker
+	if !strings.Contains(result, "// dingo:t:0") {
+		t.Errorf("Result should contain marker in Dual mode")
+	}
+}
+
+func TestTypeAnnotProcessor_LegacyMode(t *testing.T) {
+	processor := NewTypeAnnotProcessor()
+	input := `package main
+
+func add(x: int, y: int) int {
+	return x + y
+}`
+
+	result, metadata, sourceMap, err := processor.ProcessV2(input, ModeLegacy)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should NOT have metadata in Legacy mode
+	if len(metadata) != 0 {
+		t.Errorf("Expected 0 metadata entries in Legacy mode, got %d", len(metadata))
+	}
+
+	// Should have source map
+	if sourceMap == nil {
+		t.Error("Expected sourceMap in Legacy mode, got nil")
+	}
+
+	// Should NOT contain markers in Legacy mode
+	if strings.Contains(result, "// dingo:t:") {
+		t.Errorf("Result should not contain markers in Legacy mode")
+	}
+
+	// Should still transform type annotations
+	if !strings.Contains(result, "func add(x int, y int)") {
+		t.Errorf("Result should have transformed type annotations even in Legacy mode")
+	}
+}
 
 func TestTypeAnnotProcessor_NoTransformation(t *testing.T) {
 	processor := NewTypeAnnotProcessor()
@@ -127,9 +195,9 @@ func add(x int, y int) int {
 	return x + y
 }`
 
-	result, metadata, err := processor.ProcessInternal(input)
+	result, metadata, _, err := processor.ProcessV2(input, ModePostAST)
 	if err != nil {
-		t.Fatalf("ProcessInternal failed: %v", err)
+		t.Fatalf("ProcessV2 failed: %v", err)
 	}
 
 	// Should have NO metadata since no transformation happened

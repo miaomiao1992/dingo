@@ -39,20 +39,19 @@ func (n *NullCoalesceProcessor) Name() string {
 	return "null_coalescing"
 }
 
-// Process transforms null coalescing operators (legacy mode)
+// Process is the legacy interface method (implements FeatureProcessor)
 func (n *NullCoalesceProcessor) Process(source []byte) ([]byte, []Mapping, error) {
-	result, _, _, err := n.ProcessV2(string(source), ModeLegacy)
+	result, _, err := n.ProcessInternal(string(source))
 	return []byte(result), nil, err
 }
 
-// ProcessV2 implements Post-AST source map support for null coalescing
-func (n *NullCoalesceProcessor) ProcessV2(code string, mode PreprocessorMode) (string, []TransformMetadata, *SourceMap, error) {
+// ProcessInternal transforms null coalescing operators with metadata emission
+func (n *NullCoalesceProcessor) ProcessInternal(code string) (string, []TransformMetadata, error) {
 	// Parse source for type detection
 	n.typeDetector.ParseSource([]byte(code))
 
 	// Reset state
 	n.tmpCounter = 1
-	n.mappings = []Mapping{}
 
 	var metadata []TransformMetadata
 	counter := 0
@@ -66,10 +65,10 @@ func (n *NullCoalesceProcessor) ProcessV2(code string, mode PreprocessorMode) (s
 	for inputLineNum < len(lines) {
 		line := lines[inputLineNum]
 
-		// Process the line
-		transformed, newMappings, meta, err := n.processLineV2(line, inputLineNum+1, outputLineNum, &counter, mode)
+		// Process the line with metadata
+		transformed, meta, err := n.processLineWithMetadata(line, inputLineNum+1, outputLineNum, &counter)
 		if err != nil {
-			return "", nil, nil, fmt.Errorf("line %d: %w", inputLineNum+1, err)
+			return "", nil, fmt.Errorf("line %d: %w", inputLineNum+1, err)
 		}
 
 		output.WriteString(transformed)
@@ -77,18 +76,9 @@ func (n *NullCoalesceProcessor) ProcessV2(code string, mode PreprocessorMode) (s
 			output.WriteByte('\n')
 		}
 
-		// Add mappings (if in Legacy or Dual mode)
-		if mode == ModeLegacy || mode == ModeDual {
-			if len(newMappings) > 0 {
-				n.mappings = append(n.mappings, newMappings...)
-			}
-		}
-
-		// Add metadata (if in PostAST or Dual mode)
-		if mode == ModePostAST || mode == ModeDual {
-			if meta != nil {
-				metadata = append(metadata, *meta)
-			}
+		// Add metadata if generated
+		if meta != nil {
+			metadata = append(metadata, *meta)
 		}
 
 		// Update output line count
@@ -99,15 +89,7 @@ func (n *NullCoalesceProcessor) ProcessV2(code string, mode PreprocessorMode) (s
 		inputLineNum++
 	}
 
-	var sourceMap *SourceMap
-	if mode == ModeLegacy || mode == ModeDual {
-		sourceMap = &SourceMap{
-			Version:  1,
-			Mappings: n.mappings,
-		}
-	}
-
-	return output.String(), metadata, sourceMap, nil
+	return output.String(), metadata, nil
 }
 
 // processLine processes a single line for null coalescing
@@ -180,22 +162,21 @@ func (n *NullCoalesceProcessor) processLine(line string, originalLineNum int, ou
 	return result, allMappings, nil
 }
 
-// processLineV2 processes a single line with metadata generation for Post-AST source maps
-func (n *NullCoalesceProcessor) processLineV2(line string, originalLineNum int, outputLineNum int, markerCounter *int, mode PreprocessorMode) (string, []Mapping, *TransformMetadata, error) {
+// processLineWithMetadata processes a single line with metadata generation
+func (n *NullCoalesceProcessor) processLineWithMetadata(line string, originalLineNum int, outputLineNum int, markerCounter *int) (string, *TransformMetadata, error) {
 	// Check if line contains ?? operator
 	if !strings.Contains(line, "??") {
-		return line, nil, nil, nil
+		return line, nil, nil
 	}
 
 	// Find all ?? expressions in the line
 	result := line
-	var allMappings []Mapping
 	var meta *TransformMetadata
 
 	// Process from right to left to preserve positions
 	positions := findNullCoalescePositions(line)
 	if len(positions) == 0 {
-		return line, nil, nil, nil
+		return line, nil, nil
 	}
 
 	// Only create ONE metadata entry for the FIRST transformation
@@ -239,10 +220,10 @@ func (n *NullCoalesceProcessor) processLineV2(line string, originalLineNum int, 
 		leftType := n.typeDetector.DetectType(strings.TrimSpace(chain[0]))
 
 		// Generate replacement code with marker
-		replacement, mappings := n.generateCoalesceCodeV2(chain, complexity, leftType, markerCounter, mode, originalLineNum, outputLineNum)
+		replacement := n.generateCoalesceCodeWithMarker(chain, complexity, leftType, markerCounter)
 
 		// Create metadata for first transformation only
-		if firstTransform && (mode == ModePostAST || mode == ModeDual) {
+		if firstTransform {
 			marker := fmt.Sprintf("// dingo:c:%d", *markerCounter-1)
 			meta = &TransformMetadata{
 				Type:            "null_coalesce",
@@ -258,15 +239,9 @@ func (n *NullCoalesceProcessor) processLineV2(line string, originalLineNum int, 
 
 		// Replace in result
 		result = result[:fullStart] + replacement + result[fullEnd:]
-
-		// Adjust mappings for replacement location
-		for _, m := range mappings {
-			m.OriginalColumn += fullStart
-			allMappings = append(allMappings, m)
-		}
 	}
 
-	return result, allMappings, meta, nil
+	return result, meta, nil
 }
 
 // nullCoalescePosition represents a ?? operator position in a line
@@ -888,27 +863,110 @@ func (n *NullCoalesceProcessor) generateIIFE(chain []string, leftType TypeKind, 
 	return buf.String(), mappings
 }
 
-// generateCoalesceCodeV2 generates null coalescing code with marker support for ProcessV2
-func (n *NullCoalesceProcessor) generateCoalesceCodeV2(chain []string, complexity CoalesceComplexity, leftType TypeKind, markerCounter *int, mode PreprocessorMode, originalLine int, outputLine int) (string, []Mapping) {
-	var mappings []Mapping
+// generateCoalesceCodeWithMarker generates null coalescing code with marker support
+func (n *NullCoalesceProcessor) generateCoalesceCodeWithMarker(chain []string, complexity CoalesceComplexity, leftType TypeKind, markerCounter *int) string {
 	var result string
 
-	// Generate the coalesce expression
+	// Generate the coalesce expression (simplified - no line tracking needed)
 	switch complexity {
 	case ComplexitySimple:
-		result, mappings = n.generateInline(chain, leftType, originalLine, outputLine)
+		result = n.generateInlineSimple(chain, leftType)
 	case ComplexityComplex:
-		result, mappings = n.generateIIFE(chain, leftType, originalLine, outputLine)
+		result = n.generateIIFESimple(chain, leftType)
 	default:
-		return "", nil
+		return ""
 	}
 
-	// Insert marker if in PostAST or Dual mode
-	if mode == ModePostAST || mode == ModeDual {
-		marker := fmt.Sprintf("// dingo:c:%d\n", *markerCounter)
-		result = marker + result
-		*markerCounter++
+	// Insert marker
+	marker := fmt.Sprintf("// dingo:c:%d\n", *markerCounter)
+	result = marker + result
+	*markerCounter++
+
+	return result
+}
+
+// generateInlineSimple generates inline null coalescing code (simplified, no mapping)
+func (n *NullCoalesceProcessor) generateInlineSimple(chain []string, leftType TypeKind) string {
+	left := strings.TrimSpace(chain[0])
+	right := strings.TrimSpace(chain[1])
+
+	// Detect right operand type
+	rightType := n.typeDetector.DetectType(right)
+
+	// Generate based on left type
+	switch leftType {
+	case TypeOption:
+		if rightType == TypeOption {
+			return fmt.Sprintf("func() __INFER__ { if %s.IsSome() { return %s }; return %s }()", left, left, right)
+		}
+		return fmt.Sprintf("func() __INFER__ { if %s.IsSome() { return __UNWRAP__(%s) }; return %s }()", left, left, right)
+
+	case TypePointer:
+		return fmt.Sprintf("func() __INFER__ { if %s != nil { return *%s }; return %s }()", left, left, right)
+
+	case TypeUnknown, TypeRegular:
+		if rightType == TypeOption {
+			return fmt.Sprintf("func() __INFER__ { if %s.IsSome() { return %s }; return %s }()", left, left, right)
+		}
+		return fmt.Sprintf("func() __INFER__ { if %s.IsSome() { return __UNWRAP__(%s) }; return %s }()", left, left, right)
 	}
 
-	return result, mappings
+	return ""
+}
+
+// generateIIFESimple generates IIFE null coalescing code (simplified, no mapping)
+func (n *NullCoalesceProcessor) generateIIFESimple(chain []string, leftType TypeKind) string {
+	var buf bytes.Buffer
+
+	// Check if all operands are Options
+	allOptions := leftType == TypeOption
+	if allOptions {
+		lastOperand := strings.TrimSpace(chain[len(chain)-1])
+		lastType := n.typeDetector.DetectType(lastOperand)
+		if lastType != TypeOption {
+			allOptions = false
+		}
+	}
+
+	buf.WriteString("func() __INFER__ { ")
+
+	// Generate checks for each element in chain
+	for i := 0; i < len(chain)-1; i++ {
+		operand := strings.TrimSpace(chain[i])
+
+		tmpVar := ""
+		if n.tmpCounter == 1 {
+			tmpVar = "coalesce"
+		} else {
+			tmpVar = fmt.Sprintf("coalesce%d", n.tmpCounter-1)
+		}
+		n.tmpCounter++
+
+		buf.WriteString(fmt.Sprintf("%s := %s; ", tmpVar, operand))
+
+		switch leftType {
+		case TypeOption:
+			if allOptions {
+				buf.WriteString(fmt.Sprintf("if %s.IsSome() { return %s }; ", tmpVar, tmpVar))
+			} else {
+				buf.WriteString(fmt.Sprintf("if %s.IsSome() { return %s.Unwrap() }; ", tmpVar, tmpVar))
+			}
+
+		case TypePointer:
+			buf.WriteString(fmt.Sprintf("if %s != nil { return *%s }; ", tmpVar, tmpVar))
+
+		case TypeUnknown, TypeRegular:
+			if allOptions {
+				buf.WriteString(fmt.Sprintf("if __IS_SOME__(%s) { return %s }; ", tmpVar, tmpVar))
+			} else {
+				buf.WriteString(fmt.Sprintf("if __IS_SOME__(%s) { return __UNWRAP__(%s) }; ", tmpVar, tmpVar))
+			}
+		}
+	}
+
+	// Final fallback
+	lastOperand := strings.TrimSpace(chain[len(chain)-1])
+	buf.WriteString(fmt.Sprintf("return %s }()", lastOperand))
+
+	return buf.String()
 }

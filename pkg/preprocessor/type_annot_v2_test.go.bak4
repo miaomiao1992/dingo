@@ -47,6 +47,10 @@ func add(x: int, y: int) int {
 		t.Errorf("Result should have transformed type annotations")
 	}
 
+	// sourceMap should be nil in PostAST mode
+	if sourceMap != nil {
+		t.Errorf("Expected nil sourceMap in PostAST mode, got %v", sourceMap)
+	}
 }
 
 func TestTypeAnnotProcessor_UniqueMarkers(t *testing.T) {

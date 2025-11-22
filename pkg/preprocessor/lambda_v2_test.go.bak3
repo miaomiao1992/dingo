@@ -75,7 +75,60 @@ let f3 = z => z - 1`
 	}
 }
 
+func TestLambdaProcessor_DualMode(t *testing.T) {
+	p := NewLambdaProcessor()
 
+	code := `let f = x => x * 2`
+
+	result, metadata, err := p.ProcessInternal(code)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should generate BOTH metadata AND mappings
+	if len(metadata) != 1 {
+		t.Errorf("Expected 1 metadata entry, got %d", len(metadata))
+	}
+
+	if sourceMap == nil {
+		t.Fatal("Expected source map, got nil")
+	}
+
+	if len(sourceMap.Mappings) == 0 {
+		t.Error("Expected mappings in source map")
+	}
+
+	// Should include lambda transformation
+	if !strings.Contains(result, "func(x") {
+		t.Errorf("Expected lambda transformation in output")
+	}
+}
+
+func TestLambdaProcessor_LegacyMode(t *testing.T) {
+	p := NewLambdaProcessor()
+
+	code := `let f = x => x * 2`
+
+	result, metadata, err := p.ProcessInternal(code)
+	if err != nil {
+		t.Fatalf("ProcessV2 failed: %v", err)
+	}
+
+	// Should NOT generate metadata
+	if len(metadata) != 0 {
+		t.Errorf("Expected 0 metadata entries in Legacy mode, got %d", len(metadata))
+	}
+
+	// Should still transform lambda
+	if !strings.Contains(result, "func(x") {
+		t.Errorf("Expected lambda to be transformed even in Legacy mode")
+	}
+
+	// Should still generate mappings
+	if sourceMap == nil {
+		t.Fatal("Expected source map in Legacy mode")
+	}
+}
 
 func TestLambdaProcessor_RustStyle(t *testing.T) {
 	p := NewLambdaProcessorWithConfig(nil)

@@ -7,6 +7,7 @@ import (
 	"go/ast"
 	"go/format"
 	"go/importer"
+	"go/parser"
 	"go/printer"
 	"go/token"
 	"go/types"
@@ -15,6 +16,7 @@ import (
 	dingoast "github.com/MadAppGang/dingo/pkg/ast"
 	"github.com/MadAppGang/dingo/pkg/plugin"
 	"github.com/MadAppGang/dingo/pkg/plugin/builtin"
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 // Generator generates Go source code from a Dingo AST
@@ -246,6 +248,20 @@ func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
 		return buf.Bytes(), nil
 	}
 
+	// Step 6.5: Post-AST placeholder resolution
+	// This step runs AFTER go/printer and format.Source to resolve any remaining
+	// __INFER__ placeholders that couldn't be resolved during AST transformation.
+	// It re-parses the generated .go file and uses full go/types to determine
+	// concrete types for generic Option types.
+	resolved, err := g.resolvePostASTPlaceholders(formatted)
+	if err != nil {
+		if g.logger != nil {
+			g.logger.Warn("Post-AST placeholder resolution failed: %v (continuing with unresolved placeholders)", err)
+		}
+		// Continue with unresolved placeholders rather than failing
+		resolved = formatted
+	}
+
 	// Step 7: Inject DINGO:GENERATED markers (post-processing)
 	markersEnabled := true // Default
 	if g.pipeline != nil && g.pipeline.Ctx != nil && g.pipeline.Ctx.Config != nil {
@@ -253,12 +269,12 @@ func (g *Generator) Generate(file *dingoast.File) ([]byte, error) {
 	}
 
 	injector := NewMarkerInjector(markersEnabled)
-	withMarkers, err := injector.InjectMarkers(formatted)
+	withMarkers, err := injector.InjectMarkers(resolved)
 	if err != nil {
 		if g.logger != nil {
 			g.logger.Warn("Failed to inject markers: %v", err)
 		}
-		return formatted, nil // Return without markers on error
+		return resolved, nil // Return without markers on error
 	}
 
 	// Step 8: Remove extra blank lines around dingo source mapping markers
@@ -341,6 +357,246 @@ func (g *Generator) runTypeChecker(file *ast.File) (*types.Info, error) {
 	}
 
 	return info, nil
+}
+
+// resolvePostASTPlaceholders resolves remaining __INFER__ placeholders after go/printer
+//
+// This function is the Post-AST resolution step that runs AFTER go/printer has
+// generated the .go file. It addresses the limitation of the AST-level
+// PlaceholderResolverPlugin which cannot resolve types for generic Option types.
+//
+// The approach:
+// 1. Parse the generated .go file (now it's valid Go code)
+// 2. Run go/types type checker to get complete type information
+// 3. Walk AST to find __INFER__ placeholders
+// 4. Resolve types using the type checker's results
+// 5. Replace placeholders with concrete types
+// 6. Regenerate .go code
+//
+// This enables resolving cases like:
+//   func find() Option { ... }  // Generic Option
+//   result := find() ?? 0        // Generates func() __INFER__ { ... }
+//
+// With Post-AST resolution:
+//   - Parse the .go file
+//   - Type checker knows find() returns Option
+//   - Infer that result should be int (from fallback 0)
+//   - Replace __INFER__ with int
+func (g *Generator) resolvePostASTPlaceholders(goCode []byte) ([]byte, error) {
+	// Count placeholders before resolution
+	placeholderCount := strings.Count(string(goCode), "__INFER__")
+	if placeholderCount == 0 {
+		// No placeholders to resolve
+		return goCode, nil
+	}
+
+	if g.logger != nil {
+		g.logger.Debug("Post-AST resolution: Found %d __INFER__ placeholders", placeholderCount)
+	}
+
+	// Step 1: Parse the generated .go file
+	postFset := token.NewFileSet()
+	postFile, err := parser.ParseFile(postFset, "generated.go", goCode, parser.ParseComments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse generated Go code: %w", err)
+	}
+
+	// Step 2: Run type checker to get complete type information
+	postInfo := &types.Info{
+		Types:      make(map[ast.Expr]types.TypeAndValue),
+		Defs:       make(map[*ast.Ident]types.Object),
+		Uses:       make(map[*ast.Ident]types.Object),
+		Selections: make(map[*ast.SelectorExpr]*types.Selection),
+		Scopes:     make(map[ast.Node]*types.Scope),
+	}
+
+	postConf := &types.Config{
+		Importer: importer.Default(),
+		Error: func(err error) {
+			// Ignore errors - __INFER__ placeholders will cause type errors
+			// We want partial type information even with errors
+			if g.logger != nil {
+				g.logger.Debug("Post-AST type checker: %v", err)
+			}
+		},
+		DisableUnusedImportCheck: true,
+	}
+
+	pkgName := "main"
+	if postFile.Name != nil {
+		pkgName = postFile.Name.Name
+	}
+
+	_, err = postConf.Check(pkgName, postFset, []*ast.File{postFile}, postInfo)
+	// Type checking will fail due to __INFER__ placeholders, but we still get partial info
+	// We don't return the error - we use the partial information we collected
+
+	// Step 3: Walk AST and resolve __INFER__ placeholders
+	replacements := 0
+	modified := astutil.Apply(postFile,
+		func(cursor *astutil.Cursor) bool {
+			n := cursor.Node()
+
+			// Look for func() __INFER__ patterns
+			if funcLit, ok := n.(*ast.FuncLit); ok {
+				if funcLit.Type != nil && funcLit.Type.Results != nil {
+					if len(funcLit.Type.Results.List) == 1 {
+						if ident, ok := funcLit.Type.Results.List[0].Type.(*ast.Ident); ok {
+							if ident.Name == "__INFER__" {
+								// Try to infer the return type from function body
+								resolvedType := g.inferFuncLitReturnTypePostAST(funcLit, postInfo)
+								if resolvedType != "" {
+									// Replace __INFER__ with resolved type
+									newField := &ast.Field{
+										Type: ast.NewIdent(resolvedType),
+									}
+									funcLit.Type.Results.List[0] = newField
+									replacements++
+
+									if g.logger != nil {
+										g.logger.Debug("Post-AST resolution: Resolved func() __INFER__ → func() %s", resolvedType)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Look for __INFER___None() and __INFER___Some(val) patterns
+			if callExpr, ok := n.(*ast.CallExpr); ok {
+				if fun, ok := callExpr.Fun.(*ast.Ident); ok {
+					if fun.Name == "__INFER___None" || fun.Name == "__INFER___Some" {
+						// Try to infer the Option type from context
+						resolvedType := g.inferOptionTypeFromContextPostAST(callExpr, postInfo, cursor)
+						if resolvedType != "" {
+							// Replace __INFER___None() with Option_T_None()
+							if fun.Name == "__INFER___None" {
+								fun.Name = resolvedType + "_None"
+								replacements++
+								if g.logger != nil {
+									g.logger.Debug("Post-AST resolution: Resolved __INFER___None() → %s_None()", resolvedType)
+								}
+							} else {
+								fun.Name = resolvedType + "_Some"
+								replacements++
+								if g.logger != nil {
+									g.logger.Debug("Post-AST resolution: Resolved __INFER___Some() → %s_Some()", resolvedType)
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return true
+		},
+		nil,
+	)
+
+	if replacements == 0 {
+		// No replacements made - return original code
+		if g.logger != nil {
+			g.logger.Warn("Post-AST resolution: Could not resolve any of %d __INFER__ placeholders", placeholderCount)
+		}
+		return goCode, nil
+	}
+
+	if g.logger != nil {
+		g.logger.Debug("Post-AST resolution: Resolved %d/%d placeholders", replacements, placeholderCount)
+	}
+
+	// Step 4: Regenerate .go code with resolved types
+	var buf bytes.Buffer
+	cfg := printer.Config{
+		Mode:     printer.TabIndent | printer.UseSpaces,
+		Tabwidth: 8,
+	}
+
+	if err := cfg.Fprint(&buf, postFset, modified); err != nil {
+		return nil, fmt.Errorf("failed to print resolved AST: %w", err)
+	}
+
+	// Step 5: Format the resolved code
+	resolved, err := format.Source(buf.Bytes())
+	if err != nil {
+		// Return unformatted if formatting fails
+		if g.logger != nil {
+			g.logger.Warn("Post-AST resolution: Failed to format resolved code: %v", err)
+		}
+		return buf.Bytes(), nil
+	}
+
+	return resolved, nil
+}
+
+// inferFuncLitReturnTypePostAST infers the return type of a function literal
+// using full go/types information (Post-AST approach)
+func (g *Generator) inferFuncLitReturnTypePostAST(funcLit *ast.FuncLit, info *types.Info) string {
+	if funcLit.Body == nil || len(funcLit.Body.List) == 0 {
+		return ""
+	}
+
+	// Collect all return types from return statements
+	var returnTypes []string
+
+	ast.Inspect(funcLit.Body, func(n ast.Node) bool {
+		if ret, ok := n.(*ast.ReturnStmt); ok && len(ret.Results) > 0 {
+			result := ret.Results[0]
+
+			// Try to get type from go/types
+			if tv, ok := info.Types[result]; ok && tv.Type != nil {
+				typeName := tv.Type.String()
+				returnTypes = append(returnTypes, typeName)
+				return false
+			}
+
+			// Fallback to AST-based inference
+			switch expr := result.(type) {
+			case *ast.BasicLit:
+				switch expr.Kind {
+				case token.STRING:
+					returnTypes = append(returnTypes, "string")
+				case token.INT:
+					returnTypes = append(returnTypes, "int")
+				case token.FLOAT:
+					returnTypes = append(returnTypes, "float64")
+				}
+			case *ast.Ident:
+				if obj, ok := info.Defs[expr]; ok && obj != nil {
+					if obj.Type() != nil {
+						returnTypes = append(returnTypes, obj.Type().String())
+					}
+				} else if obj, ok := info.Uses[expr]; ok && obj != nil {
+					if obj.Type() != nil {
+						returnTypes = append(returnTypes, obj.Type().String())
+					}
+				}
+			}
+		}
+		return true
+	})
+
+	// Find common type across all return statements
+	if len(returnTypes) > 0 {
+		// Simple approach: use the first type found
+		// More sophisticated: find common base type
+		return returnTypes[0]
+	}
+
+	return ""
+}
+
+// inferOptionTypeFromContextPostAST infers the Option specialization type
+// from the surrounding context using go/types
+func (g *Generator) inferOptionTypeFromContextPostAST(callExpr *ast.CallExpr, info *types.Info, cursor *astutil.Cursor) string {
+	// Look at parent context to determine expected type
+	// This is a simplified implementation - can be enhanced with more context analysis
+
+	// For now, return empty string to indicate no resolution
+	// Full implementation would walk up the AST to find variable declarations,
+	// function parameters, etc. that give us type context
+	return ""
 }
 
 // removeBlankLinesAroundDingoMarkers removes extra blank lines before/after // dingo: markers
