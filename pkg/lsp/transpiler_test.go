@@ -1,6 +1,8 @@
 package lsp
 
 import (
+	"context"
+	"os"
 	"testing"
 
 	"go.lsp.dev/protocol"
@@ -89,9 +91,56 @@ Build failed`
 	}
 }
 
-func TestAutoTranspiler_OnFileChange(t *testing.T) {
-	// Note: This is an integration test that requires 'dingo' binary
-	// For unit test, we'd need to mock exec.Command (not trivial in Go)
-	// Skipping for now - would need exec command mocking
-	t.Skip("Integration test - requires 'dingo' binary")
+func TestAutoTranspiler_TranspileFile(t *testing.T) {
+	// Create temp directory
+	tmpDir := t.TempDir()
+
+	// Create test .dingo file
+	dingoPath := tmpDir + "/test.dingo"
+	dingoSrc := []byte(`package main
+
+func readConfig(path string) ([]byte, error) {
+	let data = os.ReadFile(path)?
+	return data, nil
 }
+`)
+	if err := os.WriteFile(dingoPath, dingoSrc, 0644); err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	// Create auto-transpiler
+	logger := NewTestLogger()
+	cache, _ := NewSourceMapCache(logger)
+	gopls, _ := NewGoplsClient("gopls", logger) // Won't actually use gopls in this test
+
+	at := NewAutoTranspiler(logger, cache, gopls)
+
+	// Transpile
+	ctx := context.Background()
+	err := at.TranspileFile(ctx, dingoPath)
+	if err != nil {
+		t.Fatalf("TranspileFile failed: %v", err)
+	}
+
+	// Verify .go file exists
+	goPath := tmpDir + "/test.go"
+	if _, err := os.Stat(goPath); os.IsNotExist(err) {
+		t.Errorf(".go file not created: %s", goPath)
+	}
+
+	// Verify .go.map file exists
+	mapPath := goPath + ".map"
+	if _, err := os.Stat(mapPath); os.IsNotExist(err) {
+		t.Errorf(".go.map file not created: %s", mapPath)
+	}
+}
+
+// TestLogger for testing
+type TestLogger struct{}
+
+func NewTestLogger() *TestLogger { return &TestLogger{} }
+func (l *TestLogger) Debugf(format string, args ...interface{}) {}
+func (l *TestLogger) Infof(format string, args ...interface{})  {}
+func (l *TestLogger) Warnf(format string, args ...interface{})  {}
+func (l *TestLogger) Errorf(format string, args ...interface{}) {}
+func (l *TestLogger) Fatalf(format string, args ...interface{}) {}

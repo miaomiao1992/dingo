@@ -3,50 +3,52 @@ package lsp
 import (
 	"context"
 	"fmt"
-	"os/exec"
 	"strings"
-	"time"
 
 	"go.lsp.dev/protocol"
+	"github.com/MadAppGang/dingo/pkg/transpiler"
 )
 
 // AutoTranspiler handles automatic transpilation of .dingo files
 type AutoTranspiler struct {
-	logger   Logger
-	mapCache *SourceMapCache
-	gopls    *GoplsClient
+	logger     Logger
+	mapCache   *SourceMapCache
+	gopls      *GoplsClient
+	transpiler *transpiler.Transpiler
 }
 
 // NewAutoTranspiler creates an auto-transpiler instance
 func NewAutoTranspiler(logger Logger, mapCache *SourceMapCache, gopls *GoplsClient) *AutoTranspiler {
+	// Create integrated transpiler
+	t, err := transpiler.New()
+	if err != nil {
+		// Fall back to nil transpiler - will fail at transpile time
+		logger.Warnf("Failed to create transpiler: %v", err)
+	}
+
 	return &AutoTranspiler{
-		logger:   logger,
-		mapCache: mapCache,
-		gopls:    gopls,
+		logger:     logger,
+		mapCache:   mapCache,
+		gopls:      gopls,
+		transpiler: t,
 	}
 }
 
 // TranspileFile transpiles a single .dingo file
 func (at *AutoTranspiler) TranspileFile(ctx context.Context, dingoPath string) error {
-	at.logger.Infof("Transpiling: %s", dingoPath)
+	at.logger.Infof("Auto-rebuild: %s", dingoPath)
 
-	// IMPORTANT FIX I7: Add timeout for transpilation
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	// Execute dingo build
-	cmd := exec.CommandContext(ctx, "dingo", "build", dingoPath)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		// Parse output for error details
-		errMsg := string(output)
-		if errMsg == "" {
-			errMsg = err.Error()
-		}
-		return fmt.Errorf("transpilation failed: %s", strings.TrimSpace(errMsg))
+	if at.transpiler == nil {
+		return fmt.Errorf("transpiler not initialized")
 	}
 
-	at.logger.Infof("Transpilation successful: %s", dingoPath)
+	// Use integrated transpiler library (no shell out!)
+	err := at.transpiler.TranspileFile(dingoPath)
+	if err != nil {
+		return fmt.Errorf("transpilation failed: %w", err)
+	}
+
+	at.logger.Infof("Auto-rebuild complete: %s", dingoPath)
 	return nil
 }
 
